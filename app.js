@@ -742,6 +742,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Declare robotic arm state variables early to prevent initialization errors in resizeTrailCanvas
+    let arm1Base = { x: 0, y: 0 };
+    let arm2Base = { x: 0, y: 0 };
+    let currentLayout = {};
+    
     initBatteryAPI();
 
     function resizeTrailCanvas() {
@@ -787,10 +792,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let caughtTimer = 0;
     let juggleTosses = 0;
     
-    let arm1Base = { x: 0, y: window.innerHeight };
-    let arm2Base = { x: window.innerWidth, y: window.innerHeight };
+    arm1Base = { x: 0, y: window.innerHeight };
+    arm2Base = { x: window.innerWidth, y: window.innerHeight };
     
-    let currentLayout = {
+    currentLayout = {
         b1: { x: -50, y: window.innerHeight - 50 },
         b2: { x: window.innerWidth + 50, y: window.innerHeight - 50 },
         h1Start: { x: -200, y: window.innerHeight + 200 },
