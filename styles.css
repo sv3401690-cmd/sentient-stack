@@ -1650,6 +1650,58 @@ body.boot-complete #particle-canvas {
     transition: opacity 4s ease;
 }
 
+/* Boot Button styling for audio unlock */
+.boot-btn {
+    background: rgba(var(--accent-cyan-rgb), 0.05);
+    border: 1.5px solid var(--accent-cyan);
+    border-radius: 12px;
+    color: var(--accent-cyan);
+    font-family: 'Outfit', monospace;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 3px;
+    padding: 14px 32px;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.95) translateY(10px);
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), 
+                transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), 
+                background-color 0.3s, 
+                box-shadow 0.3s;
+    box-shadow: 0 0 15px rgba(var(--accent-cyan-rgb), 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    margin-top: 25px;
+    text-transform: uppercase;
+}
+
+.boot-btn.show {
+    opacity: 1;
+    pointer-events: auto;
+    transform: scale(1) translateY(0);
+}
+
+.boot-btn:hover {
+    background: rgba(var(--accent-cyan-rgb), 0.18);
+    box-shadow: 
+        0 0 25px rgba(var(--accent-cyan-rgb), 0.35), 
+        0 0 50px rgba(var(--accent-cyan-rgb), 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    text-shadow: 0 0 8px rgba(var(--accent-cyan-rgb), 0.6);
+}
+
+.boot-btn:active {
+    transform: scale(0.97);
+}
+
+/* Hide progress bar when ready */
+.boot-progress-bar.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+}
+
+
 
 
 

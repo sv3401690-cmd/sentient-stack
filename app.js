@@ -91,25 +91,38 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 2200);
     }
 
-    // End boot loader and reveal UI after 4.5s
+    // Handle boot screen transition
+    const bootBtn = document.getElementById('boot-btn');
+    const bootProgressBar = document.getElementById('boot-progress-bar');
+    
+    // When progress bar finishes loading (4.5s)
     setTimeout(() => {
-        if (bootLoader) {
-            bootLoader.classList.add('fade-out');
+        if (bootProgressBar && bootText && bootBtn) {
+            bootProgressBar.classList.add('hidden');
+            bootText.textContent = "NAZ CORE STANDBY - READY TO BOOT";
+            bootBtn.classList.add('show');
             
-            // Trigger soft startup hum
-            playStartupSound();
-            
-            // Trigger visual particle shockwave burst from the core
-            triggerStartupParticleBurst();
-            
-            // Transition body classes
-            document.body.classList.remove('booting');
-            document.body.classList.add('boot-complete');
-            
-            // Clean up loader from DOM once faded
-            setTimeout(() => {
-                bootLoader.remove();
-            }, 1500);
+            // Wait for user interaction to bypass browser autoplay blocks
+            bootBtn.addEventListener('click', () => {
+                if (bootLoader) {
+                    bootLoader.classList.add('fade-out');
+                    
+                    // Trigger cinematic sound (guaranteed to work since it's a click)
+                    playStartupSound();
+                    
+                    // Trigger visual particle shockwave burst from the core
+                    triggerStartupParticleBurst();
+                    
+                    // Transition body classes
+                    document.body.classList.remove('booting');
+                    document.body.classList.add('boot-complete');
+                    
+                    // Clean up loader from DOM once faded
+                    setTimeout(() => {
+                        bootLoader.remove();
+                    }, 1500);
+                }
+            });
         }
     }, 4500);
 
