@@ -32,30 +32,80 @@ document.addEventListener('DOMContentLoaded', () => {
             const audioCtx = new AudioContext();
             const now = audioCtx.currentTime;
             
-            // Soft atmospheric low-frequency whoosh (very subtle, cinematic)
-            const osc = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            const filter = audioCtx.createBiquadFilter();
+            // --- 1. DEEP CINEMATIC WHOOSH (Sub-Bass) ---
+            const subOsc = audioCtx.createOscillator();
+            const subGain = audioCtx.createGain();
+            const subFilter = audioCtx.createBiquadFilter();
             
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(140, now);
-            osc.frequency.exponentialRampToValueAtTime(55, now + 1.8);
+            subOsc.type = 'sine';
+            subOsc.frequency.setValueAtTime(160, now);
+            subOsc.frequency.exponentialRampToValueAtTime(45, now + 2.0);
             
-            filter.type = 'lowpass';
-            filter.frequency.setValueAtTime(200, now);
-            filter.frequency.exponentialRampToValueAtTime(80, now + 1.8);
-            filter.Q.setValueAtTime(1, now);
+            subFilter.type = 'lowpass';
+            subFilter.frequency.setValueAtTime(250, now);
+            subFilter.frequency.exponentialRampToValueAtTime(60, now + 2.0);
             
-            gainNode.gain.setValueAtTime(0, now);
-            gainNode.gain.linearRampToValueAtTime(0.2, now + 0.3); // very soft
-            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 1.8);
+            subGain.gain.setValueAtTime(0, now);
+            subGain.gain.linearRampToValueAtTime(0.5, now + 0.4); // clearly audible sub weight
+            subGain.gain.exponentialRampToValueAtTime(0.001, now + 2.0);
             
-            osc.connect(filter);
-            filter.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
+            subOsc.connect(subFilter);
+            subFilter.connect(subGain);
+            subGain.connect(audioCtx.destination);
             
-            osc.start(now);
-            osc.stop(now + 2.0);
+            // --- 2. FUTURISTIC CHARGE UP (Sweep) ---
+            const sweepOsc = audioCtx.createOscillator();
+            const sweepGain = audioCtx.createGain();
+            
+            sweepOsc.type = 'triangle';
+            sweepOsc.frequency.setValueAtTime(200, now);
+            sweepOsc.frequency.exponentialRampToValueAtTime(880, now + 0.5); // rapid rise
+            
+            sweepGain.gain.setValueAtTime(0, now);
+            sweepGain.gain.linearRampToValueAtTime(0.15, now + 0.1);
+            sweepGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+            
+            sweepOsc.connect(sweepGain);
+            sweepGain.connect(audioCtx.destination);
+            
+            // --- 3. PREMIUM RESONANT CHIME CHORD (Glassy Harmonics) ---
+            // We use two oscillators to create a beautiful open-fifth chord (A4 and E5) with high shimmer
+            const frequencies = [440.00, 659.25, 880.00, 1318.51];
+            const gains = [0.25, 0.20, 0.15, 0.10]; // staggered volume
+            
+            frequencies.forEach((freq, index) => {
+                const chimeOsc = audioCtx.createOscillator();
+                const chimeGain = audioCtx.createGain();
+                const chimeFilter = audioCtx.createBiquadFilter();
+                
+                chimeOsc.type = 'sine';
+                chimeOsc.frequency.setValueAtTime(freq, now + 0.3); // slight delay after sweep
+                
+                chimeFilter.type = 'bandpass';
+                chimeFilter.frequency.setValueAtTime(freq * 1.5, now + 0.3);
+                chimeFilter.frequency.exponentialRampToValueAtTime(freq, now + 2.2);
+                chimeFilter.Q.setValueAtTime(1.5, now);
+                
+                chimeGain.gain.setValueAtTime(0, now);
+                // Ramp up as the sweep finishes
+                chimeGain.gain.setValueAtTime(0, now + 0.3);
+                chimeGain.gain.linearRampToValueAtTime(gains[index] * 1.5, now + 0.6);
+                chimeGain.gain.exponentialRampToValueAtTime(0.001, now + 2.5); // long resonance
+                
+                chimeOsc.connect(chimeFilter);
+                chimeFilter.connect(chimeGain);
+                chimeGain.connect(audioCtx.destination);
+                
+                chimeOsc.start(now);
+                chimeOsc.stop(now + 2.7);
+            });
+            
+            subOsc.start(now);
+            subOsc.stop(now + 2.2);
+            
+            sweepOsc.start(now);
+            sweepOsc.stop(now + 0.6);
+            
         } catch (e) {
             console.log('Audio startup hum blocked or failed:', e);
         }
