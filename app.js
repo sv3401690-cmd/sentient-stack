@@ -718,6 +718,19 @@ document.addEventListener('DOMContentLoaded', () => {
     function resizeTrailCanvas() {
         trailCanvas.width = window.innerWidth;
         trailCanvas.height = window.innerHeight;
+        
+        // Recalculate arm bases and layouts on resize to prevent positioning glitches
+        arm1Base = { x: -50, y: window.innerHeight - 50 };
+        arm2Base = { x: window.innerWidth + 50, y: window.innerHeight - 50 };
+        
+        currentLayout = {
+            b1: { x: -50, y: window.innerHeight - 50 },
+            b2: { x: window.innerWidth + 50, y: window.innerHeight - 50 },
+            h1Start: { x: -200, y: window.innerHeight + 200 },
+            h2Start: { x: window.innerWidth + 200, y: window.innerHeight + 200 },
+            h2Rest: { x: window.innerWidth - 180, y: window.innerHeight - 250 },
+            h1Rest: { x: 180, y: window.innerHeight - 250 }
+        };
     }
     window.addEventListener('resize', resizeTrailCanvas);
     resizeTrailCanvas();
@@ -903,149 +916,125 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const time = Date.now() * 0.001;
         
-        // Draw fluid flowing particle streams along the limb segments
-        const drawSwarmSegment = (x1, y1, x2, y2, particleCount, colorRGB, isForearm) => {
+        // Draw sleek glowing cybernetic energy beam segments
+        const drawBeamSegment = (x1, y1, x2, y2, colorRGB) => {
+            // Outer translucent glow tube
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.strokeStyle = `rgba(${colorRGB}, 0.18)`;
+            ctx.lineWidth = 22;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+
+            // Middle glowing beam
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.strokeStyle = `rgba(${colorRGB}, 0.55)`;
+            ctx.lineWidth = 8;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+
+            // Inner bright core wireframe line
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2.2;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+            
+            // Moving energy pulses along the beam
             const dx = x2 - x1;
             const dy = y2 - y1;
-            const length = Math.hypot(dx, dy);
+            const len = Math.hypot(dx, dy);
+            const pulseT = (time * 1.5) % 1.0;
+            const px = x1 + dx * pulseT;
+            const py = y1 + dy * pulseT;
             
-            const nx = -dy / length;
-            const ny = dx / length;
-            
-            for (let i = 0; i < particleCount; i++) {
-                // Flowing particles along the segment
-                const speedMult = isForearm ? 0.25 : 0.18;
-                const flowT = (i / particleCount + time * speedMult) % 1.0;
-                
-                const baseX = x1 + dx * flowT;
-                const baseY = y1 + dy * flowT;
-                
-                // Spiraling 3D cylinder shape along the line segment
-                const frequency = isForearm ? 10 : 8;
-                const angle = flowT * Math.PI * frequency + time * 5 + i * 0.8;
-                
-                // Taper the swarm near joints, making it organic and muscle-like
-                const taper = Math.sin(flowT * Math.PI);
-                const radius = (taper * 14 + 3) * (1 + Math.sin(time * 3 + i) * 0.22);
-                
-                const px = baseX + nx * Math.cos(angle) * radius;
-                const py = baseY + ny * Math.sin(angle) * radius;
-                
-                // Jittery orbital noise for nano-swarm look
-                const jitterX = Math.sin(time * 10 + i * 7) * 1.5;
-                const jitterY = Math.cos(time * 10 + i * 3) * 1.5;
-                
-                const size = (Math.sin(i * 4.5) * 1.2 + 2.0);
-                const opacity = (Math.sin(i * 8.9) * 0.35 + 0.65) * taper;
-                
-                ctx.beginPath();
-                ctx.arc(px + jitterX, py + jitterY, size, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(${colorRGB}, ${opacity})`;
-                ctx.fill();
-                
-                // Sparkling core highlight particles
-                if (i % 8 === 0) {
-                    ctx.beginPath();
-                    ctx.arc(px + jitterX, py + jitterY, size * 2.2, 0, Math.PI * 2);
-                    ctx.fillStyle = `rgba(${colorRGB}, ${opacity * 0.3})`;
-                    ctx.fill();
-                }
-            }
-        };
-
-        // Draw upper arm particle swarm (Shoulder to Elbow)
-        drawSwarmSegment(sx, sy, ex, ey, 65, primaryColor, false);
-        // Draw forearm particle swarm (Elbow to Wrist)
-        drawSwarmSegment(ex, ey, wx, wy, 85, primaryColor, true);
-        
-        // Glowing joint swarm cores (Nebula-like orbital rings)
-        const drawJointSwarm = (cx, cy, baseRadius, particleCount, colorRGB) => {
-            // Core dense center glow
             ctx.beginPath();
-            let grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, baseRadius * 1.8);
-            grad.addColorStop(0, `rgba(${colorRGB}, 0.5)`);
-            grad.addColorStop(0.5, `rgba(${colorRGB}, 0.15)`);
-            grad.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = grad;
-            ctx.arc(cx, cy, baseRadius * 1.8, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Swarming orbiters
-            for (let i = 0; i < particleCount; i++) {
-                const angle = (i / particleCount) * Math.PI * 2 + time * 3.5 + Math.sin(time + i) * 0.5;
-                const orbitRadius = baseRadius + Math.cos(time * 2 + i * 3) * 3;
-                const px = cx + Math.cos(angle) * orbitRadius;
-                const py = cy + Math.sin(angle) * orbitRadius;
-                
-                const size = Math.random() * 1.2 + 1.2;
-                ctx.beginPath();
-                ctx.arc(px, py, size, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(${colorRGB}, 0.95)`;
-                ctx.fill();
-            }
-            
-            // White core spark
-            ctx.beginPath();
-            ctx.arc(cx, cy, 3.2, 0, Math.PI * 2);
+            ctx.arc(px, py, 5, 0, Math.PI * 2);
             ctx.fillStyle = '#ffffff';
             ctx.fill();
         };
 
-        drawJointSwarm(sx, sy, 13, 14, secondaryColor);
-        drawJointSwarm(ex, ey, 10, 10, secondaryColor);
-        drawJointSwarm(wx, wy, 8, 8, secondaryColor);
+        // Draw upper arm beam (Shoulder to Elbow)
+        drawBeamSegment(sx, sy, ex, ey, primaryColor);
+        // Draw forearm beam (Elbow to Wrist)
+        drawBeamSegment(ex, ey, wx, wy, primaryColor);
         
-        // Fluid, shimmering nano-swarm finger streams
-        const wristAngle = Math.atan2(wy - ey, wx - ex);
-        const tendrilLength = 36;
-        
-        // 4 streams of swirling stardust tendrils
-        const tendrilOffsets = [-fingerAngle * 1.3, -fingerAngle * 0.4, fingerAngle * 0.4, fingerAngle * 1.3];
-        
-        tendrilOffsets.forEach((offset, tIndex) => {
-            const baseAngle = wristAngle + offset;
-            const pointsCount = 14;
+        // Glowing joint cores (circular reactor joints with clean concentric rings)
+        const drawSolidJoint = (cx, cy, radius, colorRGB) => {
+            // Outer tech ring
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius * 1.5, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(${colorRGB}, 0.35)`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
             
-            for (let i = 0; i < pointsCount; i++) {
-                const t = i / pointsCount;
-                const distAlong = tendrilLength * t;
-                
-                // Sinusoidal wiggle along the stream
-                const wave = Math.sin(time * 6.5 + tIndex * 2.5 + t * 4.5) * 0.16;
-                const curAngle = baseAngle + wave;
-                
-                // Theoretical position
-                const tx = wx + Math.cos(curAngle) * distAlong;
-                const ty = wy + Math.sin(curAngle) * distAlong;
-                
-                // Micro-spirals for particle fluid look
-                const spiralAngle = time * 9 + i * 0.9 + tIndex * Math.PI;
-                const spiralRadius = (1.0 - t) * 4.5 + 1.0;
-                
-                const px = tx + Math.cos(spiralAngle) * spiralRadius;
-                const py = ty + Math.sin(spiralAngle) * spiralRadius;
-                
-                const size = (1.3 - t * 0.4) * 2.0;
-                const opacity = (1.0 - t * 0.3) * (0.6 + Math.sin(time * 4 + i) * 0.3);
-                
-                ctx.beginPath();
-                ctx.arc(px, py, size, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(${primaryColor}, ${opacity})`;
-                ctx.fill();
-                
-                // Tip sparks that flare dynamically
-                if (i === pointsCount - 1) {
-                    ctx.beginPath();
-                    ctx.arc(px, py, 3.0, 0, Math.PI * 2);
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fill();
-                    
-                    ctx.beginPath();
-                    ctx.arc(px, py, 7.5, 0, Math.PI * 2);
-                    ctx.fillStyle = `rgba(${secondaryColor}, 0.55)`;
-                    ctx.fill();
-                }
-            }
+            // Inner solid glowing circle
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${colorRGB}, 0.25)`;
+            ctx.strokeStyle = `rgb(${colorRGB})`;
+            ctx.lineWidth = 1.8;
+            ctx.fill();
+            ctx.stroke();
+            
+            // Center spark
+            ctx.beginPath();
+            ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+        };
+
+        drawSolidJoint(sx, sy, 12, secondaryColor);
+        drawSolidJoint(ex, ey, 9, secondaryColor);
+        drawSolidJoint(wx, wy, 7, secondaryColor);
+        
+        // Sleek, mechanical 2-segment cybernetic claws
+        const wristAngle = Math.atan2(wy - ey, wx - ex);
+        const fingerLength = 32;
+        
+        // 4 mechanical claw fingers
+        const tendrilOffsets = [-fingerAngle * 1.2, -fingerAngle * 0.4, fingerAngle * 0.4, fingerAngle * 1.2];
+        
+        tendrilOffsets.forEach(offset => {
+            const angle = wristAngle + offset;
+            
+            // Draw segment 1 (knuckle)
+            const knuckleX = wx + Math.cos(angle) * (fingerLength * 0.55);
+            const knuckleY = wy + Math.sin(angle) * (fingerLength * 0.55);
+            
+            // Draw segment 2 (curling claw tip)
+            const tipAngle = angle + (offset > 0 ? -0.22 : 0.22) * (1.2 - fingerAngle);
+            const tipX = knuckleX + Math.cos(tipAngle) * (fingerLength * 0.5);
+            const tipY = knuckleY + Math.sin(tipAngle) * (fingerLength * 0.5);
+            
+            // Draw first knuckle segment
+            ctx.beginPath();
+            ctx.moveTo(wx, wy);
+            ctx.lineTo(knuckleX, knuckleY);
+            ctx.strokeStyle = `rgb(${primaryColor})`;
+            ctx.lineWidth = 3.5;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+            
+            // Draw second tip segment
+            ctx.beginPath();
+            ctx.moveTo(knuckleX, knuckleY);
+            ctx.lineTo(tipX, tipY);
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2.2;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+            
+            // Glowing claw tips
+            ctx.beginPath();
+            ctx.arc(tipX, tipY, 3.5, 0, Math.PI * 2);
+            ctx.fillStyle = `rgb(${primaryColor})`;
+            ctx.fill();
         });
     }
 
