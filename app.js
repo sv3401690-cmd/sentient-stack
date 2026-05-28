@@ -118,39 +118,65 @@ document.addEventListener('DOMContentLoaded', () => {
             const audioCtx = new AudioContext();
             const now = audioCtx.currentTime;
 
-            const osc = audioCtx.createOscillator();
+            // --- Thick Detuned Gritty Alarm (Chorus effect) ---
+            const osc1 = audioCtx.createOscillator();
+            const osc2 = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
             const filter = audioCtx.createBiquadFilter();
 
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(300, now);
+            osc1.type = 'sawtooth';
+            osc2.type = 'sawtooth';
             
-            // Sweep frequency back and forth
-            for (let i = 0; i < 12; i++) {
-                const t = now + i * 0.4;
-                osc.frequency.linearRampToValueAtTime(600, t + 0.2);
-                osc.frequency.linearRampToValueAtTime(200, t + 0.4);
+            // Detune them by 12 cents for thick gritty sound
+            osc1.detune.setValueAtTime(-12, now);
+            osc2.detune.setValueAtTime(12, now);
+
+            // Resonant lowpass filter sweep
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(200, now);
+            filter.Q.setValueAtTime(8, now);
+
+            // Modulate filter frequency and oscillator frequency over time (pulsating alarm)
+            for (let i = 0; i < 15; i++) {
+                const t = now + i * 0.35;
+                osc1.frequency.exponentialRampToValueAtTime(320, t + 0.15);
+                osc1.frequency.exponentialRampToValueAtTime(180, t + 0.35);
+                osc2.frequency.exponentialRampToValueAtTime(324, t + 0.15);
+                osc2.frequency.exponentialRampToValueAtTime(184, t + 0.35);
+
+                filter.frequency.exponentialRampToValueAtTime(1500, t + 0.15);
+                filter.frequency.exponentialRampToValueAtTime(300, t + 0.35);
             }
 
-            filter.type = 'bandpass';
-            filter.frequency.setValueAtTime(500, now);
-            filter.Q.setValueAtTime(3, now);
-            for (let i = 0; i < 12; i++) {
-                const t = now + i * 0.4;
-                filter.frequency.exponentialRampToValueAtTime(1200, t + 0.2);
-                filter.frequency.exponentialRampToValueAtTime(300, t + 0.4);
-            }
+            // Heavy industrial sub-bass drone
+            const subOsc = audioCtx.createOscillator();
+            const subGain = audioCtx.createGain();
+            subOsc.type = 'sine';
+            subOsc.frequency.setValueAtTime(55, now); // low G
+            
+            subGain.gain.setValueAtTime(0, now);
+            subGain.gain.linearRampToValueAtTime(0.4, now + 0.1);
+            subGain.gain.exponentialRampToValueAtTime(0.001, now + 4.8);
 
             gainNode.gain.setValueAtTime(0, now);
-            gainNode.gain.linearRampToValueAtTime(0.25, now + 0.05);
+            gainNode.gain.linearRampToValueAtTime(0.2, now + 0.05);
             gainNode.gain.exponentialRampToValueAtTime(0.001, now + 4.8);
 
-            osc.connect(filter);
+            osc1.connect(filter);
+            osc2.connect(filter);
             filter.connect(gainNode);
             gainNode.connect(audioCtx.destination);
 
-            osc.start(now);
-            osc.stop(now + 4.8);
+            subOsc.connect(subGain);
+            subGain.connect(audioCtx.destination);
+
+            osc1.start(now);
+            osc2.start(now);
+            subOsc.start(now);
+
+            osc1.stop(now + 4.8);
+            osc2.stop(now + 4.8);
+            subOsc.stop(now + 4.8);
         } catch(e) {
             console.warn("Failed to play alarm: ", e);
         }
@@ -168,16 +194,25 @@ document.addEventListener('DOMContentLoaded', () => {
             const filter = audioCtx.createBiquadFilter();
             
             osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(800, now);
-            osc.frequency.exponentialRampToValueAtTime(2000, now + duration * 0.5);
-            osc.frequency.exponentialRampToValueAtTime(400, now + duration);
+            osc.frequency.setValueAtTime(2500, now);
+            osc.frequency.exponentialRampToValueAtTime(120, now + duration);
+
+            // Modulating frequency to create a sci-fi vibrato/wobble effect
+            const modOsc = audioCtx.createOscillator();
+            const modGain = audioCtx.createGain();
+            modOsc.frequency.setValueAtTime(60, now); // 60Hz LFO
+            modGain.gain.setValueAtTime(150, now);
             
-            filter.type = 'peaking';
-            filter.frequency.setValueAtTime(1000, now);
-            filter.Q.setValueAtTime(10, now);
+            modOsc.connect(modGain);
+            modGain.connect(osc.frequency);
+
+            filter.type = 'bandpass';
+            filter.frequency.setValueAtTime(1800, now);
+            filter.frequency.exponentialRampToValueAtTime(250, now + duration);
+            filter.Q.setValueAtTime(12, now);
             
-            gainNode.gain.setValueAtTime(0.12, now);
-            gainNode.gain.linearRampToValueAtTime(0.18, now + 0.1);
+            gainNode.gain.setValueAtTime(0, now);
+            gainNode.gain.linearRampToValueAtTime(0.22, now + 0.05);
             gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration);
             
             osc.connect(filter);
@@ -185,7 +220,9 @@ document.addEventListener('DOMContentLoaded', () => {
             gainNode.connect(audioCtx.destination);
             
             osc.start(now);
+            modOsc.start(now);
             osc.stop(now + duration);
+            modOsc.stop(now + duration);
         } catch(e) {
             console.warn(e);
         }
@@ -198,24 +235,50 @@ document.addEventListener('DOMContentLoaded', () => {
             const audioCtx = new AudioContext();
             const now = audioCtx.currentTime;
             
-            // Sub-bass boom
-            const osc = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(120, now);
-            osc.frequency.exponentialRampToValueAtTime(40, now + 0.8);
+            // 1. Massive Sub-Bass Exhaust Boom
+            const subOsc = audioCtx.createOscillator();
+            const subGain = audioCtx.createGain();
+            subOsc.type = 'sine';
+            subOsc.frequency.setValueAtTime(90, now);
+            subOsc.frequency.exponentialRampToValueAtTime(30, now + 1.2);
             
-            gainNode.gain.setValueAtTime(0.55, now);
-            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+            subGain.gain.setValueAtTime(0.7, now);
+            subGain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
             
-            osc.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
+            subOsc.connect(subGain);
+            subGain.connect(audioCtx.destination);
+            subOsc.start(now);
+            subOsc.stop(now + 1.2);
             
-            osc.start(now);
-            osc.stop(now + 0.8);
+            // 2. Gritty Metal Clang Transient
+            const fmCarrier = audioCtx.createOscillator();
+            const fmModulator = audioCtx.createOscillator();
+            const fmModGain = audioCtx.createGain();
+            const fmGain = audioCtx.createGain();
             
-            // White-noise burst
-            const bufferSize = audioCtx.sampleRate * 0.5;
+            fmCarrier.type = 'triangle';
+            fmCarrier.frequency.setValueAtTime(450, now);
+            fmCarrier.frequency.exponentialRampToValueAtTime(110, now + 0.6);
+            
+            fmModulator.type = 'sawtooth';
+            fmModulator.frequency.setValueAtTime(220, now);
+            fmModGain.gain.setValueAtTime(350, now);
+            
+            fmGain.gain.setValueAtTime(0.35, now);
+            fmGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+            
+            fmModulator.connect(fmModGain);
+            fmModGain.connect(fmCarrier.frequency);
+            fmCarrier.connect(fmGain);
+            fmGain.connect(audioCtx.destination);
+            
+            fmCarrier.start(now);
+            fmModulator.start(now);
+            fmCarrier.stop(now + 0.6);
+            fmModulator.stop(now + 0.6);
+
+            // 3. Thick Low-Pass Noise Burst (Air Hiss / Explosion debris)
+            const bufferSize = audioCtx.sampleRate * 0.8;
             const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
             const data = buffer.getChannelData(0);
             for (let i = 0; i < bufferSize; i++) {
@@ -227,19 +290,20 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const noiseFilter = audioCtx.createBiquadFilter();
             noiseFilter.type = 'lowpass';
-            noiseFilter.frequency.setValueAtTime(1000, now);
-            noiseFilter.frequency.exponentialRampToValueAtTime(100, now + 0.5);
+            noiseFilter.frequency.setValueAtTime(600, now);
+            noiseFilter.frequency.exponentialRampToValueAtTime(80, now + 0.7);
+            noiseFilter.Q.setValueAtTime(4, now);
             
             const noiseGain = audioCtx.createGain();
-            noiseGain.gain.setValueAtTime(0.25, now);
-            noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+            noiseGain.gain.setValueAtTime(0.35, now);
+            noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
             
             noiseSource.connect(noiseFilter);
             noiseFilter.connect(noiseGain);
             noiseGain.connect(audioCtx.destination);
             
             noiseSource.start(now);
-            noiseSource.stop(now + 0.5);
+            noiseSource.stop(now + 0.8);
         } catch(e) {
             console.warn(e);
         }
