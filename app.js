@@ -117,66 +117,112 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!AudioContext) return;
             const audioCtx = new AudioContext();
             const now = audioCtx.currentTime;
+            const duration = 5.5;
 
-            // --- Thick Detuned Gritty Alarm (Chorus effect) ---
+            // Master compressor to glue all layers
+            const compressor = audioCtx.createDynamicsCompressor();
+            compressor.threshold.setValueAtTime(-24, now);
+            compressor.knee.setValueAtTime(12, now);
+            compressor.ratio.setValueAtTime(8, now);
+            compressor.attack.setValueAtTime(0.003, now);
+            compressor.release.setValueAtTime(0.15, now);
+            compressor.connect(audioCtx.destination);
+
+            // Waveshaper distortion for grit
+            const distortion = audioCtx.createWaveShaper();
+            const curveLen = 44100;
+            const curve = new Float32Array(curveLen);
+            for (let i = 0; i < curveLen; i++) {
+                const x = (i * 2) / curveLen - 1;
+                curve[i] = (Math.PI + 200) * x / (Math.PI + 200 * Math.abs(x));
+            }
+            distortion.curve = curve;
+            distortion.oversample = '4x';
+            distortion.connect(compressor);
+
+            // --- Layer 1: Deep detuned dual-sawtooth alarm (slow menacing pulsation) ---
             const osc1 = audioCtx.createOscillator();
             const osc2 = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            const filter = audioCtx.createBiquadFilter();
+            const alarmGain = audioCtx.createGain();
+            const alarmFilter = audioCtx.createBiquadFilter();
 
             osc1.type = 'sawtooth';
             osc2.type = 'sawtooth';
-            
-            // Detune them by 12 cents for thick gritty sound
-            osc1.detune.setValueAtTime(-12, now);
-            osc2.detune.setValueAtTime(12, now);
+            osc1.detune.setValueAtTime(-25, now);
+            osc2.detune.setValueAtTime(25, now);
 
-            // Resonant lowpass filter sweep
-            filter.type = 'lowpass';
-            filter.frequency.setValueAtTime(200, now);
-            filter.Q.setValueAtTime(8, now);
+            alarmFilter.type = 'lowpass';
+            alarmFilter.frequency.setValueAtTime(150, now);
+            alarmFilter.Q.setValueAtTime(6, now);
 
-            // Modulate filter frequency and oscillator frequency over time (pulsating alarm)
-            for (let i = 0; i < 15; i++) {
-                const t = now + i * 0.35;
-                osc1.frequency.exponentialRampToValueAtTime(320, t + 0.15);
-                osc1.frequency.exponentialRampToValueAtTime(180, t + 0.35);
-                osc2.frequency.exponentialRampToValueAtTime(324, t + 0.15);
-                osc2.frequency.exponentialRampToValueAtTime(184, t + 0.35);
+            // Slow, heavy pulsation (0.7s per cycle instead of 0.35)
+            for (let i = 0; i < 8; i++) {
+                const t = now + i * 0.7;
+                osc1.frequency.setValueAtTime(140, t);
+                osc1.frequency.exponentialRampToValueAtTime(220, t + 0.3);
+                osc1.frequency.exponentialRampToValueAtTime(140, t + 0.7);
+                osc2.frequency.setValueAtTime(143, t);
+                osc2.frequency.exponentialRampToValueAtTime(224, t + 0.3);
+                osc2.frequency.exponentialRampToValueAtTime(143, t + 0.7);
 
-                filter.frequency.exponentialRampToValueAtTime(1500, t + 0.15);
-                filter.frequency.exponentialRampToValueAtTime(300, t + 0.35);
+                alarmFilter.frequency.exponentialRampToValueAtTime(900, t + 0.3);
+                alarmFilter.frequency.exponentialRampToValueAtTime(180, t + 0.7);
             }
 
-            // Heavy industrial sub-bass drone
+            alarmGain.gain.setValueAtTime(0, now);
+            alarmGain.gain.linearRampToValueAtTime(0.12, now + 0.08);
+            alarmGain.gain.setValueAtTime(0.12, now + duration - 1.2);
+            alarmGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+            osc1.connect(alarmFilter);
+            osc2.connect(alarmFilter);
+            alarmFilter.connect(alarmGain);
+            alarmGain.connect(distortion);
+
+            osc1.start(now); osc2.start(now);
+            osc1.stop(now + duration); osc2.stop(now + duration);
+
+            // --- Layer 2: Abyssal sub-bass drone (45Hz) ---
             const subOsc = audioCtx.createOscillator();
             const subGain = audioCtx.createGain();
             subOsc.type = 'sine';
-            subOsc.frequency.setValueAtTime(55, now); // low G
-            
+            subOsc.frequency.setValueAtTime(45, now);
+            subOsc.frequency.linearRampToValueAtTime(38, now + duration);
+
             subGain.gain.setValueAtTime(0, now);
-            subGain.gain.linearRampToValueAtTime(0.4, now + 0.1);
-            subGain.gain.exponentialRampToValueAtTime(0.001, now + 4.8);
-
-            gainNode.gain.setValueAtTime(0, now);
-            gainNode.gain.linearRampToValueAtTime(0.2, now + 0.05);
-            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 4.8);
-
-            osc1.connect(filter);
-            osc2.connect(filter);
-            filter.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
+            subGain.gain.linearRampToValueAtTime(0.45, now + 0.3);
+            subGain.gain.setValueAtTime(0.45, now + duration - 1.5);
+            subGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
             subOsc.connect(subGain);
-            subGain.connect(audioCtx.destination);
+            subGain.connect(compressor);
+            subOsc.start(now); subOsc.stop(now + duration);
 
-            osc1.start(now);
-            osc2.start(now);
-            subOsc.start(now);
+            // --- Layer 3: Low rumble noise bed ---
+            const noiseLen = audioCtx.sampleRate * duration;
+            const noiseBuf = audioCtx.createBuffer(1, noiseLen, audioCtx.sampleRate);
+            const noiseData = noiseBuf.getChannelData(0);
+            for (let i = 0; i < noiseLen; i++) {
+                noiseData[i] = Math.random() * 2 - 1;
+            }
+            const noiseSrc = audioCtx.createBufferSource();
+            noiseSrc.buffer = noiseBuf;
 
-            osc1.stop(now + 4.8);
-            osc2.stop(now + 4.8);
-            subOsc.stop(now + 4.8);
+            const noiseLp = audioCtx.createBiquadFilter();
+            noiseLp.type = 'lowpass';
+            noiseLp.frequency.setValueAtTime(120, now);
+            noiseLp.Q.setValueAtTime(1, now);
+
+            const noiseGain = audioCtx.createGain();
+            noiseGain.gain.setValueAtTime(0, now);
+            noiseGain.gain.linearRampToValueAtTime(0.18, now + 0.5);
+            noiseGain.gain.setValueAtTime(0.18, now + duration - 1.5);
+            noiseGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+            noiseSrc.connect(noiseLp);
+            noiseLp.connect(noiseGain);
+            noiseGain.connect(compressor);
+            noiseSrc.start(now); noiseSrc.stop(now + duration);
         } catch(e) {
             console.warn("Failed to play alarm: ", e);
         }
@@ -188,41 +234,85 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!AudioContext) return;
             const audioCtx = new AudioContext();
             const now = audioCtx.currentTime;
-            
-            const osc = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
+
+            // Master compressor
+            const comp = audioCtx.createDynamicsCompressor();
+            comp.threshold.setValueAtTime(-20, now);
+            comp.ratio.setValueAtTime(6, now);
+            comp.connect(audioCtx.destination);
+
+            // Waveshaper for harmonic saturation
+            const shaper = audioCtx.createWaveShaper();
+            const cLen = 44100;
+            const cCurve = new Float32Array(cLen);
+            for (let i = 0; i < cLen; i++) {
+                const x = (i * 2) / cLen - 1;
+                cCurve[i] = Math.tanh(x * 3);
+            }
+            shaper.curve = cCurve;
+            shaper.oversample = '4x';
+            shaper.connect(comp);
+
+            // --- Layer 1: Dual detuned sweep (deep power-down) ---
+            const osc1 = audioCtx.createOscillator();
+            const osc2 = audioCtx.createOscillator();
+            osc1.type = 'sawtooth';
+            osc2.type = 'sawtooth';
+            osc1.detune.setValueAtTime(-20, now);
+            osc2.detune.setValueAtTime(20, now);
+
+            // Start at a menacing mid-range, sweep down to sub-bass
+            osc1.frequency.setValueAtTime(800, now);
+            osc1.frequency.exponentialRampToValueAtTime(55, now + duration);
+            osc2.frequency.setValueAtTime(810, now);
+            osc2.frequency.exponentialRampToValueAtTime(58, now + duration);
+
+            // Slow menacing LFO vibrato (8Hz, not 60Hz)
+            const lfo = audioCtx.createOscillator();
+            const lfoGain = audioCtx.createGain();
+            lfo.frequency.setValueAtTime(8, now);
+            lfo.frequency.linearRampToValueAtTime(3, now + duration);
+            lfoGain.gain.setValueAtTime(40, now);
+            lfoGain.gain.linearRampToValueAtTime(15, now + duration);
+            lfo.connect(lfoGain);
+            lfoGain.connect(osc1.frequency);
+            lfoGain.connect(osc2.frequency);
+
+            // Resonant lowpass sweep
             const filter = audioCtx.createBiquadFilter();
-            
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(2500, now);
-            osc.frequency.exponentialRampToValueAtTime(120, now + duration);
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(1200, now);
+            filter.frequency.exponentialRampToValueAtTime(80, now + duration);
+            filter.Q.setValueAtTime(8, now);
+            filter.Q.linearRampToValueAtTime(3, now + duration);
 
-            // Modulating frequency to create a sci-fi vibrato/wobble effect
-            const modOsc = audioCtx.createOscillator();
-            const modGain = audioCtx.createGain();
-            modOsc.frequency.setValueAtTime(60, now); // 60Hz LFO
-            modGain.gain.setValueAtTime(150, now);
-            
-            modOsc.connect(modGain);
-            modGain.connect(osc.frequency);
+            const mainGain = audioCtx.createGain();
+            mainGain.gain.setValueAtTime(0, now);
+            mainGain.gain.linearRampToValueAtTime(0.15, now + 0.04);
+            mainGain.gain.setValueAtTime(0.15, now + duration * 0.7);
+            mainGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
-            filter.type = 'bandpass';
-            filter.frequency.setValueAtTime(1800, now);
-            filter.frequency.exponentialRampToValueAtTime(250, now + duration);
-            filter.Q.setValueAtTime(12, now);
-            
-            gainNode.gain.setValueAtTime(0, now);
-            gainNode.gain.linearRampToValueAtTime(0.22, now + 0.05);
-            gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration);
-            
-            osc.connect(filter);
-            filter.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            
-            osc.start(now);
-            modOsc.start(now);
-            osc.stop(now + duration);
-            modOsc.stop(now + duration);
+            osc1.connect(filter);
+            osc2.connect(filter);
+            filter.connect(mainGain);
+            mainGain.connect(shaper);
+
+            osc1.start(now); osc2.start(now); lfo.start(now);
+            osc1.stop(now + duration); osc2.stop(now + duration); lfo.stop(now + duration);
+
+            // --- Layer 2: Sub-bass reinforcement ---
+            const subOsc = audioCtx.createOscillator();
+            const subGain = audioCtx.createGain();
+            subOsc.type = 'sine';
+            subOsc.frequency.setValueAtTime(65, now);
+            subOsc.frequency.linearRampToValueAtTime(35, now + duration);
+            subGain.gain.setValueAtTime(0, now);
+            subGain.gain.linearRampToValueAtTime(0.3, now + 0.2);
+            subGain.gain.setValueAtTime(0.3, now + duration * 0.6);
+            subGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+            subOsc.connect(subGain);
+            subGain.connect(comp);
+            subOsc.start(now); subOsc.stop(now + duration);
         } catch(e) {
             console.warn(e);
         }
@@ -234,76 +324,99 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!AudioContext) return;
             const audioCtx = new AudioContext();
             const now = audioCtx.currentTime;
-            
-            // 1. Massive Sub-Bass Exhaust Boom
+
+            // Master compressor
+            const comp = audioCtx.createDynamicsCompressor();
+            comp.threshold.setValueAtTime(-18, now);
+            comp.ratio.setValueAtTime(10, now);
+            comp.attack.setValueAtTime(0.001, now);
+            comp.release.setValueAtTime(0.1, now);
+            comp.connect(audioCtx.destination);
+
+            // 1. Deep sub-bass concussive boom (55Hz → 22Hz)
             const subOsc = audioCtx.createOscillator();
             const subGain = audioCtx.createGain();
             subOsc.type = 'sine';
-            subOsc.frequency.setValueAtTime(90, now);
-            subOsc.frequency.exponentialRampToValueAtTime(30, now + 1.2);
-            
-            subGain.gain.setValueAtTime(0.7, now);
-            subGain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
-            
-            subOsc.connect(subGain);
-            subGain.connect(audioCtx.destination);
-            subOsc.start(now);
-            subOsc.stop(now + 1.2);
-            
-            // 2. Gritty Metal Clang Transient
-            const fmCarrier = audioCtx.createOscillator();
-            const fmModulator = audioCtx.createOscillator();
-            const fmModGain = audioCtx.createGain();
-            const fmGain = audioCtx.createGain();
-            
-            fmCarrier.type = 'triangle';
-            fmCarrier.frequency.setValueAtTime(450, now);
-            fmCarrier.frequency.exponentialRampToValueAtTime(110, now + 0.6);
-            
-            fmModulator.type = 'sawtooth';
-            fmModulator.frequency.setValueAtTime(220, now);
-            fmModGain.gain.setValueAtTime(350, now);
-            
-            fmGain.gain.setValueAtTime(0.35, now);
-            fmGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
-            
-            fmModulator.connect(fmModGain);
-            fmModGain.connect(fmCarrier.frequency);
-            fmCarrier.connect(fmGain);
-            fmGain.connect(audioCtx.destination);
-            
-            fmCarrier.start(now);
-            fmModulator.start(now);
-            fmCarrier.stop(now + 0.6);
-            fmModulator.stop(now + 0.6);
+            subOsc.frequency.setValueAtTime(55, now);
+            subOsc.frequency.exponentialRampToValueAtTime(22, now + 1.8);
 
-            // 3. Thick Low-Pass Noise Burst (Air Hiss / Explosion debris)
-            const bufferSize = audioCtx.sampleRate * 0.8;
-            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            subGain.gain.setValueAtTime(0.8, now);
+            subGain.gain.exponentialRampToValueAtTime(0.001, now + 1.8);
+
+            subOsc.connect(subGain);
+            subGain.connect(comp);
+            subOsc.start(now); subOsc.stop(now + 1.8);
+
+            // 2. Heavy FM metal impact (deeper, more modulation)
+            const fmCarrier = audioCtx.createOscillator();
+            const fmMod = audioCtx.createOscillator();
+            const fmModGain = audioCtx.createGain();
+            const fmOutGain = audioCtx.createGain();
+
+            fmCarrier.type = 'triangle';
+            fmCarrier.frequency.setValueAtTime(280, now);
+            fmCarrier.frequency.exponentialRampToValueAtTime(65, now + 0.9);
+
+            fmMod.type = 'square';
+            fmMod.frequency.setValueAtTime(180, now);
+            fmMod.frequency.exponentialRampToValueAtTime(40, now + 0.9);
+            fmModGain.gain.setValueAtTime(600, now);
+            fmModGain.gain.exponentialRampToValueAtTime(50, now + 0.9);
+
+            fmOutGain.gain.setValueAtTime(0.25, now);
+            fmOutGain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+
+            // Waveshaper for metallic grit
+            const impactShaper = audioCtx.createWaveShaper();
+            const icLen = 8192;
+            const icCurve = new Float32Array(icLen);
+            for (let i = 0; i < icLen; i++) {
+                const x = (i * 2) / icLen - 1;
+                icCurve[i] = (Math.PI + 100) * x / (Math.PI + 100 * Math.abs(x));
+            }
+            impactShaper.curve = icCurve;
+            impactShaper.oversample = '4x';
+
+            fmMod.connect(fmModGain);
+            fmModGain.connect(fmCarrier.frequency);
+            fmCarrier.connect(fmOutGain);
+            fmOutGain.connect(impactShaper);
+            impactShaper.connect(comp);
+
+            fmCarrier.start(now); fmMod.start(now);
+            fmCarrier.stop(now + 0.9); fmMod.stop(now + 0.9);
+
+            // 3. Compressed industrial noise tail (bandpass-filtered debris)
+            const bufLen = audioCtx.sampleRate * 1.4;
+            const buffer = audioCtx.createBuffer(1, bufLen, audioCtx.sampleRate);
             const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) {
+            for (let i = 0; i < bufLen; i++) {
                 data[i] = Math.random() * 2 - 1;
             }
-            
-            const noiseSource = audioCtx.createBufferSource();
-            noiseSource.buffer = buffer;
-            
-            const noiseFilter = audioCtx.createBiquadFilter();
-            noiseFilter.type = 'lowpass';
-            noiseFilter.frequency.setValueAtTime(600, now);
-            noiseFilter.frequency.exponentialRampToValueAtTime(80, now + 0.7);
-            noiseFilter.Q.setValueAtTime(4, now);
-            
+            const noiseSrc = audioCtx.createBufferSource();
+            noiseSrc.buffer = buffer;
+
+            const noiseBp = audioCtx.createBiquadFilter();
+            noiseBp.type = 'bandpass';
+            noiseBp.frequency.setValueAtTime(400, now);
+            noiseBp.frequency.exponentialRampToValueAtTime(60, now + 1.2);
+            noiseBp.Q.setValueAtTime(2.5, now);
+
+            const noiseLp = audioCtx.createBiquadFilter();
+            noiseLp.type = 'lowpass';
+            noiseLp.frequency.setValueAtTime(500, now);
+            noiseLp.frequency.exponentialRampToValueAtTime(50, now + 1.2);
+
             const noiseGain = audioCtx.createGain();
-            noiseGain.gain.setValueAtTime(0.35, now);
-            noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
-            
-            noiseSource.connect(noiseFilter);
-            noiseFilter.connect(noiseGain);
-            noiseGain.connect(audioCtx.destination);
-            
-            noiseSource.start(now);
-            noiseSource.stop(now + 0.8);
+            noiseGain.gain.setValueAtTime(0.3, now);
+            noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 1.4);
+
+            noiseSrc.connect(noiseBp);
+            noiseBp.connect(noiseLp);
+            noiseLp.connect(noiseGain);
+            noiseGain.connect(comp);
+
+            noiseSrc.start(now); noiseSrc.stop(now + 1.4);
         } catch(e) {
             console.warn(e);
         }
