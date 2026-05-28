@@ -1080,6 +1080,38 @@ body.cursor-active #cursor-trail-canvas {
     transition: opacity 0.3s ease;
 }
 
+/* Arms Preview Button */
+.preview-btn {
+    width: 100%;
+    background: linear-gradient(135deg, rgba(var(--accent-cyan-rgb), 0.15) 0%, rgba(var(--accent-purple-rgb), 0.15) 100%);
+    border: 1.5px solid var(--accent-cyan);
+    border-radius: 12px;
+    color: #ffffff;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    padding: 11px 20px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 15px rgba(var(--accent-cyan-rgb), 0.15);
+    outline: none;
+    margin-top: 5px;
+}
+
+.preview-btn:hover {
+    background: linear-gradient(135deg, rgba(var(--accent-cyan-rgb), 0.3) 0%, rgba(var(--accent-purple-rgb), 0.3) 100%);
+    box-shadow: 0 0 25px rgba(var(--accent-cyan-rgb), 0.35), 0 0 12px rgba(var(--accent-purple-rgb), 0.25);
+    border-color: #ffffff;
+    text-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+    transform: scale(1.02);
+}
+
+.preview-btn:active {
+    transform: scale(0.97);
+}
+
 /* ===== CHARGING STATE EFFECTS ===== */
 .ai-core.charging-active .core-aura {
     background: radial-gradient(circle, rgba(255, 255, 255, 0.28) 0%, rgba(var(--accent-cyan-rgb), 0.2) 35%, rgba(var(--accent-purple-rgb), 0.08) 65%, transparent 80%);
