@@ -104,23 +104,39 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Wait for user interaction to bypass browser autoplay blocks
             bootBtn.addEventListener('click', () => {
-                if (bootLoader) {
-                    bootLoader.classList.add('fade-out');
-                    
-                    // Trigger cinematic sound (guaranteed to work since it's a click)
-                    playStartupSound();
-                    
-                    // Trigger visual particle shockwave burst from the core
-                    triggerStartupParticleBurst();
-                    
-                    // Transition body classes
+                try {
+                    if (bootLoader) {
+                        bootLoader.classList.add('fade-out');
+                        
+                        // Try playing sound safely
+                        try {
+                            playStartupSound();
+                        } catch (soundErr) {
+                            console.warn("Sound play failed:", soundErr);
+                        }
+                        
+                        // Try running particle burst safely
+                        try {
+                            triggerStartupParticleBurst();
+                        } catch (partErr) {
+                            console.warn("Particle burst failed:", partErr);
+                        }
+                        
+                        // Transition body classes
+                        document.body.classList.remove('booting');
+                        document.body.classList.add('boot-complete');
+                        
+                        // Clean up loader from DOM once faded
+                        setTimeout(() => {
+                            bootLoader.remove();
+                        }, 1500);
+                    }
+                } catch (e) {
+                    console.error("Critical boot trigger error, running emergency bypass:", e);
+                    // Emergency bypass to ensure user can enter the portal
+                    if (bootLoader) bootLoader.remove();
                     document.body.classList.remove('booting');
                     document.body.classList.add('boot-complete');
-                    
-                    // Clean up loader from DOM once faded
-                    setTimeout(() => {
-                        bootLoader.remove();
-                    }, 1500);
                 }
             });
         }

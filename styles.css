@@ -1656,7 +1656,7 @@ body.boot-complete #particle-canvas {
     border: 1.5px solid var(--accent-cyan);
     border-radius: 12px;
     color: var(--accent-cyan);
-    font-family: 'Outfit', monospace;
+    font-family: 'Outfit', sans-serif;
     font-size: 0.72rem;
     font-weight: 600;
     letter-spacing: 3px;
@@ -1672,6 +1672,9 @@ body.boot-complete #particle-canvas {
     box-shadow: 0 0 15px rgba(var(--accent-cyan-rgb), 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05);
     margin-top: 25px;
     text-transform: uppercase;
+    white-space: nowrap;
+    display: inline-block;
+    min-width: 240px;
 }
 
 .boot-btn.show {
