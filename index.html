@@ -92,6 +92,13 @@
                 </div>
             </div>
             <div class="setting-item" style="margin-bottom: 15px;">
+                <label>🎨 THEME MODE</label>
+                <div class="theme-mode-options" id="theme-mode-options">
+                    <button class="theme-mode-opt active" data-mode="manual">MANUAL</button>
+                    <button class="theme-mode-opt" data-mode="auto">AUTO</button>
+                </div>
+            </div>
+            <div class="setting-item" style="margin-bottom: 15px;">
                 <label>⚛️ NAZ CORE DESIGN</label>
                 <div class="core-options" id="core-options">
                     <button class="core-design-opt active" data-design="quantum">QUANTUM</button>
@@ -128,6 +135,22 @@
                 <select id="voice-select" class="hud-select">
                     <option value="">Detecting local voice engines...</option>
                 </select>
+            </div>
+            <div class="setting-item" style="margin-bottom: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.08);">
+                <label>🎯 FOCUS MODE</label>
+                <button class="focus-toggle-btn" id="focus-toggle-btn" data-tooltip="Activate deep focus — silence all distractions">
+                    <span class="focus-icon">🔕</span>
+                    <span class="focus-label" id="focus-label">FOCUS: OFF</span>
+                </button>
+            </div>
+            <div class="setting-item" style="margin-bottom: 15px;">
+                <label>🔋 NAZ ENGINE</label>
+                <div class="engine-options" id="engine-options">
+                    <button class="engine-opt active" data-engine="naz-core">NAZ-CORE v1</button>
+                    <button class="engine-opt" data-engine="quantum-x">QUANTUM-X</button>
+                    <button class="engine-opt" data-engine="phantom">PHANTOM</button>
+                    <button class="engine-opt" data-engine="nebula">NEBULA</button>
+                </div>
             </div>
             <div class="setting-item settings-sync-section" style="margin-top: 18px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.08);">
                 <label>🔗 SETTINGS SYNC</label>
@@ -217,6 +240,14 @@
             </div>
         </footer>
         
+        <!-- OS Detection Toast -->
+        <div class="os-detect-toast" id="os-detect-toast">
+            <span class="os-detect-icon" id="os-detect-icon">🖥️</span>
+            <span class="os-detect-text" id="os-detect-text">DETECTING SYSTEM...</span>
+        </div>
+
+        <!-- Focus Mode Vignette Overlay -->
+        <div class="focus-vignette" id="focus-vignette"></div>
     </div>
     <script src="app.js"></script>
 </body>

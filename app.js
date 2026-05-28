@@ -677,7 +677,414 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Cursor Settings Panel Toggle
+    // -----------------------------------------------------------------
+    // 0.1 AUTO THEME CYCLING MODE
+    // -----------------------------------------------------------------
+    let autoThemeInterval = null;
+    const savedThemeMode = localStorage.getItem('naz-theme-mode') || 'manual';
+
+    const themeModeContainer = document.getElementById('theme-mode-options');
+    if (themeModeContainer) {
+        const themeModeOpts = themeModeContainer.querySelectorAll('.theme-mode-opt');
+
+        // Restore saved mode
+        if (savedThemeMode === 'auto') {
+            themeModeOpts.forEach(b => b.classList.remove('active'));
+            const autoBtn = themeModeContainer.querySelector('[data-mode="auto"]');
+            if (autoBtn) autoBtn.classList.add('active');
+            startAutoTheme();
+        }
+
+        themeModeOpts.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const mode = btn.dataset.mode;
+                themeModeOpts.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                localStorage.setItem('naz-theme-mode', mode);
+
+                if (mode === 'auto') {
+                    startAutoTheme();
+                } else {
+                    stopAutoTheme();
+                }
+            });
+        });
+    }
+
+    function startAutoTheme() {
+        stopAutoTheme();
+        autoThemeInterval = setInterval(() => {
+            currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+            applyTheme(currentThemeIndex);
+
+            // Visual flash
+            const coreEl = document.getElementById('ai-core');
+            if (coreEl) {
+                coreEl.classList.remove('theme-flash');
+                void coreEl.offsetWidth;
+                coreEl.classList.add('theme-flash');
+                setTimeout(() => coreEl.classList.remove('theme-flash'), 800);
+            }
+            themeSurge = 1.0;
+        }, 8000);
+    }
+
+    function stopAutoTheme() {
+        if (autoThemeInterval) {
+            clearInterval(autoThemeInterval);
+            autoThemeInterval = null;
+        }
+    }
+
+    // -----------------------------------------------------------------
+    // 0.2 FOCUS MODE
+    // -----------------------------------------------------------------
+    let isFocusMode = false;
+    const focusToggleBtn = document.getElementById('focus-toggle-btn');
+    const focusLabel = document.getElementById('focus-label');
+    const focusVignette = document.getElementById('focus-vignette');
+
+    function playFocusChime(activating) {
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const audioCtx = new AudioContext();
+            const now = audioCtx.currentTime;
+
+            if (activating) {
+                // Gentle ascending chime (warm sine + soft triangle)
+                const notes = [523.25, 659.25, 783.99]; // C5, E5, G5 — major chord ascending
+                notes.forEach((freq, i) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + i * 0.18);
+                    gain.gain.setValueAtTime(0, now + i * 0.18);
+                    gain.gain.linearRampToValueAtTime(0.12, now + i * 0.18 + 0.06);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.18 + 0.9);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + i * 0.18);
+                    osc.stop(now + i * 0.18 + 0.9);
+
+                    // Soft triangle harmonic layer
+                    const harm = audioCtx.createOscillator();
+                    const harmGain = audioCtx.createGain();
+                    harm.type = 'triangle';
+                    harm.frequency.setValueAtTime(freq * 2, now + i * 0.18);
+                    harmGain.gain.setValueAtTime(0, now + i * 0.18);
+                    harmGain.gain.linearRampToValueAtTime(0.04, now + i * 0.18 + 0.04);
+                    harmGain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.18 + 0.6);
+                    harm.connect(harmGain);
+                    harmGain.connect(audioCtx.destination);
+                    harm.start(now + i * 0.18);
+                    harm.stop(now + i * 0.18 + 0.6);
+                });
+            } else {
+                // Gentle descending chime (deactivation)
+                const notes = [783.99, 659.25, 523.25]; // G5, E5, C5
+                notes.forEach((freq, i) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + i * 0.15);
+                    gain.gain.setValueAtTime(0, now + i * 0.15);
+                    gain.gain.linearRampToValueAtTime(0.1, now + i * 0.15 + 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 0.7);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + i * 0.15);
+                    osc.stop(now + i * 0.15 + 0.7);
+                });
+            }
+        } catch (e) {
+            console.warn('Focus chime failed:', e);
+        }
+    }
+
+    if (focusToggleBtn) {
+        focusToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            isFocusMode = !isFocusMode;
+
+            const coreEl = document.getElementById('ai-core');
+            const aiTextEl = document.getElementById('ai-text');
+
+            if (isFocusMode) {
+                // Activate focus mode
+                focusToggleBtn.classList.add('focus-active');
+                if (focusLabel) focusLabel.textContent = 'FOCUS: ON';
+                if (focusVignette) focusVignette.classList.add('active');
+
+                // Cute core reaction
+                if (coreEl) {
+                    coreEl.classList.remove('focus-react');
+                    void coreEl.offsetWidth;
+                    coreEl.classList.add('focus-react');
+                    setTimeout(() => coreEl.classList.remove('focus-react'), 1200);
+                }
+
+                // Naz says focusing
+                if (aiTextEl) {
+                    aiTextEl.textContent = 'Focusing... all distractions silenced 🧘';
+                }
+                if (typeof speakAloud === 'function') {
+                    speakAloud('Focusing... all distractions silenced.');
+                }
+
+                // Override status bar
+                if (statusTextEl) {
+                    statusTextEl.textContent = 'FOCUS MODE ACTIVE';
+                }
+
+                // Sound & particles
+                playFocusChime(true);
+                spawnEmotionParticles(['🧘', '🎯', '🔕', '💭', '✨']);
+            } else {
+                // Deactivate focus mode
+                focusToggleBtn.classList.remove('focus-active');
+                if (focusLabel) focusLabel.textContent = 'FOCUS: OFF';
+                if (focusVignette) focusVignette.classList.remove('active');
+
+                // Core bounce
+                if (coreEl) {
+                    coreEl.classList.remove('focus-react');
+                    void coreEl.offsetWidth;
+                    coreEl.classList.add('focus-react');
+                    setTimeout(() => coreEl.classList.remove('focus-react'), 1200);
+                }
+
+                if (aiTextEl) {
+                    aiTextEl.textContent = 'Focus mode disengaged. Back to full spectrum.';
+                }
+                if (typeof speakAloud === 'function') {
+                    speakAloud('Focus mode disengaged. Back to full spectrum.');
+                }
+
+                // Restore status bar cycling
+                if (statusTextEl) {
+                    statusTextEl.textContent = 'NAZ ACTIVE';
+                }
+
+                playFocusChime(false);
+                spawnEmotionParticles(['⚡', '🔊', '🌐', '💥', '✨']);
+            }
+        });
+    }
+
+    // -----------------------------------------------------------------
+    // 0.3 ENGINE SWITCHER
+    // -----------------------------------------------------------------
+    let selectedEngine = localStorage.getItem('naz-engine') || 'naz-core';
+
+    const engineContainer = document.getElementById('engine-options');
+
+    function playEngineSwitchSound() {
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const audioCtx = new AudioContext();
+            const now = audioCtx.currentTime;
+
+            // Compressor
+            const comp = audioCtx.createDynamicsCompressor();
+            comp.threshold.setValueAtTime(-18, now);
+            comp.ratio.setValueAtTime(6, now);
+            comp.connect(audioCtx.destination);
+
+            // Power-down sweep (brief)
+            const downOsc = audioCtx.createOscillator();
+            const downGain = audioCtx.createGain();
+            downOsc.type = 'sawtooth';
+            downOsc.frequency.setValueAtTime(600, now);
+            downOsc.frequency.exponentialRampToValueAtTime(40, now + 0.4);
+            downGain.gain.setValueAtTime(0.12, now);
+            downGain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+            downOsc.connect(downGain);
+            downGain.connect(comp);
+            downOsc.start(now);
+            downOsc.stop(now + 0.4);
+
+            // Brief silence gap, then power-up sweep
+            const upOsc1 = audioCtx.createOscillator();
+            const upOsc2 = audioCtx.createOscillator();
+            const upGain = audioCtx.createGain();
+            const upFilter = audioCtx.createBiquadFilter();
+
+            upOsc1.type = 'sawtooth';
+            upOsc2.type = 'sawtooth';
+            upOsc1.detune.setValueAtTime(-15, now);
+            upOsc2.detune.setValueAtTime(15, now);
+            upOsc1.frequency.setValueAtTime(50, now + 0.5);
+            upOsc1.frequency.exponentialRampToValueAtTime(400, now + 1.3);
+            upOsc1.frequency.exponentialRampToValueAtTime(250, now + 1.8);
+            upOsc2.frequency.setValueAtTime(52, now + 0.5);
+            upOsc2.frequency.exponentialRampToValueAtTime(405, now + 1.3);
+            upOsc2.frequency.exponentialRampToValueAtTime(253, now + 1.8);
+
+            upFilter.type = 'lowpass';
+            upFilter.frequency.setValueAtTime(100, now + 0.5);
+            upFilter.frequency.exponentialRampToValueAtTime(2000, now + 1.3);
+            upFilter.frequency.exponentialRampToValueAtTime(600, now + 1.8);
+            upFilter.Q.setValueAtTime(4, now);
+
+            upGain.gain.setValueAtTime(0, now);
+            upGain.gain.setValueAtTime(0, now + 0.5);
+            upGain.gain.linearRampToValueAtTime(0.14, now + 0.65);
+            upGain.gain.setValueAtTime(0.14, now + 1.3);
+            upGain.gain.exponentialRampToValueAtTime(0.001, now + 1.8);
+
+            upOsc1.connect(upFilter);
+            upOsc2.connect(upFilter);
+            upFilter.connect(upGain);
+            upGain.connect(comp);
+
+            upOsc1.start(now + 0.5);
+            upOsc2.start(now + 0.5);
+            upOsc1.stop(now + 1.8);
+            upOsc2.stop(now + 1.8);
+
+            // Sub-bass thump at boot
+            const subOsc = audioCtx.createOscillator();
+            const subGain = audioCtx.createGain();
+            subOsc.type = 'sine';
+            subOsc.frequency.setValueAtTime(55, now + 0.5);
+            subGain.gain.setValueAtTime(0, now);
+            subGain.gain.setValueAtTime(0, now + 0.5);
+            subGain.gain.linearRampToValueAtTime(0.35, now + 0.6);
+            subGain.gain.exponentialRampToValueAtTime(0.001, now + 1.8);
+            subOsc.connect(subGain);
+            subGain.connect(comp);
+            subOsc.start(now + 0.5);
+            subOsc.stop(now + 1.8);
+
+            // Confirmation chime at the end
+            const chime = audioCtx.createOscillator();
+            const chimeGain = audioCtx.createGain();
+            chime.type = 'sine';
+            chime.frequency.setValueAtTime(880, now + 1.4);
+            chimeGain.gain.setValueAtTime(0, now);
+            chimeGain.gain.setValueAtTime(0, now + 1.4);
+            chimeGain.gain.linearRampToValueAtTime(0.08, now + 1.45);
+            chimeGain.gain.exponentialRampToValueAtTime(0.001, now + 2.0);
+            chime.connect(chimeGain);
+            chimeGain.connect(comp);
+            chime.start(now + 1.4);
+            chime.stop(now + 2.0);
+        } catch (e) {
+            console.warn('Engine switch sound failed:', e);
+        }
+    }
+
+    if (engineContainer) {
+        const engineBtns = engineContainer.querySelectorAll('.engine-opt');
+
+        // Restore saved engine
+        const savedEng = localStorage.getItem('naz-engine');
+        if (savedEng) {
+            engineBtns.forEach(b => {
+                b.classList.remove('active');
+                if (b.dataset.engine === savedEng) b.classList.add('active');
+            });
+        }
+
+        engineBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const engine = btn.dataset.engine;
+                if (engine === selectedEngine) return; // already selected
+
+                selectedEngine = engine;
+                localStorage.setItem('naz-engine', engine);
+
+                engineBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                // Play power-up transition sound
+                playEngineSwitchSound();
+
+                // Core reboot animation
+                const coreEl = document.getElementById('ai-core');
+                if (coreEl) {
+                    coreEl.classList.remove('engine-reboot');
+                    void coreEl.offsetWidth;
+                    coreEl.classList.add('engine-reboot');
+                    setTimeout(() => coreEl.classList.remove('engine-reboot'), 800);
+                }
+
+                // Naz reaction
+                const engineNames = {
+                    'naz-core': 'NAZ-CORE v1',
+                    'quantum-x': 'QUANTUM-X',
+                    'phantom': 'PHANTOM',
+                    'nebula': 'NEBULA'
+                };
+                const engineEmojis = {
+                    'naz-core': ['⚡', '🤖', '🔋', '💎', '✨'],
+                    'quantum-x': ['⚛️', '🔮', '🌀', '💠', '🧬'],
+                    'phantom': ['👻', '🕶️', '🌑', '💨', '🖤'],
+                    'nebula': ['🌌', '✨', '🎨', '💫', '🪐']
+                };
+
+                const displayName = engineNames[engine] || engine.toUpperCase();
+                const aiTextEl = document.getElementById('ai-text');
+                if (aiTextEl) {
+                    aiTextEl.textContent = `Engine switched to ${displayName}. Systems recalibrating...`;
+                }
+                if (typeof speakAloud === 'function') {
+                    speakAloud(`Engine switched to ${displayName}. Systems recalibrating.`);
+                }
+
+                spawnEmotionParticles(engineEmojis[engine] || ['⚡', '✨']);
+
+                // Visual surge
+                themeSurge = 1.0;
+            });
+        });
+    }
+
+    // -----------------------------------------------------------------
+    // 0.4 OS DETECTION (ONE-TIME)
+    // -----------------------------------------------------------------
+    function detectOS() {
+        const ua = navigator.userAgent || '';
+        const platform = navigator.platform || '';
+
+        if (/iPad|iPhone|iPod/.test(ua) || (platform === 'MacIntel' && navigator.maxTouchPoints > 1)) return { name: 'iOS', icon: '📱' };
+        if (/Android/i.test(ua)) return { name: 'Android', icon: '📱' };
+        if (/Mac/i.test(platform)) return { name: 'macOS', icon: '🍎' };
+        if (/Win/i.test(platform)) return { name: 'Windows', icon: '🪟' };
+        if (/Linux/i.test(platform)) return { name: 'Linux', icon: '🐧' };
+        return { name: 'Unknown OS', icon: '🖥️' };
+    }
+
+    // Show OS toast once, after boot sequence completes (~7s)
+    if (!localStorage.getItem('naz-os-detected')) {
+        setTimeout(() => {
+            const os = detectOS();
+            const toast = document.getElementById('os-detect-toast');
+            const toastIcon = document.getElementById('os-detect-icon');
+            const toastText = document.getElementById('os-detect-text');
+
+            if (toast && toastIcon && toastText) {
+                toastIcon.textContent = os.icon;
+                toastText.textContent = `SYSTEM DETECTED: ${os.name} · WELCOME, OPERATOR`;
+                localStorage.setItem('naz-os-detected', os.name);
+
+                // Slide up
+                toast.classList.add('visible');
+
+                // Auto-dismiss after 5 seconds
+                setTimeout(() => {
+                    toast.classList.remove('visible');
+                    toast.classList.add('hiding');
+                    setTimeout(() => toast.classList.remove('hiding'), 700);
+                }, 5000);
+            }
+        }, 7000);
+    }
+
     const cursorSettingsToggle = document.getElementById('cursor-settings-toggle');
     const cursorSettingsPanel = document.getElementById('cursor-settings-panel');
     
