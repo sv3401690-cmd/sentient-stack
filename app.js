@@ -1974,7 +1974,14 @@ document.addEventListener('DOMContentLoaded', () => {
     animateVoiceVisualizer();
 
     const voiceSelect = document.getElementById('voice-select');
+    const voiceFocusSelect = document.getElementById('voice-focus-select');
+    
     let selectedVoiceName = localStorage.getItem('naz-voice-profile') || '';
+    let selectedVoiceFocus = localStorage.getItem('naz-voice-focus') || 'female';
+
+    if (voiceFocusSelect) {
+        voiceFocusSelect.value = selectedVoiceFocus;
+    }
 
     function populateVoiceList() {
         if (!window.speechSynthesis || !voiceSelect) return;
@@ -2002,51 +2009,43 @@ document.addEventListener('DOMContentLoaded', () => {
         
         voiceSelect.innerHTML = '';
         
-        if (englishFemale.length > 0) {
-            const groupFemale = document.createElement('optgroup');
-            groupFemale.label = 'RECOMMENDED FEMALE VOICES';
-            englishFemale.forEach(v => {
-                const opt = document.createElement('option');
-                opt.value = v.name;
-                opt.textContent = `${v.name} (${v.lang})`;
-                groupFemale.appendChild(opt);
-            });
-            voiceSelect.appendChild(groupFemale);
-        }
-        
-        if (englishOther.length > 0) {
-            const groupOther = document.createElement('optgroup');
-            groupOther.label = 'OTHER ENGLISH VOICES';
-            englishOther.forEach(v => {
-                const opt = document.createElement('option');
-                opt.value = v.name;
-                opt.textContent = `${v.name} (${v.lang})`;
-                groupOther.appendChild(opt);
-            });
-            voiceSelect.appendChild(groupOther);
+        let filteredVoices = [];
+        let groupLabel = '';
+
+        if (selectedVoiceFocus === 'female') {
+            filteredVoices = englishFemale;
+            groupLabel = 'RECOMMENDED FEMALE';
+        } else if (selectedVoiceFocus === 'english-other') {
+            filteredVoices = englishOther;
+            groupLabel = 'ENGLISH OTHER';
+        } else if (selectedVoiceFocus === 'international') {
+            filteredVoices = otherVoices;
+            groupLabel = 'INTERNATIONAL';
         }
 
-        if (otherVoices.length > 0) {
-            const groupLang = document.createElement('optgroup');
-            groupLang.label = 'OTHER LANGUAGE VOICES';
-            otherVoices.forEach(v => {
+        if (filteredVoices.length > 0) {
+            const group = document.createElement('optgroup');
+            group.label = groupLabel;
+            filteredVoices.forEach(v => {
                 const opt = document.createElement('option');
                 opt.value = v.name;
                 opt.textContent = `${v.name} (${v.lang})`;
-                groupLang.appendChild(opt);
+                group.appendChild(opt);
             });
-            voiceSelect.appendChild(groupLang);
+            voiceSelect.appendChild(group);
+        } else {
+            const opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = 'No voice engines detected';
+            voiceSelect.appendChild(opt);
         }
         
-        if (selectedVoiceName && voices.some(v => v.name === selectedVoiceName)) {
+        // Auto select current voice if it exists in the active filtered list
+        if (selectedVoiceName && filteredVoices.some(v => v.name === selectedVoiceName)) {
             voiceSelect.value = selectedVoiceName;
-        } else if (englishFemale.length > 0) {
-            voiceSelect.value = englishFemale[0].name;
-            selectedVoiceName = englishFemale[0].name;
-            localStorage.setItem('naz-voice-profile', selectedVoiceName);
-        } else if (englishVoices.length > 0) {
-            voiceSelect.value = englishVoices[0].name;
-            selectedVoiceName = englishVoices[0].name;
+        } else if (filteredVoices.length > 0) {
+            voiceSelect.value = filteredVoices[0].name;
+            selectedVoiceName = filteredVoices[0].name;
             localStorage.setItem('naz-voice-profile', selectedVoiceName);
         }
     }
@@ -2059,11 +2058,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    if (voiceFocusSelect) {
+        voiceFocusSelect.addEventListener('change', () => {
+            selectedVoiceFocus = voiceFocusSelect.value;
+            localStorage.setItem('naz-voice-focus', selectedVoiceFocus);
+            populateVoiceList();
+            speakAloud("Naz voice focus updated.");
+        });
+    }
+
     if (voiceSelect) {
         voiceSelect.addEventListener('change', () => {
             selectedVoiceName = voiceSelect.value;
             localStorage.setItem('naz-voice-profile', selectedVoiceName);
-            speakAloud("Naz voice profile updated.");
+            speakAloud("Naz voice engine updated.");
         });
     }
 

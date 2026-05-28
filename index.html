@@ -73,13 +73,27 @@
                     <button class="cursor-opt" data-style="plasma">PLASMA</button>
                 </div>
             </div>
-            <div class="setting-item">
+            <div class="setting-item" style="margin-bottom: 15px;">
                 <label>⚛️ NAZ CORE DESIGN</label>
                 <div class="core-options" id="core-options">
                     <button class="core-design-opt active" data-design="quantum">QUANTUM</button>
                     <button class="core-design-opt" data-design="singularity">SINGULARITY</button>
                     <button class="core-design-opt" data-design="neural">NEURAL</button>
                 </div>
+            </div>
+            <div class="setting-item" style="margin-bottom: 15px;">
+                <label>🎯 NAZ VOICE FOCUS</label>
+                <select id="voice-focus-select" class="hud-select">
+                    <option value="female">FEMALE FOCUS</option>
+                    <option value="english-other">ENGLISH OTHER</option>
+                    <option value="international">INTERNATIONAL</option>
+                </select>
+            </div>
+            <div class="setting-item">
+                <label>🎙️ NAZ VOICE ENGINE</label>
+                <select id="voice-select" class="hud-select">
+                    <option value="">Detecting local voice engines...</option>
+                </select>
             </div>
         </div>
 
@@ -148,14 +162,6 @@
         <!-- Collapsible Input Override Area -->
         <footer class="input-container collapsed" id="input-container">
             <button class="close-drawer-btn" id="close-drawer-btn" aria-label="Close keyboard drawer">&times;</button>
-            <div class="settings-row">
-                <div class="setting-item">
-                    <label for="voice-select">🎙️ NAZ VOICE PROFILE</label>
-                    <select id="voice-select" class="hud-select">
-                        <option value="">Detecting local voice engines...</option>
-                    </select>
-                </div>
-            </div>
             <div class="input-wrapper">
                 <input type="text" id="user-input" placeholder="Override command sequence..." autocomplete="off">
                 <button id="send-btn" data-tooltip="Transmit Data Sequence">
