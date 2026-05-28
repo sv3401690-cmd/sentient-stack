@@ -592,12 +592,37 @@ document.addEventListener('DOMContentLoaded', () => {
                     grow: Math.random() * 0.4 + 0.2
                 });
             }
+        } else if (style === 'nova') {
+            for (let i = 0; i < 30; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 3.5 + 1.0;
+                novaEmbers.push({
+                    x: cx,
+                    y: cy,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed - 1.2,
+                    size: Math.random() * 4 + 2,
+                    opacity: 1.0,
+                    decay: Math.random() * 0.02 + 0.01
+                });
+            }
+        } else if (style === 'cybergrid') {
+            for (let i = 0; i < 12; i++) {
+                cybergridPoints.push({
+                    x: cx + (Math.random() - 0.5) * 80,
+                    y: cy + (Math.random() - 0.5) * 80,
+                    opacity: 1.0,
+                    size: Math.random() * 6 + 3,
+                    life: 1.0,
+                    decay: Math.random() * 0.03 + 0.015
+                });
+            }
         }
     }
 
     // Apply cursor-dot style class for instant visual feedback
     function applyCursorDotStyle(style) {
-        cursorDot.classList.remove('cursor-style-quantum', 'cursor-style-matrix', 'cursor-style-stardust', 'cursor-style-plasma');
+        cursorDot.classList.remove('cursor-style-quantum', 'cursor-style-matrix', 'cursor-style-stardust', 'cursor-style-plasma', 'cursor-style-nova', 'cursor-style-cybergrid');
         cursorDot.classList.add(`cursor-style-${style}`);
     }
     applyCursorDotStyle(selectedCursorStyle);
@@ -618,6 +643,8 @@ document.addEventListener('DOMContentLoaded', () => {
             matrixChars = [];
             stardustParticles = [];
             plasmaBubbles = [];
+            novaEmbers = [];
+            cybergridPoints = [];
             // Instant visual feedback
             applyCursorDotStyle(selectedCursorStyle);
             previewBurst(selectedCursorStyle);
@@ -638,7 +665,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function applyCoreDesign(design) {
         if (!aiCoreEl) return;
-        aiCoreEl.classList.remove('core-design-quantum', 'core-design-singularity', 'core-design-neural');
+        aiCoreEl.classList.remove('core-design-quantum', 'core-design-singularity', 'core-design-neural', 'core-design-eclipse', 'core-design-vortex');
         aiCoreEl.classList.add(`core-design-${design}`);
     }
     applyCoreDesign(selectedCoreDesign);
@@ -662,6 +689,41 @@ document.addEventListener('DOMContentLoaded', () => {
                 const currentTransition = aiCoreEl.style.transition;
                 aiCoreEl.style.transition = 'none';
                 aiCoreEl.style.transform = 'scale(1.2)';
+                requestAnimationFrame(() => {
+                    aiCoreEl.style.transition = 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                    aiCoreEl.style.transform = '';
+                });
+            }
+        });
+    });
+
+    // ROBOTIC ARM Style Customization State
+    let selectedArmStyle = localStorage.getItem('naz-arm-style') || 'cyber-link';
+    const armStyleOpts = document.querySelectorAll('.arm-opt');
+    
+    function applyArmStyle(style) {
+        selectedArmStyle = style;
+        localStorage.setItem('naz-arm-style', style);
+    }
+    applyArmStyle(selectedArmStyle);
+    
+    armStyleOpts.forEach(btn => {
+        if (btn.getAttribute('data-style') === selectedArmStyle) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+        btn.addEventListener('click', () => {
+            armStyleOpts.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedArmStyle = btn.getAttribute('data-style');
+            localStorage.setItem('naz-arm-style', selectedArmStyle);
+            
+            // Flash effect on core to confirm change
+            if (aiCoreEl) {
+                const currentTransition = aiCoreEl.style.transition;
+                aiCoreEl.style.transition = 'none';
+                aiCoreEl.style.transform = 'scale(1.15)';
                 requestAnimationFrame(() => {
                     aiCoreEl.style.transition = 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
                     aiCoreEl.style.transform = '';
@@ -829,6 +891,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let matrixChars = [];
     let stardustParticles = [];
     let plasmaBubbles = [];
+    let novaEmbers = [];
+    let cybergridPoints = [];
     let sparks = [];
 
     // BACKGROUND ROBOT ARMS CATCH GAME STATE
@@ -987,7 +1051,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    // Drawing a Nano-Swarm / Particle Cloud (Hundreds of glowing particles clustering to form the arm and hands)
+    // Drawing the robotic arm in three selectable styles: Cyber-Link, Nano-Swarm, or Mecha-Arm
     function drawRoboticArm(ctx, joints, primaryColor, secondaryColor, fingerAngle) {
         const sx = joints.shoulder.x;
         const sy = joints.shoulder.y;
@@ -997,127 +1061,379 @@ document.addEventListener('DOMContentLoaded', () => {
         const wy = joints.wrist.y;
         
         const time = Date.now() * 0.001;
-        
-        // Draw sleek glowing cybernetic energy beam segments
-        const drawBeamSegment = (x1, y1, x2, y2, colorRGB) => {
-            // Outer translucent glow tube
-            ctx.beginPath();
-            ctx.moveTo(x1, y1);
-            ctx.lineTo(x2, y2);
-            ctx.strokeStyle = `rgba(${colorRGB}, 0.18)`;
-            ctx.lineWidth = 22;
-            ctx.lineCap = 'round';
-            ctx.stroke();
 
-            // Middle glowing beam
-            ctx.beginPath();
-            ctx.moveTo(x1, y1);
-            ctx.lineTo(x2, y2);
-            ctx.strokeStyle = `rgba(${colorRGB}, 0.55)`;
-            ctx.lineWidth = 8;
-            ctx.lineCap = 'round';
-            ctx.stroke();
+        if (selectedArmStyle === 'nano-swarm') {
+            // --- NANO-SWARM STYLE ---
+            // An organic swirling cloud of glowing dust particles clustering to form the arm segments
+            const drawSwarmSegment = (x1, y1, x2, y2, colorRGB) => {
+                const dx = x2 - x1;
+                const dy = y2 - y1;
+                const len = Math.hypot(dx, dy);
+                const angle = Math.atan2(dy, dx);
+                const stepCount = Math.floor(len / 4);
+                
+                for (let i = 0; i <= stepCount; i++) {
+                    const t = i / stepCount;
+                    const bx = x1 + dx * t;
+                    const by = y1 + dy * t;
+                    
+                    // Generate 4 swirling particles at each step
+                    for (let j = 0; j < 4; j++) {
+                        const spiralSpeed = 5;
+                        const radius = 8 * Math.sin(t * Math.PI) + 4; // muscle taper
+                        const theta = t * Math.PI * 6 + time * spiralSpeed + (j * Math.PI / 2);
+                        const px = bx + Math.sin(theta) * radius + (Math.random() - 0.5) * 4;
+                        const py = by + Math.cos(theta) * radius + (Math.random() - 0.5) * 4;
+                        
+                        ctx.beginPath();
+                        ctx.arc(px, py, Math.random() * 1.5 + 0.6, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(${colorRGB}, ${0.4 + Math.sin(t * Math.PI) * 0.35})`;
+                        ctx.fill();
+                    }
+                }
+            };
+            
+            // Draw swarm segments
+            drawSwarmSegment(sx, sy, ex, ey, primaryColor);
+            drawSwarmSegment(ex, ey, wx, wy, primaryColor);
+            
+            // Joint particles clouds
+            const drawSwarmJoint = (cx, cy, radius, colorRGB) => {
+                for (let i = 0; i < 25; i++) {
+                    const theta = Math.random() * Math.PI * 2;
+                    const r = Math.random() * radius * 1.4;
+                    const px = cx + Math.cos(theta) * r + Math.sin(time * 3 + i) * 3;
+                    const py = cy + Math.sin(theta) * r + Math.cos(time * 3 + i) * 3;
+                    
+                    ctx.beginPath();
+                    ctx.arc(px, py, Math.random() * 1.8 + 0.8, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(${colorRGB}, ${Math.random() * 0.6 + 0.3})`;
+                    ctx.fill();
+                }
+                // Bright center core
+                ctx.beginPath();
+                ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
+            };
+            drawSwarmJoint(sx, sy, 14, secondaryColor);
+            drawSwarmJoint(ex, ey, 11, secondaryColor);
+            drawSwarmJoint(wx, wy, 8, secondaryColor);
+            
+            // Stardust finger streams wiggling outwards
+            const wristAngle = Math.atan2(wy - ey, wx - ex);
+            const fingerLength = 32;
+            const tendrilOffsets = [-fingerAngle * 1.2, -fingerAngle * 0.4, fingerAngle * 0.4, fingerAngle * 1.2];
+            
+            tendrilOffsets.forEach(offset => {
+                const angle = wristAngle + offset;
+                const knuckleX = wx + Math.cos(angle) * (fingerLength * 0.55);
+                const knuckleY = wy + Math.sin(angle) * (fingerLength * 0.55);
+                
+                const tipAngle = angle + (offset > 0 ? -0.25 : 0.25) * (1.2 - fingerAngle);
+                const tipX = knuckleX + Math.cos(tipAngle) * (fingerLength * 0.5);
+                const tipY = knuckleY + Math.sin(tipAngle) * (fingerLength * 0.5);
+                
+                // Draw swirling particle stream along knuckles and tips
+                const drawSwarmCurve = (x1, y1, x2, y2) => {
+                    const dx = x2 - x1;
+                    const dy = y2 - y1;
+                    const steps = 8;
+                    for (let i = 0; i <= steps; i++) {
+                        const t = i / steps;
+                        const bx = x1 + dx * t;
+                        const by = y1 + dy * t;
+                        const wiggle = Math.sin(time * 8 + t * Math.PI) * 2;
+                        
+                        ctx.beginPath();
+                        ctx.arc(bx + Math.cos(angle + Math.PI/2)*wiggle, by + Math.sin(angle + Math.PI/2)*wiggle, Math.random() * 1.6 + 0.8, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(${primaryColor}, ${1 - t * 0.5})`;
+                        ctx.fill();
+                    }
+                };
+                drawSwarmCurve(wx, wy, knuckleX, knuckleY);
+                drawSwarmCurve(knuckleX, knuckleY, tipX, tipY);
+                
+                // Spark tip
+                ctx.beginPath();
+                ctx.arc(tipX, tipY, 4, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = `rgb(${primaryColor})`;
+                ctx.shadowBlur = 10;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            });
+            
+        } else if (selectedArmStyle === 'mecha-arm') {
+            // --- MECHA-ARM STYLE ---
+            // A heavy, solid industrial mechanical arm with armor plating and mechanical pins
+            const drawMechaSegment = (x1, y1, x2, y2, colorRGB) => {
+                const dx = x2 - x1;
+                const dy = y2 - y1;
+                const angle = Math.atan2(dy, dx);
+                
+                // 1. Dark gray inner chassis
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.strokeStyle = '#1e1e24';
+                ctx.lineWidth = 26;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+                
+                // 2. Main color armor plating (with gaps at joints for mechanical detail)
+                const margin = 15;
+                const len = Math.hypot(dx, dy);
+                const p1x = x1 + Math.cos(angle) * margin;
+                const p1y = y1 + Math.sin(angle) * margin;
+                const p2x = x2 - Math.cos(angle) * margin;
+                const p2y = y2 - Math.sin(angle) * margin;
+                
+                ctx.beginPath();
+                ctx.moveTo(p1x, p1y);
+                ctx.lineTo(p2x, p2y);
+                ctx.strokeStyle = `rgb(${colorRGB})`;
+                ctx.lineWidth = 14;
+                ctx.lineCap = 'butt';
+                ctx.stroke();
+                
+                // 3. Tech stripes (dark decals)
+                ctx.beginPath();
+                ctx.moveTo(p1x + (p2x - p1x) * 0.3, p1y + (p2y - p1y) * 0.3);
+                ctx.lineTo(p1x + (p2x - p1x) * 0.7, p1y + (p2y - p1y) * 0.7);
+                ctx.strokeStyle = '#0e0e12';
+                ctx.lineWidth = 4;
+                ctx.stroke();
+                
+                // 4. Highlight bevel wire
+                ctx.beginPath();
+                ctx.moveTo(p1x, p1y - 4);
+                ctx.lineTo(p2x, p2y - 4);
+                ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+                ctx.lineWidth = 1.2;
+                ctx.stroke();
+            };
+            
+            drawMechaSegment(sx, sy, ex, ey, primaryColor);
+            drawMechaSegment(ex, ey, wx, wy, primaryColor);
+            
+            // Solid circular mechanical joint hubs
+            const drawMechaJoint = (cx, cy, radius, colorRGB) => {
+                // outer casing
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius * 1.6, 0, Math.PI * 2);
+                ctx.fillStyle = '#121218';
+                ctx.strokeStyle = '#2d2d38';
+                ctx.lineWidth = 2;
+                ctx.fill();
+                ctx.stroke();
+                
+                // inner core
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgb(${colorRGB})`;
+                ctx.fill();
+                
+                // rivet ring (concentric circles)
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius * 0.6, 0, Math.PI * 2);
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 1.8;
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.arc(cx, cy, 2, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
+            };
+            
+            drawMechaJoint(sx, sy, 14, secondaryColor);
+            drawMechaJoint(ex, ey, 10, secondaryColor);
+            drawMechaJoint(wx, wy, 8, secondaryColor);
+            
+            // Thick mecha fingers
+            const wristAngle = Math.atan2(wy - ey, wx - ex);
+            const fingerLength = 32;
+            const tendrilOffsets = [-fingerAngle * 1.2, -fingerAngle * 0.4, fingerAngle * 0.4, fingerAngle * 1.2];
+            
+            tendrilOffsets.forEach(offset => {
+                const angle = wristAngle + offset;
+                const knuckleX = wx + Math.cos(angle) * (fingerLength * 0.6);
+                const knuckleY = wy + Math.sin(angle) * (fingerLength * 0.6);
+                
+                const tipAngle = angle + (offset > 0 ? -0.3 : 0.3) * (1.2 - fingerAngle);
+                const tipX = knuckleX + Math.cos(tipAngle) * (fingerLength * 0.55);
+                const tipY = knuckleY + Math.sin(tipAngle) * (fingerLength * 0.55);
+                
+                // Draw thick joint 1
+                ctx.beginPath();
+                ctx.moveTo(wx, wy);
+                ctx.lineTo(knuckleX, knuckleY);
+                ctx.strokeStyle = '#1e1e24';
+                ctx.lineWidth = 7;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(wx, wy);
+                ctx.lineTo(knuckleX, knuckleY);
+                ctx.strokeStyle = `rgb(${primaryColor})`;
+                ctx.lineWidth = 4;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+                
+                // Draw thick joint 2
+                ctx.beginPath();
+                ctx.moveTo(knuckleX, knuckleY);
+                ctx.lineTo(tipX, tipY);
+                ctx.strokeStyle = '#0f0f12';
+                ctx.lineWidth = 5;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(knuckleX, knuckleY);
+                ctx.lineTo(tipX, tipY);
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2.5;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+                
+                // Knuckle pin
+                ctx.beginPath();
+                ctx.arc(knuckleX, knuckleY, 2.5, 0, Math.PI * 2);
+                ctx.fillStyle = `rgb(${secondaryColor})`;
+                ctx.fill();
+                
+                // Claw tip pin
+                ctx.beginPath();
+                ctx.arc(tipX, tipY, 3, 0, Math.PI * 2);
+                ctx.fillStyle = `rgb(${primaryColor})`;
+                ctx.fill();
+            });
+            
+        } else {
+            // --- CYBER-LINK STYLE (DEFAULT) ---
+            // Sleek glowing cybernetic energy beam segments
+            const drawBeamSegment = (x1, y1, x2, y2, colorRGB) => {
+                // Outer translucent glow tube
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.strokeStyle = `rgba(${colorRGB}, 0.18)`;
+                ctx.lineWidth = 22;
+                ctx.lineCap = 'round';
+                ctx.stroke();
 
-            // Inner bright core wireframe line
-            ctx.beginPath();
-            ctx.moveTo(x1, y1);
-            ctx.lineTo(x2, y2);
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 2.2;
-            ctx.lineCap = 'round';
-            ctx.stroke();
-            
-            // Moving energy pulses along the beam
-            const dx = x2 - x1;
-            const dy = y2 - y1;
-            const len = Math.hypot(dx, dy);
-            const pulseT = (time * 1.5) % 1.0;
-            const px = x1 + dx * pulseT;
-            const py = y1 + dy * pulseT;
-            
-            ctx.beginPath();
-            ctx.arc(px, py, 5, 0, Math.PI * 2);
-            ctx.fillStyle = '#ffffff';
-            ctx.fill();
-        };
+                // Middle glowing beam
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.strokeStyle = `rgba(${colorRGB}, 0.55)`;
+                ctx.lineWidth = 8;
+                ctx.lineCap = 'round';
+                ctx.stroke();
 
-        // Draw upper arm beam (Shoulder to Elbow)
-        drawBeamSegment(sx, sy, ex, ey, primaryColor);
-        // Draw forearm beam (Elbow to Wrist)
-        drawBeamSegment(ex, ey, wx, wy, primaryColor);
-        
-        // Glowing joint cores (circular reactor joints with clean concentric rings)
-        const drawSolidJoint = (cx, cy, radius, colorRGB) => {
-            // Outer tech ring
-            ctx.beginPath();
-            ctx.arc(cx, cy, radius * 1.5, 0, Math.PI * 2);
-            ctx.strokeStyle = `rgba(${colorRGB}, 0.35)`;
-            ctx.lineWidth = 1;
-            ctx.stroke();
-            
-            // Inner solid glowing circle
-            ctx.beginPath();
-            ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(${colorRGB}, 0.25)`;
-            ctx.strokeStyle = `rgb(${colorRGB})`;
-            ctx.lineWidth = 1.8;
-            ctx.fill();
-            ctx.stroke();
-            
-            // Center spark
-            ctx.beginPath();
-            ctx.arc(cx, cy, 3, 0, Math.PI * 2);
-            ctx.fillStyle = '#ffffff';
-            ctx.fill();
-        };
+                // Inner bright core wireframe line
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2.2;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+                
+                // Moving energy pulses along the beam
+                const dx = x2 - x1;
+                const dy = y2 - y1;
+                const pulseT = (time * 1.5) % 1.0;
+                const px = x1 + dx * pulseT;
+                const py = y1 + dy * pulseT;
+                
+                ctx.beginPath();
+                ctx.arc(px, py, 5, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
+            };
 
-        drawSolidJoint(sx, sy, 12, secondaryColor);
-        drawSolidJoint(ex, ey, 9, secondaryColor);
-        drawSolidJoint(wx, wy, 7, secondaryColor);
-        
-        // Sleek, mechanical 2-segment cybernetic claws
-        const wristAngle = Math.atan2(wy - ey, wx - ex);
-        const fingerLength = 32;
-        
-        // 4 mechanical claw fingers
-        const tendrilOffsets = [-fingerAngle * 1.2, -fingerAngle * 0.4, fingerAngle * 0.4, fingerAngle * 1.2];
-        
-        tendrilOffsets.forEach(offset => {
-            const angle = wristAngle + offset;
+            // Draw upper arm beam (Shoulder to Elbow)
+            drawBeamSegment(sx, sy, ex, ey, primaryColor);
+            // Draw forearm beam (Elbow to Wrist)
+            drawBeamSegment(ex, ey, wx, wy, primaryColor);
             
-            // Draw segment 1 (knuckle)
-            const knuckleX = wx + Math.cos(angle) * (fingerLength * 0.55);
-            const knuckleY = wy + Math.sin(angle) * (fingerLength * 0.55);
+            // Glowing joint cores (circular reactor joints with clean concentric rings)
+            const drawSolidJoint = (cx, cy, radius, colorRGB) => {
+                // Outer tech ring
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius * 1.5, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(${colorRGB}, 0.35)`;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                
+                // Inner solid glowing circle
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${colorRGB}, 0.25)`;
+                ctx.strokeStyle = `rgb(${colorRGB})`;
+                ctx.lineWidth = 1.8;
+                ctx.fill();
+                ctx.stroke();
+                
+                // Center spark
+                ctx.beginPath();
+                ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
+            };
+
+            drawSolidJoint(sx, sy, 12, secondaryColor);
+            drawSolidJoint(ex, ey, 9, secondaryColor);
+            drawSolidJoint(wx, wy, 7, secondaryColor);
             
-            // Draw segment 2 (curling claw tip)
-            const tipAngle = angle + (offset > 0 ? -0.22 : 0.22) * (1.2 - fingerAngle);
-            const tipX = knuckleX + Math.cos(tipAngle) * (fingerLength * 0.5);
-            const tipY = knuckleY + Math.sin(tipAngle) * (fingerLength * 0.5);
+            // Sleek, mechanical 2-segment cybernetic claws
+            const wristAngle = Math.atan2(wy - ey, wx - ex);
+            const fingerLength = 32;
             
-            // Draw first knuckle segment
-            ctx.beginPath();
-            ctx.moveTo(wx, wy);
-            ctx.lineTo(knuckleX, knuckleY);
-            ctx.strokeStyle = `rgb(${primaryColor})`;
-            ctx.lineWidth = 3.5;
-            ctx.lineCap = 'round';
-            ctx.stroke();
+            // 4 mechanical claw fingers
+            const tendrilOffsets = [-fingerAngle * 1.2, -fingerAngle * 0.4, fingerAngle * 0.4, fingerAngle * 1.2];
             
-            // Draw second tip segment
-            ctx.beginPath();
-            ctx.moveTo(knuckleX, knuckleY);
-            ctx.lineTo(tipX, tipY);
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 2.2;
-            ctx.lineCap = 'round';
-            ctx.stroke();
-            
-            // Glowing claw tips
-            ctx.beginPath();
-            ctx.arc(tipX, tipY, 3.5, 0, Math.PI * 2);
-            ctx.fillStyle = `rgb(${primaryColor})`;
-            ctx.fill();
-        });
+            tendrilOffsets.forEach(offset => {
+                const angle = wristAngle + offset;
+                
+                // Draw segment 1 (knuckle)
+                const knuckleX = wx + Math.cos(angle) * (fingerLength * 0.55);
+                const knuckleY = wy + Math.sin(angle) * (fingerLength * 0.55);
+                
+                // Draw segment 2 (curling claw tip)
+                const tipAngle = angle + (offset > 0 ? -0.22 : 0.22) * (1.2 - fingerAngle);
+                const tipX = knuckleX + Math.cos(tipAngle) * (fingerLength * 0.5);
+                const tipY = knuckleY + Math.sin(tipAngle) * (fingerLength * 0.5);
+                
+                // Draw first knuckle segment
+                ctx.beginPath();
+                ctx.moveTo(wx, wy);
+                ctx.lineTo(knuckleX, knuckleY);
+                ctx.strokeStyle = `rgb(${primaryColor})`;
+                ctx.lineWidth = 3.5;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+                
+                // Draw second tip segment
+                ctx.beginPath();
+                ctx.moveTo(knuckleX, knuckleY);
+                ctx.lineTo(tipX, tipY);
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2.2;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+                
+                // Glowing claw tips
+                ctx.beginPath();
+                ctx.arc(tipX, tipY, 3.5, 0, Math.PI * 2);
+                ctx.fillStyle = `rgb(${primaryColor})`;
+                ctx.fill();
+            });
+        }
     }
 
     // Click ripple
@@ -1194,6 +1510,26 @@ document.addEventListener('DOMContentLoaded', () => {
                         grow: Math.random() * 0.4 + 0.2
                     });
                 }
+            } else if (selectedCursorStyle === 'nova') {
+                for (let i = 0; i < 2; i++) {
+                    novaEmbers.push({
+                        x: dotPos.x + (Math.random() - 0.5) * 8,
+                        y: dotPos.y + (Math.random() - 0.5) * 8,
+                        vx: (Math.random() - 0.5) * 1.0,
+                        vy: (Math.random() - 0.5) * 1.0 - 1.6, // upward drift
+                        size: Math.random() * 3 + 1.5,
+                        opacity: 1.0,
+                        decay: Math.random() * 0.02 + 0.012
+                    });
+                }
+            } else if (selectedCursorStyle === 'cybergrid') {
+                cybergridPoints.push({
+                    x: dotPos.x,
+                    y: dotPos.y,
+                    life: 1.0,
+                    decay: 0.04
+                });
+                if (cybergridPoints.length > 25) cybergridPoints.shift();
             }
             
             lastDotPos.x = dotPos.x;
@@ -1292,6 +1628,82 @@ document.addEventListener('DOMContentLoaded', () => {
                 trailCtx.fill();
                 return true;
             });
+        }
+        // 5. NOVA EMBERS
+        else if (selectedCursorStyle === 'nova') {
+            novaEmbers = novaEmbers.filter(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.opacity -= p.decay;
+                if (p.opacity <= 0) return false;
+                
+                const fireRed = 255;
+                const fireGreen = Math.round(110 + p.opacity * 110);
+                const fireBlue = Math.round(10 + p.opacity * 50);
+                
+                trailCtx.shadowColor = `rgba(${fireRed}, ${fireGreen}, ${fireBlue}, ${p.opacity})`;
+                trailCtx.shadowBlur = 10;
+                
+                trailCtx.beginPath();
+                trailCtx.arc(p.x, p.y, p.size * p.opacity, 0, Math.PI * 2);
+                trailCtx.fillStyle = `rgba(${fireRed}, ${fireGreen}, ${fireBlue}, ${p.opacity})`;
+                trailCtx.fill();
+                
+                return true;
+            });
+            trailCtx.shadowBlur = 0;
+        }
+        // 6. CYBER-GRID HUD
+        else if (selectedCursorStyle === 'cybergrid') {
+            cybergridPoints = cybergridPoints.filter(p => {
+                p.life -= p.decay;
+                return p.life > 0;
+            });
+            
+            if (cybergridPoints.length > 1) {
+                trailCtx.beginPath();
+                trailCtx.strokeStyle = `rgba(${cyanRGB[0]}, ${cyanRGB[1]}, ${cyanRGB[2]}, 0.35)`;
+                trailCtx.lineWidth = 1.5;
+                trailCtx.moveTo(cybergridPoints[0].x, cybergridPoints[0].y);
+                for (let i = 1; i < cybergridPoints.length; i++) {
+                    trailCtx.lineTo(cybergridPoints[i].x, cybergridPoints[i].y);
+                }
+                trailCtx.stroke();
+                
+                const head = cybergridPoints[cybergridPoints.length - 1];
+                
+                trailCtx.strokeStyle = `rgba(${purpleRGB[0]}, ${purpleRGB[1]}, ${purpleRGB[2]}, 0.12)`;
+                trailCtx.lineWidth = 1;
+                trailCtx.beginPath();
+                trailCtx.moveTo(0, head.y);
+                trailCtx.lineTo(window.innerWidth, head.y);
+                trailCtx.stroke();
+                trailCtx.beginPath();
+                trailCtx.moveTo(head.x, 0);
+                trailCtx.lineTo(head.x, window.innerHeight);
+                trailCtx.stroke();
+                
+                trailCtx.shadowColor = `rgba(${cyanRGB[0]}, ${cyanRGB[1]}, ${cyanRGB[2]}, 0.8)`;
+                trailCtx.shadowBlur = 8;
+                trailCtx.strokeStyle = `rgba(${cyanRGB[0]}, ${cyanRGB[1]}, ${cyanRGB[2]}, 0.7)`;
+                
+                const boxSize = 14;
+                trailCtx.strokeRect(head.x - boxSize, head.y - boxSize, boxSize * 2, boxSize * 2);
+                
+                const rotation = (Date.now() * 0.003) % (Math.PI * 2);
+                trailCtx.beginPath();
+                trailCtx.arc(head.x, head.y, 6, rotation, rotation + 0.5 * Math.PI);
+                trailCtx.stroke();
+                trailCtx.beginPath();
+                trailCtx.arc(head.x, head.y, 6, rotation + Math.PI, rotation + 1.5 * Math.PI);
+                trailCtx.stroke();
+                
+                cybergridPoints.forEach(pt => {
+                    trailCtx.fillStyle = `rgba(${cyanRGB[0]}, ${cyanRGB[1]}, ${cyanRGB[2]}, ${pt.life})`;
+                    trailCtx.fillRect(pt.x - 2, pt.y - 2, 4, 4);
+                });
+            }
+            trailCtx.shadowBlur = 0;
         }
 
         // --- BACKGROUND ROBOT HANDS GAME ANIMATION LOOP ---
@@ -2732,6 +3144,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'assistant-theme',
         'naz-cursor-style', 
         'naz-core-design',
+        'naz-arm-style',
         'naz-voice-focus',
         'naz-voice-profile'
     ];
@@ -2803,6 +3216,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 applyCoreDesign(selectedCoreDesign);
                 coreDesignOpts.forEach(btn => {
                     if (btn.getAttribute('data-design') === selectedCoreDesign) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+            }
+
+            // Apply robotic arm style
+            if (settings['naz-arm-style']) {
+                selectedArmStyle = settings['naz-arm-style'];
+                applyArmStyle(selectedArmStyle);
+                armStyleOpts.forEach(btn => {
+                    if (btn.getAttribute('data-style') === selectedArmStyle) {
                         btn.classList.add('active');
                     } else {
                         btn.classList.remove('active');

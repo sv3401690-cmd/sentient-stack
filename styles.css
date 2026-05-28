@@ -538,6 +538,17 @@ body.cursor-active #cursor-trail-canvas {
 }
 
 /* ===== ORBITING ENERGY PARTICLES ===== */
+.orbit-container {
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+    z-index: 3;
+}
+
 .orbit-track {
     position: absolute;
     width: 120px;
@@ -959,14 +970,16 @@ body.cursor-active #cursor-trail-canvas {
     color: var(--text-main);
 }
 
-.cursor-options, .charge-options, .core-options {
+.cursor-options, .charge-options, .core-options, .arm-options {
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
     width: 100%;
 }
 
-.cursor-opt, .charge-opt, .core-design-opt {
-    flex: 1;
+.cursor-opt, .charge-opt, .core-design-opt, .arm-opt {
+    flex: 1 1 calc(50% - 4px);
+    min-width: 80px;
     background: rgba(10, 10, 15, 0.6);
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 10px;
@@ -982,13 +995,13 @@ body.cursor-active #cursor-trail-canvas {
     text-align: center;
 }
 
-.cursor-opt:hover, .charge-opt:hover, .core-design-opt:hover {
+.cursor-opt:hover, .charge-opt:hover, .core-design-opt:hover, .arm-opt:hover {
     background: rgba(255, 255, 255, 0.04);
     border-color: rgba(var(--accent-cyan-rgb), 0.3);
     color: var(--text-main);
 }
 
-.cursor-opt.active, .charge-opt.active, .core-design-opt.active {
+.cursor-opt.active, .charge-opt.active, .core-design-opt.active, .arm-opt.active {
     background: rgba(var(--accent-cyan-rgb), 0.1);
     border-color: var(--accent-cyan);
     color: var(--accent-cyan);
@@ -1520,6 +1533,110 @@ button svg { width: 22px; height: 22px; }
     animation: pulseExpand 2.2s cubic-bezier(0.1, 0.8, 0.3, 1) infinite;
 }
 
+/* --- 3. ECLIPSE DESIGN (Solar Flare Corona) --- */
+.ai-core.core-design-eclipse .core-logo {
+    display: none !important;
+}
+
+.ai-core.core-design-eclipse .reactor-core {
+    background: #030308 !important;
+    border: 4px solid var(--accent-cyan) !important;
+    box-shadow: 
+        0 0 20px var(--accent-cyan),
+        0 0 40px var(--accent-purple),
+        inset 0 0 12px rgba(0, 0, 0, 0.9) !important;
+    transform: scale(0.92);
+    animation: eclipseBreathe 3s ease-in-out infinite alternate;
+}
+
+.ai-core.core-design-eclipse .reactor-core::before {
+    background: radial-gradient(circle, transparent 40%, rgba(var(--accent-cyan-rgb), 0.4) 60%, rgba(var(--accent-purple-rgb), 0.6) 80%, transparent 100%) !important;
+    animation: coreShimmer 2.5s linear infinite !important;
+}
+
+@keyframes eclipseBreathe {
+    0% { transform: scale(0.92); }
+    100% { transform: scale(0.88); }
+}
+
+.ai-core.core-design-eclipse .core-aura {
+    background: radial-gradient(circle, transparent 20%, rgba(var(--accent-purple-rgb), 0.8) 40%, rgba(var(--accent-cyan-rgb), 0.3) 60%, transparent 80%) !important;
+    animation: eclipseFlares 5s ease-in-out infinite alternate !important;
+}
+
+@keyframes eclipseFlares {
+    0% { transform: scale(1.1) rotate(0deg); opacity: 0.8; border-radius: 40% 60% 45% 55% / 55% 45% 55% 45%; }
+    50% { transform: scale(1.4) rotate(90deg); opacity: 1.0; border-radius: 50% 50% 50% 50%; }
+    100% { transform: scale(1.2) rotate(180deg); opacity: 0.9; border-radius: 60% 40% 55% 45% / 45% 55% 40% 60%; }
+}
+
+.ai-core.core-design-eclipse .orbit-container {
+    transform: scale(1.3) !important;
+}
+
+.ai-core.core-design-eclipse .orbit-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--accent-purple) !important;
+    box-shadow: 0 0 15px var(--accent-purple), 0 0 30px rgba(var(--accent-purple-rgb), 0.6) !important;
+}
+
+.ai-core.core-design-eclipse .pulse-ring {
+    border: 2px dashed var(--accent-cyan) !important;
+    animation: eclipseRings 4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+@keyframes eclipseRings {
+    0% { transform: scale(0.6); opacity: 1; filter: blur(0); }
+    100% { transform: scale(4.2); opacity: 0; filter: blur(6px); }
+}
+
+/* --- 4. VORTEX DESIGN (Spiral Implosion Core) --- */
+.ai-core.core-design-vortex .core-logo {
+    display: none !important;
+}
+
+.ai-core.core-design-vortex .reactor-core {
+    background: conic-gradient(from 0deg, var(--accent-cyan) 0%, rgba(var(--accent-purple-rgb), 0.2) 25%, var(--accent-purple) 50%, rgba(var(--accent-cyan-rgb), 0.2) 75%, var(--accent-cyan) 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    box-shadow: 
+        0 0 25px var(--accent-cyan),
+        inset 0 0 15px rgba(255, 255, 255, 0.5) !important;
+    animation: vortexCoreSpin 2s linear infinite;
+}
+
+@keyframes vortexCoreSpin {
+    0% { transform: rotate(0deg) scale(0.9); }
+    100% { transform: rotate(-360deg) scale(0.9); }
+}
+
+.ai-core.core-design-vortex .reactor-core::before {
+    background: radial-gradient(circle, transparent 30%, rgba(255, 255, 255, 0.4) 60%, transparent 100%) !important;
+    animation: none !important;
+}
+
+.ai-core.core-design-vortex .core-aura {
+    background: radial-gradient(circle, rgba(var(--accent-cyan-rgb), 0.3) 0%, rgba(var(--accent-purple-rgb), 0.15) 50%, transparent 80%) !important;
+    animation: vortexAuraSpin 12s linear infinite !important;
+}
+
+@keyframes vortexAuraSpin {
+    0% { transform: scale(1.1) rotate(0deg); }
+    100% { transform: scale(1.1) rotate(-360deg); }
+}
+
+.ai-core.core-design-vortex .pulse-ring {
+    border: 1.5px solid var(--accent-cyan) !important;
+    animation: vortexImplode 3.2s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+}
+
+@keyframes vortexImplode {
+    0% { transform: scale(4.2); opacity: 0; filter: blur(5px); }
+    10% { opacity: 0.8; filter: blur(2px); }
+    90% { opacity: 0.6; filter: blur(0); }
+    100% { transform: scale(0.1); opacity: 0; }
+}
+
 /* ============================================
    BOOT SEQUENCE CINEMATIC ANIMATIONS (SLOW-MO)
    ============================================ */
@@ -1626,7 +1743,7 @@ body.booting .reactor-core {
     opacity: 0 !important;
 }
 
-body.booting .orbit-track {
+body.booting .orbit-container {
     opacity: 0 !important;
     transform: scale(0) rotate(-180deg) !important;
 }
@@ -1719,24 +1836,12 @@ body.boot-complete .core-aura {
                 transform 4.5s cubic-bezier(0.19, 1, 0.22, 1) 0.9s !important;
 }
 
-/* Orbit tracks: staggered unfold */
-body.boot-complete .orbit-track {
+/* Orbit container: slow unfold and spin-in */
+body.boot-complete .orbit-container {
     opacity: 1 !important;
     transform: scale(1) rotate(0deg) !important;
     transition: opacity 3s ease 1.2s, 
-                transform 3.8s cubic-bezier(0.19, 1, 0.22, 1) 1.2s !important;
-}
-
-body.boot-complete .orbit-track.orbit-2 {
-    transition-delay: 1.5s !important;
-}
-
-body.boot-complete .orbit-track.orbit-3 {
-    transition-delay: 1.8s !important;
-}
-
-body.boot-complete .orbit-track.orbit-4 {
-    transition-delay: 2.1s !important;
+                transform 4s cubic-bezier(0.19, 1, 0.22, 1) 1.2s !important;
 }
 
 /* Pulse rings: staggered emergence */

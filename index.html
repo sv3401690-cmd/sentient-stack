@@ -87,6 +87,8 @@
                     <button class="cursor-opt" data-style="matrix">MATRIX</button>
                     <button class="cursor-opt" data-style="stardust">STARDUST</button>
                     <button class="cursor-opt" data-style="plasma">PLASMA</button>
+                    <button class="cursor-opt" data-style="nova">NOVA</button>
+                    <button class="cursor-opt" data-style="cybergrid">CYBER-GRID</button>
                 </div>
             </div>
             <div class="setting-item" style="margin-bottom: 15px;">
@@ -95,6 +97,16 @@
                     <button class="core-design-opt active" data-design="quantum">QUANTUM</button>
                     <button class="core-design-opt" data-design="singularity">SINGULARITY</button>
                     <button class="core-design-opt" data-design="neural">NEURAL</button>
+                    <button class="core-design-opt" data-design="eclipse">ECLIPSE</button>
+                    <button class="core-design-opt" data-design="vortex">VORTEX</button>
+                </div>
+            </div>
+            <div class="setting-item" style="margin-bottom: 15px;">
+                <label>🤖 ROBOTIC ARM STYLE</label>
+                <div class="arm-options" id="arm-options">
+                    <button class="arm-opt active" data-style="cyber-link">CYBER-LINK</button>
+                    <button class="arm-opt" data-style="nano-swarm">NANO-SWARM</button>
+                    <button class="arm-opt" data-style="mecha-arm">MECHA-ARM</button>
                 </div>
             </div>
             <div class="setting-item" style="margin-bottom: 15px;">
@@ -138,11 +150,13 @@
                         <div class="pulse-ring ring-1"></div>
                         <div class="pulse-ring ring-2"></div>
                         <div class="pulse-ring ring-3"></div>
-                        <!-- Orbiting Energy Particles -->
-                        <div class="orbit-track orbit-1"><span class="orbit-dot"></span></div>
-                        <div class="orbit-track orbit-2"><span class="orbit-dot"></span></div>
-                        <div class="orbit-track orbit-3"><span class="orbit-dot"></span></div>
-                        <div class="orbit-track orbit-4"><span class="orbit-dot"></span></div>
+                        <!-- Orbiting Energy Particles (Wrapped to prevent spin override) -->
+                        <div class="orbit-container" id="orbit-container">
+                            <div class="orbit-track orbit-1"><span class="orbit-dot"></span></div>
+                            <div class="orbit-track orbit-2"><span class="orbit-dot"></span></div>
+                            <div class="orbit-track orbit-3"><span class="orbit-dot"></span></div>
+                            <div class="orbit-track orbit-4"><span class="orbit-dot"></span></div>
+                        </div>
                         <!-- Holographic Scan Beam -->
                         <div class="core-scan-beam"></div>
                         <!-- Main Reactor Core -->
