@@ -343,6 +343,8 @@ body.cursor-active #cursor-trail-canvas {
     top: 80px;
     right: 25px;
     width: 320px;
+    max-height: calc(100% - 110px);
+    overflow-y: auto;
     background: rgba(10, 10, 15, 0.85);
     backdrop-filter: blur(25px);
     -webkit-backdrop-filter: blur(25px);
@@ -353,6 +355,29 @@ body.cursor-active #cursor-trail-canvas {
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
     transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     transform-origin: top right;
+    
+    /* Scrollbar properties */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(var(--accent-cyan-rgb), 0.3) rgba(255, 255, 255, 0.02);
+}
+
+/* Custom scrollbar for settings panel */
+.floating-panel::-webkit-scrollbar {
+    width: 4px;
+}
+
+.floating-panel::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 2px;
+}
+
+.floating-panel::-webkit-scrollbar-thumb {
+    background: rgba(var(--accent-cyan-rgb), 0.35);
+    border-radius: 2px;
+}
+
+.floating-panel::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-cyan);
 }
 
 .floating-panel.hidden {
