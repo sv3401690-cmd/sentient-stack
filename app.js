@@ -2046,10 +2046,30 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (willCollapse) {
             inputContainer.classList.add('collapsed');
+            // Force reset scroll offsets to fix layout shift bugs on focus/blur
+            const appContainer = document.querySelector('.app-container');
+            if (appContainer) appContainer.scrollTop = 0;
+            window.scrollTo(0, 0);
         } else {
             inputContainer.classList.remove('collapsed');
             userInput.focus();
         }
+    }
+    
+    // Prevent internal scrolling within the glass container (locks header at top)
+    const appCont = document.querySelector('.app-container');
+    if (appCont) {
+        appCont.addEventListener('scroll', () => {
+            appCont.scrollTop = 0;
+        });
+    }
+    
+    if (userInput) {
+        userInput.addEventListener('blur', () => {
+            const appContainer = document.querySelector('.app-container');
+            if (appContainer) appContainer.scrollTop = 0;
+            window.scrollTo(0, 0);
+        });
     }
     
     // Clicking user transcript card populates input field and opens keyboard drawer
