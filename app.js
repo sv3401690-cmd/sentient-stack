@@ -547,23 +547,8 @@ document.addEventListener('DOMContentLoaded', () => {
             hand1Target = { x: currentLayout.h1Start.x, y: currentLayout.h1Start.y };
             hand2Target = { x: currentLayout.h2Start.x, y: currentLayout.h2Start.y };
 
-            // Trigger alarm sound and TTS telemetry
+            // Trigger alarm sound
             playKlaxonAlarm();
-            if (typeof speakAloud === 'function') {
-                let msg = "Industrial robotic arms online. Commencing structure integrity and agility diagnostics. Warning: maximum performance calibration in progress!";
-                if (selectedArmStyle === 'nano-swarm') {
-                    msg = "Nano particles clustered. Initiating swarm synchronization and dispersion check. Please stand back.";
-                } else if (selectedArmStyle === 'mecha-arm') {
-                    msg = "Heavy mecha actuators online. Preparing structural load capacity test. Expecting physical impacts.";
-                } else if (selectedArmStyle === 'plasma-whip') {
-                    msg = "Plasma whips fully energized. Commencing thermal and electric discharge test. High voltage warning.";
-                } else if (selectedArmStyle === 'matrix-sentinel') {
-                    msg = "Sentinel spine override active. Injecting telemetry data into the core structure. Security protocols bypassed.";
-                } else if (selectedArmStyle === 'chrono-gear') {
-                    msg = "Chrono gears coupled. Starting escapement and pressure tolerance sweeps. Venting steam valves.";
-                }
-                speakAloud(msg);
-            }
         });
     }
 
