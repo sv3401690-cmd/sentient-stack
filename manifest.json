@@ -1,0 +1,17 @@
+{
+  "name": "Naz Voice Assistant",
+  "short_name": "Naz Core",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#020205",
+  "theme_color": "#020205",
+  "description": "Sleek, futuristic voice portal connected to Naz Core.",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "./icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

@@ -6,6 +6,14 @@
     <title>Naz Voice Portal</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#020205">
+    
+    <!-- iOS support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Naz Core">
+    <link rel="apple-touch-icon" href="icon.png">
 </head>
 <body>
     <!-- Interactive Neural Network Background -->
@@ -41,13 +49,39 @@
         <header class="header">
             <div class="logo-area">
                 <span class="status-indicator-dot pulsing"></span>
-                <span class="logo-text">NAZ ACTIVE</span>
+                <span class="logo-text" id="status-text">NAZ ACTIVE</span>
             </div>
-            <div class="theme-toggle" id="theme-toggle" data-tooltip="Cycle System Themes">
-                <span class="theme-icon">🎨</span>
+            <div class="header-controls">
+                <div class="cursor-settings-toggle" id="cursor-settings-toggle" data-tooltip="Cursor Settings">
+                    <span class="settings-icon">⚙️</span>
+                </div>
+                <div class="theme-toggle" id="theme-toggle" data-tooltip="Cycle System Themes">
+                    <span class="theme-icon">🎨</span>
+                </div>
             </div>
             <div class="header-divider"></div>
         </header>
+
+        <!-- Floating Settings Panel -->
+        <div class="floating-panel hidden" id="cursor-settings-panel">
+            <div class="setting-item" style="margin-bottom: 15px;">
+                <label>🔮 CURSOR EFFECT</label>
+                <div class="cursor-options" id="cursor-options">
+                    <button class="cursor-opt active" data-style="quantum">QUANTUM</button>
+                    <button class="cursor-opt" data-style="matrix">MATRIX</button>
+                    <button class="cursor-opt" data-style="stardust">STARDUST</button>
+                    <button class="cursor-opt" data-style="plasma">PLASMA</button>
+                </div>
+            </div>
+            <div class="setting-item">
+                <label>⚛️ NAZ CORE DESIGN</label>
+                <div class="core-options" id="core-options">
+                    <button class="core-design-opt active" data-design="quantum">QUANTUM</button>
+                    <button class="core-design-opt" data-design="singularity">SINGULARITY</button>
+                    <button class="core-design-opt" data-design="neural">NEURAL</button>
+                </div>
+            </div>
+        </div>
 
         <!-- Main Body: Voice Visualizer Portal -->
         <main class="portal-body">
@@ -120,27 +154,6 @@
                     <select id="voice-select" class="hud-select">
                         <option value="">Detecting local voice engines...</option>
                     </select>
-                </div>
-            </div>
-            <div class="settings-row" style="margin-bottom: 20px;">
-                <div class="setting-item">
-                    <label>🔮 CURSOR EFFECT STYLE</label>
-                    <div class="cursor-options" id="cursor-options">
-                        <button class="cursor-opt active" data-style="quantum">QUANTUM</button>
-                        <button class="cursor-opt" data-style="matrix">MATRIX</button>
-                        <button class="cursor-opt" data-style="stardust">STARDUST</button>
-                        <button class="cursor-opt" data-style="plasma">PLASMA</button>
-                    </div>
-                </div>
-            </div>
-            <div class="settings-row" style="margin-bottom: 20px;">
-                <div class="setting-item">
-                    <label>⚡ CHARGING CURRENT MODE</label>
-                    <div class="charge-options" id="charge-options">
-                        <button class="charge-opt active" data-charge="auto">AUTO (DETECT)</button>
-                        <button class="charge-opt" data-charge="on">FORCE ON</button>
-                        <button class="charge-opt" data-charge="off">FORCE OFF</button>
-                    </div>
                 </div>
             </div>
             <div class="input-wrapper">

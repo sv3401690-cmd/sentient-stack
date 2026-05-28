@@ -42,6 +42,56 @@ document.addEventListener('DOMContentLoaded', () => {
 
     applyTheme(currentThemeIndex);
 
+    // -----------------------------------------------------------------
+    // 0.5 DYNAMIC TOP STATUS BAR
+    // -----------------------------------------------------------------
+    const statusTextEl = document.getElementById('status-text');
+    if (statusTextEl) {
+        const statuses = [
+            "NAZ ACTIVE",
+            "SYSTEM NOMINAL",
+            "AWAITING INPUT",
+            "NEURAL NET STABLE",
+            "MONITORING FREQUENCIES",
+            "QUANTUM LINK ESTABLISHED"
+        ];
+        let currentStatusIdx = 0;
+        let charIdx = statuses[0].length; // Start fully typed
+        let isDeleting = false;
+        
+        function typeStatus() {
+            const currentText = statuses[currentStatusIdx];
+            
+            if (isDeleting) {
+                charIdx--;
+            } else {
+                charIdx++;
+            }
+            
+            // Adding a blinking cursor block character for aesthetic
+            statusTextEl.textContent = currentText.substring(0, charIdx) + (charIdx === currentText.length ? '' : '█');
+            
+            let typingSpeed = isDeleting ? 40 : 80;
+            
+            if (!isDeleting && charIdx === currentText.length) {
+                statusTextEl.textContent = currentText; // remove block at end
+                typingSpeed = 4000;
+                isDeleting = true;
+            } else if (isDeleting && charIdx === 0) {
+                isDeleting = false;
+                currentStatusIdx = (currentStatusIdx + 1) % statuses.length;
+                typingSpeed = 400; // Pause before typing next
+            }
+            
+            setTimeout(typeStatus, typingSpeed);
+        }
+        
+        // Start the cycle after a delay
+        setTimeout(() => {
+            isDeleting = true;
+            typeStatus();
+        }, 5000);
+    }
     function spawnEmotionParticles(emojiList) {
         const coreContainer = document.getElementById('ai-core');
         if (!coreContainer) return;
@@ -122,6 +172,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Spawn floating emotion particles
                 spawnEmotionParticles(emojis);
             }
+        });
+    }
+
+    // Cursor Settings Panel Toggle
+    const cursorSettingsToggle = document.getElementById('cursor-settings-toggle');
+    const cursorSettingsPanel = document.getElementById('cursor-settings-panel');
+    
+    if (cursorSettingsToggle && cursorSettingsPanel) {
+        cursorSettingsToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            cursorSettingsPanel.classList.toggle('hidden');
+        });
+        
+        // Close when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!cursorSettingsPanel.classList.contains('hidden') && 
+                !cursorSettingsPanel.contains(e.target) && 
+                e.target !== cursorSettingsToggle) {
+                cursorSettingsPanel.classList.add('hidden');
+            }
+        });
+        
+        // Prevent clicks inside panel from bubbling up
+        cursorSettingsPanel.addEventListener('click', (e) => {
+            e.stopPropagation();
         });
     }
 
@@ -365,34 +440,147 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // NAZ Core Design Customization State
+    let selectedCoreDesign = localStorage.getItem('naz-core-design') || 'quantum';
+    const coreDesignOpts = document.querySelectorAll('.core-design-opt');
+    const aiCoreEl = document.getElementById('ai-core');
+    
+    function applyCoreDesign(design) {
+        if (!aiCoreEl) return;
+        aiCoreEl.classList.remove('core-design-quantum', 'core-design-singularity', 'core-design-neural');
+        aiCoreEl.classList.add(`core-design-${design}`);
+    }
+    applyCoreDesign(selectedCoreDesign);
+    
+    coreDesignOpts.forEach(btn => {
+        if (btn.getAttribute('data-design') === selectedCoreDesign) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+        btn.addEventListener('click', () => {
+            coreDesignOpts.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedCoreDesign = btn.getAttribute('data-design');
+            localStorage.setItem('naz-core-design', selectedCoreDesign);
+            
+            applyCoreDesign(selectedCoreDesign);
+            
+            // Flash effect to confirm change
+            if (aiCoreEl) {
+                const currentTransition = aiCoreEl.style.transition;
+                aiCoreEl.style.transition = 'none';
+                aiCoreEl.style.transform = 'scale(1.2)';
+                requestAnimationFrame(() => {
+                    aiCoreEl.style.transition = 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                    aiCoreEl.style.transform = '';
+                });
+            }
+        });
+    });
+
     // -----------------------------------------------------------------
     // BATTERY CHARGING STATE DETECTION & SIMULATION
     // -----------------------------------------------------------------
     let isCharging = false;
-    let chargeMode = 'auto'; // 'auto', 'on', 'off'
+    let wasCharging = false;
     const electricArcs = [];
 
-    const chargeOpts = document.querySelectorAll('.charge-opt');
-    const savedChargeMode = localStorage.getItem('naz-charge-mode') || 'auto';
-    chargeMode = savedChargeMode;
+    function playChargingSound() {
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const audioCtx = new AudioContext();
+            
+            const now = audioCtx.currentTime;
+            
+            // 1. Capacitor charging sound (exponential frequency sweep up)
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(55, now);
+            osc.frequency.exponentialRampToValueAtTime(740, now + 1.2);
+            
+            // Sci-fi resonant low pass filter sweep
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(140, now);
+            filter.frequency.exponentialRampToValueAtTime(1900, now + 1.2);
+            filter.Q.setValueAtTime(6, now);
+            
+            // 2. Deep mechanical sub bass surge
+            const subOsc = audioCtx.createOscillator();
+            const subGain = audioCtx.createGain();
+            subOsc.type = 'sine';
+            subOsc.frequency.setValueAtTime(45, now);
+            subOsc.frequency.exponentialRampToValueAtTime(90, now + 0.5);
+            
+            subGain.gain.setValueAtTime(0.45, now);
+            subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+            
+            // 3. Futuristic high-voltage electrical crackling sparks
+            const sparkOsc = audioCtx.createOscillator();
+            const sparkGain = audioCtx.createGain();
+            sparkOsc.type = 'triangle';
+            sparkOsc.frequency.setValueAtTime(1100, now);
+            sparkOsc.frequency.setValueAtTime(1600, now + 0.08);
+            sparkOsc.frequency.setValueAtTime(950, now + 0.16);
+            sparkOsc.frequency.setValueAtTime(2200, now + 0.24);
+            
+            sparkGain.gain.setValueAtTime(0.14, now);
+            sparkGain.gain.setValueAtTime(0.001, now + 0.04);
+            sparkGain.gain.setValueAtTime(0.18, now + 0.12);
+            sparkGain.gain.setValueAtTime(0.001, now + 0.18);
+            sparkGain.gain.setValueAtTime(0.12, now + 0.24);
+            sparkGain.gain.setValueAtTime(0.001, now + 0.32);
+            
+            // Core audio gain envelopes
+            gainNode.gain.setValueAtTime(0.001, now);
+            gainNode.gain.linearRampToValueAtTime(0.25, now + 0.2);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+            
+            // Node connections
+            osc.connect(filter);
+            filter.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            subOsc.connect(subGain);
+            subGain.connect(audioCtx.destination);
+            
+            sparkOsc.connect(sparkGain);
+            sparkGain.connect(audioCtx.destination);
+            
+            // Trigger playback
+            osc.start(now);
+            osc.stop(now + 1.3);
+            
+            subOsc.start(now);
+            subOsc.stop(now + 0.6);
+            
+            sparkOsc.start(now);
+            sparkOsc.stop(now + 0.35);
+        } catch (e) {
+            console.warn("Web Audio charging sound synthesis failed:", e);
+        }
+    }
 
     function updateChargingState(chargingStatus) {
-        if (chargeMode === 'on') {
-            isCharging = true;
-        } else if (chargeMode === 'off') {
-            isCharging = false;
-        } else {
-            isCharging = !!chargingStatus;
-        }
+        isCharging = !!chargingStatus;
         
         const coreEl = document.getElementById('ai-core');
         if (coreEl) {
             if (isCharging) {
                 coreEl.classList.add('charging-active');
+                // Play futuristic startup sound on transition
+                if (!wasCharging) {
+                    playChargingSound();
+                }
             } else {
                 coreEl.classList.remove('charging-active');
             }
         }
+        wasCharging = isCharging;
     }
 
     function initBatteryAPI() {
@@ -411,56 +599,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function applyChargeMode(mode) {
-        chargeMode = mode;
-        localStorage.setItem('naz-charge-mode', mode);
-        
-        if (mode === 'auto') {
-            if ('getBattery' in navigator) {
-                navigator.getBattery().then(battery => {
-                    updateChargingState(battery.charging);
-                });
-            } else {
-                updateChargingState(false);
-            }
-        } else if (mode === 'on') {
-            updateChargingState(true);
-        } else {
-            updateChargingState(false);
-        }
-
-        chargeOpts.forEach(btn => {
-            if (btn.getAttribute('data-charge') === mode) {
-                btn.classList.add('active');
-            } else {
-                btn.classList.remove('active');
-            }
-        });
-    }
-
-    chargeOpts.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const mode = btn.getAttribute('data-charge');
-            applyChargeMode(mode);
-            const aiTextEl = document.getElementById('ai-text');
-            if (aiTextEl) {
-                let comment = "";
-                if (mode === 'on') {
-                    comment = "Power grid locked. Drawing environmental currents directly into primary capacitor nodes.";
-                } else if (mode === 'auto') {
-                    comment = "Automatic sensory array active. Monitoring power cells for connection indicators.";
-                } else {
-                    comment = "Forced discharge offline. Reverting to internal reserves only.";
-                }
-                aiTextEl.textContent = comment;
-                if (typeof speakAloud === 'function') {
-                    speakAloud(comment);
-                }
-            }
-        });
-    });
-
-    applyChargeMode(chargeMode);
     initBatteryAPI();
 
     function resizeTrailCanvas() {
@@ -640,105 +778,161 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    // Drawing a glowing wireframe cybernetic robotic arm
+    // Drawing a Nano-Swarm / Particle Cloud (Hundreds of glowing particles clustering to form the arm and hands)
     function drawRoboticArm(ctx, joints, primaryColor, secondaryColor, fingerAngle) {
-        // Shoulder base pivot
-        ctx.beginPath();
-        ctx.arc(joints.shoulder.x, joints.shoulder.y, 22, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${secondaryColor}, 0.25)`;
-        ctx.fill();
-        ctx.strokeStyle = `rgba(${primaryColor}, 0.5)`;
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.arc(joints.shoulder.x, joints.shoulder.y, 10, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${primaryColor}, 0.8)`;
-        ctx.fill();
-
-        // Arm segment 1 (Forearm)
-        ctx.beginPath();
-        ctx.strokeStyle = `rgba(${secondaryColor}, 0.4)`;
-        ctx.lineWidth = 14;
-        ctx.lineCap = 'round';
-        ctx.moveTo(joints.shoulder.x, joints.shoulder.y);
-        ctx.lineTo(joints.elbow.x, joints.elbow.y);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.strokeStyle = `rgba(${primaryColor}, 1)`;
-        ctx.lineWidth = 4;
-        ctx.moveTo(joints.shoulder.x, joints.shoulder.y);
-        ctx.lineTo(joints.elbow.x, joints.elbow.y);
-        ctx.stroke();
-
-        // Elbow joint pivot
-        ctx.beginPath();
-        ctx.arc(joints.elbow.x, joints.elbow.y, 14, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${secondaryColor}, 0.3)`;
-        ctx.fill();
-        ctx.strokeStyle = `rgba(${primaryColor}, 0.8)`;
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.arc(joints.elbow.x, joints.elbow.y, 6, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${primaryColor}, 0.95)`;
-        ctx.fill();
-
-        // Arm segment 2 (Upper arm)
-        ctx.beginPath();
-        ctx.strokeStyle = `rgba(${secondaryColor}, 0.4)`;
-        ctx.lineWidth = 10;
-        ctx.lineCap = 'round';
-        ctx.moveTo(joints.elbow.x, joints.elbow.y);
-        ctx.lineTo(joints.wrist.x, joints.wrist.y);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.strokeStyle = `rgba(${primaryColor}, 1)`;
-        ctx.lineWidth = 3;
-        ctx.moveTo(joints.elbow.x, joints.elbow.y);
-        ctx.lineTo(joints.wrist.x, joints.wrist.y);
-        ctx.stroke();
-
-        // Hand claw fingers
-        const wristAngle = Math.atan2(joints.wrist.y - joints.elbow.y, joints.wrist.x - joints.elbow.x);
-        const clawLength = 25;
+        const sx = joints.shoulder.x;
+        const sy = joints.shoulder.y;
+        const ex = joints.elbow.x;
+        const ey = joints.elbow.y;
+        const wx = joints.wrist.x;
+        const wy = joints.wrist.y;
         
-        // 3 finger angles
-        const fingerOffsets = [-fingerAngle, 0, fingerAngle];
-        fingerOffsets.forEach(offset => {
-            const angle = wristAngle + offset;
-            const midAngle = wristAngle + offset * 0.5;
+        const time = Date.now() * 0.001;
+        
+        // Draw fluid flowing particle streams along the limb segments
+        const drawSwarmSegment = (x1, y1, x2, y2, particleCount, colorRGB, isForearm) => {
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const length = Math.hypot(dx, dy);
             
-            const midX = joints.wrist.x + Math.cos(midAngle) * (clawLength * 0.6);
-            const midY = joints.wrist.y + Math.sin(midAngle) * (clawLength * 0.6);
+            const nx = -dy / length;
+            const ny = dx / length;
             
-            const tipX = midX + Math.cos(angle) * (clawLength * 0.55);
-            const tipY = midY + Math.sin(angle) * (clawLength * 0.55);
-            
+            for (let i = 0; i < particleCount; i++) {
+                // Flowing particles along the segment
+                const speedMult = isForearm ? 0.25 : 0.18;
+                const flowT = (i / particleCount + time * speedMult) % 1.0;
+                
+                const baseX = x1 + dx * flowT;
+                const baseY = y1 + dy * flowT;
+                
+                // Spiraling 3D cylinder shape along the line segment
+                const frequency = isForearm ? 10 : 8;
+                const angle = flowT * Math.PI * frequency + time * 5 + i * 0.8;
+                
+                // Taper the swarm near joints, making it organic and muscle-like
+                const taper = Math.sin(flowT * Math.PI);
+                const radius = (taper * 14 + 3) * (1 + Math.sin(time * 3 + i) * 0.22);
+                
+                const px = baseX + nx * Math.cos(angle) * radius;
+                const py = baseY + ny * Math.sin(angle) * radius;
+                
+                // Jittery orbital noise for nano-swarm look
+                const jitterX = Math.sin(time * 10 + i * 7) * 1.5;
+                const jitterY = Math.cos(time * 10 + i * 3) * 1.5;
+                
+                const size = (Math.sin(i * 4.5) * 1.2 + 2.0);
+                const opacity = (Math.sin(i * 8.9) * 0.35 + 0.65) * taper;
+                
+                ctx.beginPath();
+                ctx.arc(px + jitterX, py + jitterY, size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${colorRGB}, ${opacity})`;
+                ctx.fill();
+                
+                // Sparkling core highlight particles
+                if (i % 8 === 0) {
+                    ctx.beginPath();
+                    ctx.arc(px + jitterX, py + jitterY, size * 2.2, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(${colorRGB}, ${opacity * 0.3})`;
+                    ctx.fill();
+                }
+            }
+        };
+
+        // Draw upper arm particle swarm (Shoulder to Elbow)
+        drawSwarmSegment(sx, sy, ex, ey, 65, primaryColor, false);
+        // Draw forearm particle swarm (Elbow to Wrist)
+        drawSwarmSegment(ex, ey, wx, wy, 85, primaryColor, true);
+        
+        // Glowing joint swarm cores (Nebula-like orbital rings)
+        const drawJointSwarm = (cx, cy, baseRadius, particleCount, colorRGB) => {
+            // Core dense center glow
             ctx.beginPath();
-            ctx.strokeStyle = `rgba(${primaryColor}, 1)`;
-            ctx.lineWidth = 3;
-            ctx.lineCap = 'round';
-            ctx.moveTo(joints.wrist.x, joints.wrist.y);
-            ctx.lineTo(midX, midY);
-            ctx.lineTo(tipX, tipY);
-            ctx.stroke();
+            let grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, baseRadius * 1.8);
+            grad.addColorStop(0, `rgba(${colorRGB}, 0.5)`);
+            grad.addColorStop(0.5, `rgba(${colorRGB}, 0.15)`);
+            grad.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = grad;
+            ctx.arc(cx, cy, baseRadius * 1.8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Swarming orbiters
+            for (let i = 0; i < particleCount; i++) {
+                const angle = (i / particleCount) * Math.PI * 2 + time * 3.5 + Math.sin(time + i) * 0.5;
+                const orbitRadius = baseRadius + Math.cos(time * 2 + i * 3) * 3;
+                const px = cx + Math.cos(angle) * orbitRadius;
+                const py = cy + Math.sin(angle) * orbitRadius;
+                
+                const size = Math.random() * 1.2 + 1.2;
+                ctx.beginPath();
+                ctx.arc(px, py, size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${colorRGB}, 0.95)`;
+                ctx.fill();
+            }
             
-            // Glowing tips
+            // White core spark
             ctx.beginPath();
-            ctx.arc(tipX, tipY, 3, 0, Math.PI * 2);
+            ctx.arc(cx, cy, 3.2, 0, Math.PI * 2);
             ctx.fillStyle = '#ffffff';
             ctx.fill();
-        });
+        };
 
-        // Wrist pivot
-        ctx.beginPath();
-        ctx.arc(joints.wrist.x, joints.wrist.y, 8, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${primaryColor}, 1)`;
-        ctx.fill();
+        drawJointSwarm(sx, sy, 13, 14, secondaryColor);
+        drawJointSwarm(ex, ey, 10, 10, secondaryColor);
+        drawJointSwarm(wx, wy, 8, 8, secondaryColor);
+        
+        // Fluid, shimmering nano-swarm finger streams
+        const wristAngle = Math.atan2(wy - ey, wx - ex);
+        const tendrilLength = 36;
+        
+        // 4 streams of swirling stardust tendrils
+        const tendrilOffsets = [-fingerAngle * 1.3, -fingerAngle * 0.4, fingerAngle * 0.4, fingerAngle * 1.3];
+        
+        tendrilOffsets.forEach((offset, tIndex) => {
+            const baseAngle = wristAngle + offset;
+            const pointsCount = 14;
+            
+            for (let i = 0; i < pointsCount; i++) {
+                const t = i / pointsCount;
+                const distAlong = tendrilLength * t;
+                
+                // Sinusoidal wiggle along the stream
+                const wave = Math.sin(time * 6.5 + tIndex * 2.5 + t * 4.5) * 0.16;
+                const curAngle = baseAngle + wave;
+                
+                // Theoretical position
+                const tx = wx + Math.cos(curAngle) * distAlong;
+                const ty = wy + Math.sin(curAngle) * distAlong;
+                
+                // Micro-spirals for particle fluid look
+                const spiralAngle = time * 9 + i * 0.9 + tIndex * Math.PI;
+                const spiralRadius = (1.0 - t) * 4.5 + 1.0;
+                
+                const px = tx + Math.cos(spiralAngle) * spiralRadius;
+                const py = ty + Math.sin(spiralAngle) * spiralRadius;
+                
+                const size = (1.3 - t * 0.4) * 2.0;
+                const opacity = (1.0 - t * 0.3) * (0.6 + Math.sin(time * 4 + i) * 0.3);
+                
+                ctx.beginPath();
+                ctx.arc(px, py, size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${primaryColor}, ${opacity})`;
+                ctx.fill();
+                
+                // Tip sparks that flare dynamically
+                if (i === pointsCount - 1) {
+                    ctx.beginPath();
+                    ctx.arc(px, py, 3.0, 0, Math.PI * 2);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fill();
+                    
+                    ctx.beginPath();
+                    ctx.arc(px, py, 7.5, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(${secondaryColor}, 0.55)`;
+                    ctx.fill();
+                }
+            }
+        });
     }
 
     // Click ripple
@@ -2305,5 +2499,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Start the idle roaming loop
     updateIdleRoaming();
+
+    // Register Service Worker for PWA (makes it installable as a standalone app)
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('Service Worker registered successfully:', reg.scope))
+                .catch(err => console.log('Service Worker registration failed:', err));
+        });
+    }
 
 });
