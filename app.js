@@ -32,52 +32,63 @@ document.addEventListener('DOMContentLoaded', () => {
             const audioCtx = new AudioContext();
             const now = audioCtx.currentTime;
             
-            // Deep sub mechanical sweep
-            const bassOsc = audioCtx.createOscillator();
-            const bassGain = audioCtx.createGain();
-            bassOsc.type = 'sine';
-            bassOsc.frequency.setValueAtTime(50, now);
-            bassGain.gain.setValueAtTime(0, now);
-            bassGain.gain.linearRampToValueAtTime(0.4, now + 0.4);
-            bassGain.gain.exponentialRampToValueAtTime(0.001, now + 3.2);
-            bassOsc.connect(bassGain);
-            bassGain.connect(audioCtx.destination);
+            // Soft atmospheric low-frequency whoosh (very subtle, cinematic)
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            const filter = audioCtx.createBiquadFilter();
             
-            // High-tech arpeggio major 7th chord
-            const frequencies = [220, 277.18, 329.63, 415.30, 440]; // A3, C#4, E4, G#4, A4
-            frequencies.forEach((f, index) => {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(f, now + index * 0.15); // slow arpeggio delay
-                
-                // Vibrato
-                const lfo = audioCtx.createOscillator();
-                const lfoGain = audioCtx.createGain();
-                lfo.frequency.value = 5.5; 
-                lfoGain.gain.value = 3.5; 
-                lfo.connect(lfoGain);
-                lfoGain.connect(osc.frequency);
-                
-                gain.gain.setValueAtTime(0, now + index * 0.15);
-                gain.gain.linearRampToValueAtTime(0.12, now + index * 0.15 + 0.12);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + index * 0.15 + 2.5);
-                
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                
-                lfo.start(now);
-                osc.start(now);
-                lfo.stop(now + 3.0);
-                osc.stop(now + 3.0);
-            });
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(140, now);
+            osc.frequency.exponentialRampToValueAtTime(55, now + 1.8);
             
-            bassOsc.start(now);
-            bassOsc.stop(now + 3.5);
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(200, now);
+            filter.frequency.exponentialRampToValueAtTime(80, now + 1.8);
+            filter.Q.setValueAtTime(1, now);
+            
+            gainNode.gain.setValueAtTime(0, now);
+            gainNode.gain.linearRampToValueAtTime(0.2, now + 0.3); // very soft
+            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 1.8);
+            
+            osc.connect(filter);
+            filter.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            osc.start(now);
+            osc.stop(now + 2.0);
         } catch (e) {
             console.log('Audio startup hum blocked or failed:', e);
         }
+    }
+
+    function triggerStartupParticleBurst() {
+        const canvas = document.getElementById('particle-canvas');
+        if (!canvas) return;
+        particles = [];
+        const numParticles = 140;
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;
+        
+        for (let i = 0; i < numParticles; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 4.5 + 2.0; 
+            const p = new Particle();
+            p.x = cx;
+            p.y = cy;
+            p.speedX = Math.cos(angle) * speed;
+            p.speedY = Math.sin(angle) * speed;
+            particles.push(p);
+        }
+        
+        // Decelerate particles back to normal speed slowly
+        setTimeout(() => {
+            particles.forEach(p => {
+                const angle = Math.atan2(p.speedY, p.speedX);
+                const normalSpeed = (Math.random() - 0.5) * 0.8;
+                p.speedX = Math.cos(angle) * normalSpeed;
+                p.speedY = Math.sin(angle) * normalSpeed;
+            });
+        }, 2200);
     }
 
     // End boot loader and reveal UI after 4.5s
@@ -85,8 +96,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (bootLoader) {
             bootLoader.classList.add('fade-out');
             
-            // Trigger startup sound
+            // Trigger soft startup hum
             playStartupSound();
+            
+            // Trigger visual particle shockwave burst from the core
+            triggerStartupParticleBurst();
             
             // Transition body classes
             document.body.classList.remove('booting');

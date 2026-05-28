@@ -1595,9 +1595,21 @@ body.boot-complete .app-container {
     opacity: 1;
     transform: scale(1) translateY(0);
     filter: blur(0);
-    transition: opacity 2.5s cubic-bezier(0.16, 1, 0.3, 1), 
-                transform 2.5s cubic-bezier(0.16, 1, 0.3, 1), 
-                filter 2.5s cubic-bezier(0.16, 1, 0.3, 1);
+    animation: holoFlicker 1.8s ease-out forwards;
+}
+
+@keyframes holoFlicker {
+    0% { opacity: 0; filter: brightness(0.2) blur(10px); transform: scale(0.96) translateY(5px); }
+    5% { opacity: 0.2; }
+    10% { opacity: 0.1; }
+    20% { opacity: 0.8; filter: brightness(1.5) blur(3px); }
+    25% { opacity: 0.3; }
+    35% { opacity: 0.95; }
+    40% { opacity: 0.4; }
+    55% { opacity: 1.0; filter: brightness(1.2); }
+    60% { opacity: 0.8; }
+    70% { opacity: 1.0; filter: none; transform: scale(1) translateY(0); }
+    100% { opacity: 1.0; filter: none; transform: scale(1) translateY(0); }
 }
 
 body.boot-complete .reactor-core {
