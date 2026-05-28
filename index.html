@@ -15,7 +15,23 @@
     <meta name="apple-mobile-web-app-title" content="Naz Core">
     <link rel="apple-touch-icon" href="icon.png">
 </head>
-<body>
+<body class="booting">
+    <!-- Cinematic slow-mo boot loader screen -->
+    <div class="boot-loader" id="boot-loader">
+        <div class="boot-logo-container">
+            <div class="boot-logo-glow"></div>
+            <!-- Spinning futuristic SVG logo -->
+            <svg viewBox="0 0 100 100" style="width: 100px; height: 100px; fill: none;">
+                <polygon points="50,15 80,32 80,68 50,85 20,68 20,32" stroke="var(--accent-cyan)" stroke-width="1.5" />
+                <circle cx="50" cy="50" r="10" fill="var(--accent-purple)" opacity="0.8" />
+            </svg>
+        </div>
+        <div class="boot-text" id="boot-text">ESTABLISHING NEURAL LINK...</div>
+        <div class="boot-progress-bar">
+            <div class="boot-progress-fill"></div>
+        </div>
+    </div>
+
     <!-- Interactive Neural Network Background -->
     <canvas id="particle-canvas"></canvas>
 

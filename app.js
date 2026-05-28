@@ -1,5 +1,105 @@
 document.addEventListener('DOMContentLoaded', () => {
     // -----------------------------------------------------------------
+    // BOOT SEQUENCE LOADER (SLOW-MO) & STARTUP CHIME
+    // -----------------------------------------------------------------
+    const bootLoader = document.getElementById('boot-loader');
+    const bootText = document.getElementById('boot-text');
+    
+    const bootStatuses = [
+        "ESTABLISHING NEURAL LINK...",
+        "DECRYPTING CORE INTERFACE...",
+        "SYNCHRONIZING AUDIO CHANNELS...",
+        "INJECTING QUANTUM DRIVERS...",
+        "NAZ CORE STANDBY - INITIALIZING UI..."
+    ];
+    let statusIndex = 0;
+    
+    if (bootText) {
+        const interval = setInterval(() => {
+            statusIndex++;
+            if (statusIndex < bootStatuses.length) {
+                bootText.textContent = bootStatuses[statusIndex];
+            } else {
+                clearInterval(interval);
+            }
+        }, 850);
+    }
+    
+    function playStartupSound() {
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const audioCtx = new AudioContext();
+            const now = audioCtx.currentTime;
+            
+            // Deep sub mechanical sweep
+            const bassOsc = audioCtx.createOscillator();
+            const bassGain = audioCtx.createGain();
+            bassOsc.type = 'sine';
+            bassOsc.frequency.setValueAtTime(50, now);
+            bassGain.gain.setValueAtTime(0, now);
+            bassGain.gain.linearRampToValueAtTime(0.4, now + 0.4);
+            bassGain.gain.exponentialRampToValueAtTime(0.001, now + 3.2);
+            bassOsc.connect(bassGain);
+            bassGain.connect(audioCtx.destination);
+            
+            // High-tech arpeggio major 7th chord
+            const frequencies = [220, 277.18, 329.63, 415.30, 440]; // A3, C#4, E4, G#4, A4
+            frequencies.forEach((f, index) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(f, now + index * 0.15); // slow arpeggio delay
+                
+                // Vibrato
+                const lfo = audioCtx.createOscillator();
+                const lfoGain = audioCtx.createGain();
+                lfo.frequency.value = 5.5; 
+                lfoGain.gain.value = 3.5; 
+                lfo.connect(lfoGain);
+                lfoGain.connect(osc.frequency);
+                
+                gain.gain.setValueAtTime(0, now + index * 0.15);
+                gain.gain.linearRampToValueAtTime(0.12, now + index * 0.15 + 0.12);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + index * 0.15 + 2.5);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                lfo.start(now);
+                osc.start(now);
+                lfo.stop(now + 3.0);
+                osc.stop(now + 3.0);
+            });
+            
+            bassOsc.start(now);
+            bassOsc.stop(now + 3.5);
+        } catch (e) {
+            console.log('Audio startup hum blocked or failed:', e);
+        }
+    }
+
+    // End boot loader and reveal UI after 4.5s
+    setTimeout(() => {
+        if (bootLoader) {
+            bootLoader.classList.add('fade-out');
+            
+            // Trigger startup sound
+            playStartupSound();
+            
+            // Transition body classes
+            document.body.classList.remove('booting');
+            document.body.classList.add('boot-complete');
+            
+            // Clean up loader from DOM once faded
+            setTimeout(() => {
+                bootLoader.remove();
+            }, 1500);
+        }
+    }, 4500);
+
+    // -----------------------------------------------------------------
     // 0. THEME MANAGEMENT SYSTEM (Cyberpunk vs. Obsidian Slate)
     // -----------------------------------------------------------------
     let themeCyan = '0, 240, 255';
