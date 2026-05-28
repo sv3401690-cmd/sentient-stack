@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Naz Voice Portal</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Interactive Neural Network Background -->
+    <canvas id="particle-canvas"></canvas>
+
+    <!-- Custom Animated Cursor System -->
+    <div class="cursor-system">
+        <div class="cursor-dot"></div>
+        <div class="cursor-ring ring-outer"></div>
+        <div class="cursor-ring ring-inner"></div>
+        <div class="cursor-ripple"></div>
+    </div>
+    <canvas id="cursor-trail-canvas"></canvas>
+
+    <!-- Animated background glowing orbs -->
+    <div class="background-effects">
+        <div class="glow-orb orb-1"></div>
+        <div class="glow-orb orb-2"></div>
+    </div>
+
+    <!-- Main Application UI -->
+    <div class="app-container">
+        
+
+        
+        <!-- Pulsing Grid Overlay -->
+        <div class="grid-overlay"></div>
+        
+        <!-- Floating Energy Orbs (created by JS) -->
+        <div id="energy-orbs"></div>
+        
+        <!-- Top Status Bar & Minimalist Header -->
+        <header class="header">
+            <div class="logo-area">
+                <span class="status-indicator-dot pulsing"></span>
+                <span class="logo-text">NAZ ACTIVE</span>
+            </div>
+            <div class="theme-toggle" id="theme-toggle" data-tooltip="Cycle System Themes">
+                <span class="theme-icon">🎨</span>
+            </div>
+            <div class="header-divider"></div>
+        </header>
+
+        <!-- Main Body: Voice Visualizer Portal -->
+        <main class="portal-body">
+            <!-- Concentric audio ripples -->
+            <div class="visualizer-waves" id="visualizer-waves">
+                <canvas id="voice-visualizer-canvas"></canvas>
+            </div>
+            
+            <div class="voice-core-panel">
+                <!-- Main Voice Core Node -->
+                <div class="ai-core-container" id="voice-trigger" data-tooltip="Initialize Voice Sequence">
+                    <div class="ai-core" id="ai-core">
+                        <!-- Outer Aura Glow -->
+                        <div class="core-aura"></div>
+                        <!-- Pulsing Energy Rings -->
+                        <div class="pulse-ring ring-1"></div>
+                        <div class="pulse-ring ring-2"></div>
+                        <div class="pulse-ring ring-3"></div>
+                        <!-- Orbiting Energy Particles -->
+                        <div class="orbit-track orbit-1"><span class="orbit-dot"></span></div>
+                        <div class="orbit-track orbit-2"><span class="orbit-dot"></span></div>
+                        <div class="orbit-track orbit-3"><span class="orbit-dot"></span></div>
+                        <div class="orbit-track orbit-4"><span class="orbit-dot"></span></div>
+                        <!-- Holographic Scan Beam -->
+                        <div class="core-scan-beam"></div>
+                        <!-- Main Reactor Core -->
+                        <div class="reactor-core">
+                            <svg viewBox="0 0 100 100" class="core-logo" xmlns="http://www.w3.org/2000/svg">
+                                <!-- Outer thin rotating tech lines -->
+                                <circle cx="50" cy="50" r="43" stroke="var(--accent-cyan)" stroke-width="1.5" stroke-dasharray="10 5" fill="none" class="spin-slow" opacity="0.8"/>
+                                <polygon points="50,18 78,34 78,66 50,82 22,66 22,34" stroke="var(--accent-purple)" stroke-width="1.2" fill="none" class="spin-reverse" opacity="0.7"/>
+                                <!-- Quantum Nodes -->
+                                <circle cx="50" cy="18" r="3" fill="var(--accent-cyan)"/>
+                                <circle cx="50" cy="82" r="3" fill="var(--accent-cyan)"/>
+                                <circle cx="78" cy="34" r="3" fill="var(--accent-purple)"/>
+                                <circle cx="22" cy="66" r="3" fill="var(--accent-purple)"/>
+                                <!-- Core glowing center -->
+                                <circle cx="50" cy="50" r="12" fill="var(--accent-cyan)" opacity="0.15"/>
+                                <circle cx="50" cy="50" r="6" fill="#ffffff"/>
+                                <!-- Orbiting electron rings -->
+                                <ellipse cx="50" cy="50" rx="20" ry="6" stroke="var(--accent-cyan)" stroke-width="1" fill="none" transform="rotate(45 50 50)" opacity="0.6"/>
+                                <ellipse cx="50" cy="50" rx="20" ry="6" stroke="var(--accent-purple)" stroke-width="1" fill="none" transform="rotate(-45 50 50)" opacity="0.6"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="voice-instruction" id="voice-instruction">TAP CORE TO TRANSMIT COMMAND</div>
+            </div>
+        </main>
+
+        <!-- Transcript HUD Panel -->
+        <section class="transcript-hud">
+            <div class="transcript-card user-card" data-tooltip="Click to manually edit or type command">
+                <div class="card-header">VOICE_INPUT_TRANSCRIPT</div>
+                <div class="card-body" id="user-text">Awaiting transmission...</div>
+            </div>
+            <div class="transcript-card ai-card" data-tooltip="Click to open voice configurations">
+                <div class="card-header">NAZ_CORE_OUTPUT</div>
+                <div class="card-body" id="ai-text">Naz core initialized and standby. Tap the central core to speak.</div>
+            </div>
+        </section>
+
+        <!-- Collapsible Input Override Area -->
+        <footer class="input-container collapsed" id="input-container">
+            <button class="close-drawer-btn" id="close-drawer-btn" aria-label="Close keyboard drawer">&times;</button>
+            <div class="settings-row">
+                <div class="setting-item">
+                    <label for="voice-select">🎙️ NAZ VOICE PROFILE</label>
+                    <select id="voice-select" class="hud-select">
+                        <option value="">Detecting local voice engines...</option>
+                    </select>
+                </div>
+            </div>
+            <div class="settings-row" style="margin-bottom: 20px;">
+                <div class="setting-item">
+                    <label>🔮 CURSOR EFFECT STYLE</label>
+                    <div class="cursor-options" id="cursor-options">
+                        <button class="cursor-opt active" data-style="quantum">QUANTUM</button>
+                        <button class="cursor-opt" data-style="matrix">MATRIX</button>
+                        <button class="cursor-opt" data-style="stardust">STARDUST</button>
+                        <button class="cursor-opt" data-style="plasma">PLASMA</button>
+                    </div>
+                </div>
+            </div>
+            <div class="settings-row" style="margin-bottom: 20px;">
+                <div class="setting-item">
+                    <label>⚡ CHARGING CURRENT MODE</label>
+                    <div class="charge-options" id="charge-options">
+                        <button class="charge-opt active" data-charge="auto">AUTO (DETECT)</button>
+                        <button class="charge-opt" data-charge="on">FORCE ON</button>
+                        <button class="charge-opt" data-charge="off">FORCE OFF</button>
+                    </div>
+                </div>
+            </div>
+            <div class="input-wrapper">
+                <input type="text" id="user-input" placeholder="Override command sequence..." autocomplete="off">
+                <button id="send-btn" data-tooltip="Transmit Data Sequence">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </div>
+        </footer>
+        
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
