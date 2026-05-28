@@ -91,55 +91,53 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 2200);
     }
 
-    // Handle boot screen transition
-    const bootBtn = document.getElementById('boot-btn');
+    // Handle boot screen auto-transition (no button needed)
     const bootProgressBar = document.getElementById('boot-progress-bar');
     
-    // When progress bar finishes loading (4.5s)
+    // After progress bar fills (4.5s), start the cinematic auto-reveal
     setTimeout(() => {
-        if (bootProgressBar && bootText && bootBtn) {
-            bootProgressBar.classList.add('hidden');
-            bootText.textContent = "NAZ CORE STANDBY - READY TO BOOT";
-            bootBtn.classList.add('show');
-            
-            // Wait for user interaction to bypass browser autoplay blocks
-            bootBtn.addEventListener('click', () => {
-                try {
-                    if (bootLoader) {
-                        bootLoader.classList.add('fade-out');
-                        
-                        // Try playing sound safely
-                        try {
-                            playStartupSound();
-                        } catch (soundErr) {
-                            console.warn("Sound play failed:", soundErr);
-                        }
-                        
-                        // Try running particle burst safely
-                        try {
-                            triggerStartupParticleBurst();
-                        } catch (partErr) {
-                            console.warn("Particle burst failed:", partErr);
-                        }
-                        
-                        // Transition body classes
-                        document.body.classList.remove('booting');
-                        document.body.classList.add('boot-complete');
-                        
-                        // Clean up loader from DOM once faded
-                        setTimeout(() => {
-                            bootLoader.remove();
-                        }, 1500);
+        if (bootText) {
+            bootText.textContent = "BREACHING INTERFACE...";
+        }
+        
+        // Brief dramatic pause, then auto-trigger the transition
+        setTimeout(() => {
+            try {
+                if (bootLoader) {
+                    // Add the cinematic slow-mo fade-out class
+                    bootLoader.classList.add('fade-out');
+                    
+                    // Try playing sound safely (user gesture not needed for AudioContext on many browsers)
+                    try {
+                        playStartupSound();
+                    } catch (soundErr) {
+                        console.warn("Sound play failed:", soundErr);
                     }
-                } catch (e) {
-                    console.error("Critical boot trigger error, running emergency bypass:", e);
-                    // Emergency bypass to ensure user can enter the portal
-                    if (bootLoader) bootLoader.remove();
+                    
+                    // Try running particle burst safely
+                    try {
+                        triggerStartupParticleBurst();
+                    } catch (partErr) {
+                        console.warn("Particle burst failed:", partErr);
+                    }
+                    
+                    // Transition body classes
                     document.body.classList.remove('booting');
                     document.body.classList.add('boot-complete');
+                    
+                    // Clean up loader from DOM once faded
+                    setTimeout(() => {
+                        bootLoader.remove();
+                    }, 3000);
                 }
-            });
-        }
+            } catch (e) {
+                console.error("Critical boot trigger error, running emergency bypass:", e);
+                // Emergency bypass
+                if (bootLoader) bootLoader.remove();
+                document.body.classList.remove('booting');
+                document.body.classList.add('boot-complete');
+            }
+        }, 800); // 800ms dramatic pause after "BREACHING INTERFACE..."
     }, 4500);
 
     // -----------------------------------------------------------------
@@ -2187,11 +2185,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Call voice list populator
-    populateVoiceList();
+    // Robust voice loading with retry for slower devices
+    let voicesReady = false;
+    let voiceLoadRetries = 0;
+    const MAX_VOICE_RETRIES = 10;
+
+    function tryLoadVoices() {
+        populateVoiceList();
+        const voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+        if (voices.length > 0) {
+            voicesReady = true;
+            console.log('Naz: Voice engines loaded successfully (' + voices.length + ' voices)');
+        } else if (voiceLoadRetries < MAX_VOICE_RETRIES) {
+            voiceLoadRetries++;
+            setTimeout(tryLoadVoices, 500);
+        } else {
+            console.warn('Naz: Voice engines unavailable after retries');
+        }
+    }
+
+    tryLoadVoices();
     if (window.speechSynthesis) {
         if (window.speechSynthesis.onvoiceschanged !== undefined) {
-            window.speechSynthesis.onvoiceschanged = populateVoiceList;
+            window.speechSynthesis.onvoiceschanged = () => {
+                voicesReady = true;
+                populateVoiceList();
+            };
         }
     }
 
@@ -2218,7 +2237,18 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const cleanText = text.replace(/[*_#`~[\]"']/g, '');
         const utterance = new SpeechSynthesisUtterance(cleanText);
-        const voices = window.speechSynthesis.getVoices();
+        let voices = window.speechSynthesis.getVoices();
+        
+        // If voices haven't loaded yet, wait and retry once
+        if (voices.length === 0) {
+            setTimeout(() => {
+                voices = window.speechSynthesis.getVoices();
+                if (voices.length > 0) {
+                    speakAloud(text);
+                }
+            }, 300);
+            return;
+        }
         
         let voice = voices.find(v => v.name === selectedVoiceName);
         if (!voice) {
@@ -2644,6 +2674,206 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Start the idle roaming loop
     updateIdleRoaming();
+
+    // -----------------------------------------------------------------
+    // CROSS-DEVICE SETTINGS SYNC SYSTEM
+    // -----------------------------------------------------------------
+    const SETTINGS_KEYS = [
+        'assistant-theme',
+        'naz-cursor-style', 
+        'naz-core-design',
+        'naz-voice-focus',
+        'naz-voice-profile'
+    ];
+
+    function gatherSettings() {
+        const settings = {};
+        SETTINGS_KEYS.forEach(key => {
+            const val = localStorage.getItem(key);
+            if (val) settings[key] = val;
+        });
+        return settings;
+    }
+
+    function encodeSettings(settings) {
+        try {
+            return btoa(JSON.stringify(settings));
+        } catch (e) {
+            console.error('Settings encode error:', e);
+            return '';
+        }
+    }
+
+    function decodeSettings(encoded) {
+        try {
+            return JSON.parse(atob(encoded));
+        } catch (e) {
+            console.error('Settings decode error:', e);
+            return null;
+        }
+    }
+
+    function applyImportedSettings(settings) {
+        if (!settings || typeof settings !== 'object') return false;
+        
+        let applied = 0;
+        SETTINGS_KEYS.forEach(key => {
+            if (settings[key]) {
+                localStorage.setItem(key, settings[key]);
+                applied++;
+            }
+        });
+        
+        if (applied > 0) {
+            // Apply theme immediately
+            if (settings['assistant-theme']) {
+                const idx = themes.findIndex(t => t.name === settings['assistant-theme']);
+                if (idx !== -1) {
+                    currentThemeIndex = idx;
+                    applyTheme(currentThemeIndex);
+                }
+            }
+            
+            // Apply cursor style
+            if (settings['naz-cursor-style']) {
+                selectedCursorStyle = settings['naz-cursor-style'];
+                applyCursorDotStyle(selectedCursorStyle);
+                cursorOpts.forEach(btn => {
+                    if (btn.getAttribute('data-style') === selectedCursorStyle) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+            }
+            
+            // Apply core design
+            if (settings['naz-core-design']) {
+                selectedCoreDesign = settings['naz-core-design'];
+                applyCoreDesign(selectedCoreDesign);
+                coreDesignOpts.forEach(btn => {
+                    if (btn.getAttribute('data-design') === selectedCoreDesign) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+            }
+            
+            // Apply voice focus
+            if (settings['naz-voice-focus'] && voiceFocusSelect) {
+                selectedVoiceFocus = settings['naz-voice-focus'];
+                voiceFocusSelect.value = selectedVoiceFocus;
+                populateVoiceList();
+            }
+            
+            // Apply voice name (will be matched on next voice list population)
+            if (settings['naz-voice-profile']) {
+                selectedVoiceName = settings['naz-voice-profile'];
+            }
+            
+            return true;
+        }
+        return false;
+    }
+
+    // Check URL hash for incoming settings on page load
+    function checkURLForSettings() {
+        const hash = window.location.hash;
+        if (hash && hash.startsWith('#naz-settings=')) {
+            const encoded = hash.replace('#naz-settings=', '');
+            const settings = decodeSettings(encoded);
+            if (settings && applyImportedSettings(settings)) {
+                // Clean the URL hash after import
+                history.replaceState(null, '', window.location.pathname + window.location.search);
+                showSyncStatus('✅ SETTINGS IMPORTED FROM LINK');
+                speakAloud('Settings synchronized from shared link.');
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function showSyncStatus(msg) {
+        const statusEl = document.getElementById('sync-status');
+        if (statusEl) {
+            statusEl.textContent = msg;
+            statusEl.style.opacity = '1';
+            setTimeout(() => {
+                statusEl.style.opacity = '0';
+                setTimeout(() => { statusEl.textContent = ''; }, 300);
+            }, 3000);
+        }
+    }
+
+    // Export settings button
+    const exportBtn = document.getElementById('export-settings-btn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', async () => {
+            const settings = gatherSettings();
+            const encoded = encodeSettings(settings);
+            const url = window.location.origin + window.location.pathname + '#naz-settings=' + encoded;
+            
+            try {
+                await navigator.clipboard.writeText(url);
+                showSyncStatus('✅ SETTINGS LINK COPIED TO CLIPBOARD');
+                speakAloud('Settings link copied. Open it on any device to sync.');
+            } catch (e) {
+                // Fallback: show the link in a prompt
+                prompt('Copy this settings link:', url);
+                showSyncStatus('📋 COPY THE LINK ABOVE');
+            }
+        });
+    }
+
+    // Import settings button
+    const importBtn = document.getElementById('import-settings-btn');
+    if (importBtn) {
+        importBtn.addEventListener('click', async () => {
+            try {
+                const clipText = await navigator.clipboard.readText();
+                
+                let settings = null;
+                // Check if it's a full URL with hash
+                if (clipText.includes('#naz-settings=')) {
+                    const encoded = clipText.split('#naz-settings=')[1];
+                    settings = decodeSettings(encoded);
+                } else {
+                    // Try direct base64 decode
+                    settings = decodeSettings(clipText);
+                }
+                
+                if (settings && applyImportedSettings(settings)) {
+                    showSyncStatus('✅ SETTINGS IMPORTED FROM CLIPBOARD');
+                    speakAloud('Settings imported successfully.');
+                } else {
+                    showSyncStatus('❌ NO VALID SETTINGS IN CLIPBOARD');
+                }
+            } catch (e) {
+                // Clipboard read not available, ask user to paste
+                const input = prompt('Paste your settings link here:');
+                if (input) {
+                    let settings = null;
+                    if (input.includes('#naz-settings=')) {
+                        const encoded = input.split('#naz-settings=')[1];
+                        settings = decodeSettings(encoded);
+                    } else {
+                        settings = decodeSettings(input);
+                    }
+                    
+                    if (settings && applyImportedSettings(settings)) {
+                        showSyncStatus('✅ SETTINGS IMPORTED');
+                        speakAloud('Settings imported successfully.');
+                    } else {
+                        showSyncStatus('❌ INVALID SETTINGS DATA');
+                    }
+                }
+            }
+        });
+    }
+
+    // Auto-import from URL hash on load
+    checkURLForSettings();
 
     // Register Service Worker for PWA (makes it installable as a standalone app)
     if ('serviceWorker' in navigator) {

@@ -30,7 +30,6 @@
         <div class="boot-progress-bar" id="boot-progress-bar">
             <div class="boot-progress-fill"></div>
         </div>
-        <button class="boot-btn" id="boot-btn">INITIALIZE SYSTEM</button>
     </div>
 
     <!-- Interactive Neural Network Background -->
@@ -111,6 +110,14 @@
                 <select id="voice-select" class="hud-select">
                     <option value="">Detecting local voice engines...</option>
                 </select>
+            </div>
+            <div class="setting-item settings-sync-section" style="margin-top: 18px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.08);">
+                <label>🔗 SETTINGS SYNC</label>
+                <div class="sync-buttons">
+                    <button class="sync-btn" id="export-settings-btn" data-tooltip="Copy settings link to clipboard">📤 SHARE LINK</button>
+                    <button class="sync-btn" id="import-settings-btn" data-tooltip="Import settings from clipboard">📥 IMPORT</button>
+                </div>
+                <div class="sync-status" id="sync-status"></div>
             </div>
         </div>
 

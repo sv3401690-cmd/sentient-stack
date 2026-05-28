@@ -63,7 +63,15 @@ body {
     align-items: center;
 }
 
-body, .app-container, input, button, select, option, .cursor-opt, .hud-select {
+/* Only hide native cursor when custom cursor system is active (desktop, after first mouse move) */
+body.cursor-active,
+body.cursor-active .app-container,
+body.cursor-active input,
+body.cursor-active button,
+body.cursor-active select,
+body.cursor-active option,
+body.cursor-active .cursor-opt,
+body.cursor-active .hud-select {
     cursor: none !important;
 }
 
@@ -988,6 +996,52 @@ body.cursor-active #cursor-trail-canvas {
     box-shadow: 0 0 12px rgba(var(--accent-cyan-rgb), 0.25), inset 0 0 4px rgba(var(--accent-cyan-rgb), 0.15);
 }
 
+/* Settings Sync Buttons */
+.sync-buttons {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+}
+
+.sync-btn {
+    flex: 1;
+    background: rgba(10, 10, 15, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    padding: 10px 10px;
+    color: rgba(255, 255, 255, 0.7);
+    font-family: monospace;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+    text-align: center;
+}
+
+.sync-btn:hover {
+    background: rgba(var(--accent-cyan-rgb), 0.08);
+    border-color: rgba(var(--accent-cyan-rgb), 0.4);
+    color: var(--accent-cyan);
+    box-shadow: 0 0 15px rgba(var(--accent-cyan-rgb), 0.15);
+}
+
+.sync-btn:active {
+    transform: scale(0.96);
+}
+
+.sync-status {
+    font-family: monospace;
+    font-size: 0.65rem;
+    letter-spacing: 1px;
+    color: var(--accent-cyan);
+    text-align: center;
+    min-height: 16px;
+    margin-top: 6px;
+    transition: opacity 0.3s ease;
+}
+
 /* ===== CHARGING STATE EFFECTS ===== */
 .ai-core.charging-active .core-aura {
     background: radial-gradient(circle, rgba(255, 255, 255, 0.28) 0%, rgba(var(--accent-cyan-rgb), 0.2) 35%, rgba(var(--accent-purple-rgb), 0.08) 65%, transparent 80%);
@@ -1481,11 +1535,16 @@ button svg { width: 22px; height: 22px; }
     align-items: center;
     flex-direction: column;
     gap: 20px;
-    transition: opacity 1.5s cubic-bezier(0.16, 1, 0.3, 1), pointer-events 1.5s;
+    transition: opacity 2.5s cubic-bezier(0.16, 1, 0.3, 1), 
+                transform 2.5s cubic-bezier(0.16, 1, 0.3, 1), 
+                filter 2.5s cubic-bezier(0.16, 1, 0.3, 1),
+                pointer-events 0s;
 }
 
 .boot-loader.fade-out {
     opacity: 0;
+    transform: scale(1.08);
+    filter: blur(12px);
     pointer-events: none;
 }
 
@@ -1552,160 +1611,182 @@ button svg { width: 22px; height: 22px; }
     height: 15px;
     text-align: center;
     text-transform: uppercase;
+    transition: opacity 0.6s ease, letter-spacing 0.8s ease;
 }
 
 /* UI Slow-mo Boot-in States */
 body.booting .app-container {
     opacity: 0;
-    transform: scale(0.95) translateY(10px);
-    filter: blur(10px);
+    transform: scale(0.92) translateY(15px);
+    filter: blur(15px);
 }
 
 body.booting .reactor-core {
-    transform: scale(0.1) !important;
+    transform: scale(0.05) !important;
     opacity: 0 !important;
 }
 
 body.booting .orbit-track {
     opacity: 0 !important;
-    transform: scale(0.5) !important;
+    transform: scale(0.3) rotate(-90deg) !important;
 }
 
 body.booting .pulse-ring {
     animation-play-state: paused !important;
     opacity: 0 !important;
+    transform: scale(0.5) !important;
+}
+
+body.booting .core-aura {
+    opacity: 0 !important;
+    transform: scale(0.3) !important;
 }
 
 body.booting .header {
     opacity: 0;
-    transform: translateY(-30px);
+    transform: translateY(-40px);
 }
 
 body.booting .transcript-hud {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(40px);
+}
+
+body.booting .voice-instruction {
+    opacity: 0;
+    transform: translateY(20px);
 }
 
 body.booting #particle-canvas {
     opacity: 0;
 }
 
-/* Boot finished transitions */
+body.booting .glow-orb {
+    opacity: 0 !important;
+    transform: scale(0.5) !important;
+}
+
+/* ============================================
+   BOOT COMPLETE — CINEMATIC SLOW-MO REVEAL
+   ============================================ */
+
+/* Main container: holographic flicker-in */
 body.boot-complete .app-container {
     opacity: 1;
     transform: scale(1) translateY(0);
     filter: blur(0);
-    animation: holoFlicker 1.8s ease-out forwards;
+    animation: holoFlicker 2.2s ease-out forwards;
 }
 
 @keyframes holoFlicker {
-    0% { opacity: 0; filter: brightness(0.2) blur(10px); transform: scale(0.96) translateY(5px); }
-    5% { opacity: 0.2; }
-    10% { opacity: 0.1; }
-    20% { opacity: 0.8; filter: brightness(1.5) blur(3px); }
-    25% { opacity: 0.3; }
-    35% { opacity: 0.95; }
-    40% { opacity: 0.4; }
-    55% { opacity: 1.0; filter: brightness(1.2); }
-    60% { opacity: 0.8; }
-    70% { opacity: 1.0; filter: none; transform: scale(1) translateY(0); }
+    0%   { opacity: 0; filter: brightness(0.1) blur(15px); transform: scale(0.93) translateY(10px); }
+    8%   { opacity: 0.3; filter: brightness(2.0) blur(8px); }
+    12%  { opacity: 0.1; filter: brightness(0.3) blur(12px); }
+    22%  { opacity: 0.7; filter: brightness(1.8) blur(4px); }
+    28%  { opacity: 0.3; filter: brightness(0.6) blur(6px); }
+    40%  { opacity: 0.9; filter: brightness(1.3) blur(2px); }
+    50%  { opacity: 0.5; filter: brightness(0.8) blur(3px); }
+    65%  { opacity: 1.0; filter: brightness(1.1) blur(0); transform: scale(1) translateY(0); }
+    75%  { opacity: 0.85; }
+    85%  { opacity: 1.0; }
     100% { opacity: 1.0; filter: none; transform: scale(1) translateY(0); }
 }
 
+/* Reactor core: dramatic slow bloom */
 body.boot-complete .reactor-core {
     transform: scale(1) !important;
     opacity: 1 !important;
-    transition: transform 3s cubic-bezier(0.34, 1.3, 0.64, 1) 0.5s, 
-                opacity 2.5s ease 0.5s !important;
+    transition: transform 3.5s cubic-bezier(0.16, 1, 0.3, 1) 0.3s, 
+                opacity 3s ease 0.3s !important;
 }
 
-body.boot-complete .orbit-track {
+/* Core aura: ethereal slow fade-in */
+body.boot-complete .core-aura {
     opacity: 1 !important;
     transform: scale(1) !important;
-    transition: opacity 2s ease 1.2s, transform 2.5s cubic-bezier(0.16, 1, 0.3, 1) 1.2s !important;
+    transition: opacity 3s cubic-bezier(0.16, 1, 0.3, 1) 0.8s, 
+                transform 4s cubic-bezier(0.16, 1, 0.3, 1) 0.8s !important;
 }
 
+/* Orbit tracks: staggered unfold */
+body.boot-complete .orbit-track {
+    opacity: 1 !important;
+    transform: scale(1) rotate(0deg) !important;
+    transition: opacity 2.5s ease 1.0s, 
+                transform 3s cubic-bezier(0.16, 1, 0.3, 1) 1.0s !important;
+}
+
+body.boot-complete .orbit-track.orbit-2 {
+    transition-delay: 1.2s !important;
+}
+
+body.boot-complete .orbit-track.orbit-3 {
+    transition-delay: 1.4s !important;
+}
+
+body.boot-complete .orbit-track.orbit-4 {
+    transition-delay: 1.6s !important;
+}
+
+/* Pulse rings: staggered emergence */
 body.boot-complete .pulse-ring {
     animation-play-state: running !important;
     opacity: 1 !important;
-    transition: opacity 1.5s ease 1.8s !important;
+    transform: scale(1) !important;
+    transition: opacity 2s ease 1.5s, transform 2.5s cubic-bezier(0.16, 1, 0.3, 1) 1.5s !important;
 }
 
+body.boot-complete .pulse-ring.ring-2 {
+    transition-delay: 1.8s !important;
+}
+
+body.boot-complete .pulse-ring.ring-3 {
+    transition-delay: 2.1s !important;
+}
+
+/* Header: slides down from above */
 body.boot-complete .header {
     opacity: 1;
     transform: translateY(0);
-    transition: opacity 2s cubic-bezier(0.16, 1, 0.3, 1) 1.5s, 
-                transform 2s cubic-bezier(0.16, 1, 0.3, 1) 1.5s;
+    transition: opacity 2.5s cubic-bezier(0.16, 1, 0.3, 1) 1.2s, 
+                transform 2.5s cubic-bezier(0.16, 1, 0.3, 1) 1.2s;
 }
 
+/* Transcript HUD: slides up from below */
 body.boot-complete .transcript-hud {
     opacity: 1;
     transform: translateY(0);
-    transition: opacity 2s cubic-bezier(0.16, 1, 0.3, 1) 1.7s, 
-                transform 2s cubic-bezier(0.16, 1, 0.3, 1) 1.7s;
+    transition: opacity 2.5s cubic-bezier(0.16, 1, 0.3, 1) 1.6s, 
+                transform 2.5s cubic-bezier(0.16, 1, 0.3, 1) 1.6s;
 }
 
+/* Voice instruction text */
+body.boot-complete .voice-instruction {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 2s cubic-bezier(0.16, 1, 0.3, 1) 2.0s,
+                transform 2s cubic-bezier(0.16, 1, 0.3, 1) 2.0s;
+}
+
+/* Particle canvas: very slow atmospheric reveal */
 body.boot-complete #particle-canvas {
     opacity: 1;
-    transition: opacity 4s ease;
+    transition: opacity 5s ease;
 }
 
-/* Boot Button styling for audio unlock */
-.boot-btn {
-    background: rgba(var(--accent-cyan-rgb), 0.05);
-    border: 1.5px solid var(--accent-cyan);
-    border-radius: 12px;
-    color: var(--accent-cyan);
-    font-family: 'Outfit', sans-serif;
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 3px;
-    padding: 14px 32px;
-    cursor: pointer;
-    opacity: 0;
-    pointer-events: none;
-    transform: scale(0.95) translateY(10px);
-    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), 
-                transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), 
-                background-color 0.3s, 
-                box-shadow 0.3s;
-    box-shadow: 0 0 15px rgba(var(--accent-cyan-rgb), 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    margin-top: 25px;
-    text-transform: uppercase;
-    white-space: nowrap;
-    display: inline-block;
-    min-width: 240px;
+/* Background glow orbs: slow materialization */
+body.boot-complete .glow-orb {
+    opacity: 1 !important;
+    transform: scale(1) !important;
+    transition: opacity 4s ease 1s, transform 5s cubic-bezier(0.16, 1, 0.3, 1) 1s !important;
 }
 
-.boot-btn.show {
-    opacity: 1;
-    pointer-events: auto;
-    transform: scale(1) translateY(0);
-}
-
-.boot-btn:hover {
-    background: rgba(var(--accent-cyan-rgb), 0.18);
-    box-shadow: 
-        0 0 25px rgba(var(--accent-cyan-rgb), 0.35), 
-        0 0 50px rgba(var(--accent-cyan-rgb), 0.15),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    color: #ffffff;
-    text-shadow: 0 0 8px rgba(var(--accent-cyan-rgb), 0.6);
-}
-
-.boot-btn:active {
-    transform: scale(0.97);
-}
-
-/* Hide progress bar when ready */
+/* Hide progress bar when transition starts */
 .boot-progress-bar.hidden {
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.5s ease;
 }
-
-
-
 
 
 
