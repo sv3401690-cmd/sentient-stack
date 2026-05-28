@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Clean up loader from DOM once faded
                     setTimeout(() => {
                         bootLoader.remove();
-                    }, 3000);
+                    }, 1500);
                 }
             } catch (e) {
                 console.error("Critical boot trigger error, running emergency bypass:", e);

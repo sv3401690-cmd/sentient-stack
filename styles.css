@@ -1535,16 +1535,16 @@ button svg { width: 22px; height: 22px; }
     align-items: center;
     flex-direction: column;
     gap: 20px;
-    transition: opacity 2.5s cubic-bezier(0.16, 1, 0.3, 1), 
-                transform 2.5s cubic-bezier(0.16, 1, 0.3, 1), 
-                filter 2.5s cubic-bezier(0.16, 1, 0.3, 1),
+    transition: opacity 1.2s cubic-bezier(0.25, 1, 0.5, 1), 
+                transform 1.2s cubic-bezier(0.25, 1, 0.5, 1), 
+                filter 1.2s cubic-bezier(0.25, 1, 0.5, 1),
                 pointer-events 0s;
 }
 
 .boot-loader.fade-out {
     opacity: 0;
-    transform: scale(1.08);
-    filter: blur(12px);
+    transform: scale(1.15);
+    filter: blur(15px);
     pointer-events: none;
 }
 
@@ -1617,44 +1617,44 @@ button svg { width: 22px; height: 22px; }
 /* UI Slow-mo Boot-in States */
 body.booting .app-container {
     opacity: 0;
-    transform: scale(0.92) translateY(15px);
-    filter: blur(15px);
+    transform: scale(0.85) translateY(35px);
+    filter: blur(25px);
 }
 
 body.booting .reactor-core {
-    transform: scale(0.05) !important;
+    transform: scale(0) !important;
     opacity: 0 !important;
 }
 
 body.booting .orbit-track {
     opacity: 0 !important;
-    transform: scale(0.3) rotate(-90deg) !important;
+    transform: scale(0) rotate(-180deg) !important;
 }
 
 body.booting .pulse-ring {
     animation-play-state: paused !important;
     opacity: 0 !important;
-    transform: scale(0.5) !important;
+    transform: scale(0) !important;
 }
 
 body.booting .core-aura {
     opacity: 0 !important;
-    transform: scale(0.3) !important;
+    transform: scale(0) !important;
 }
 
 body.booting .header {
     opacity: 0;
-    transform: translateY(-40px);
+    transform: translateY(-50px);
 }
 
 body.booting .transcript-hud {
     opacity: 0;
-    transform: translateY(40px);
+    transform: translateY(50px);
 }
 
 body.booting .voice-instruction {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(30px);
 }
 
 body.booting #particle-canvas {
@@ -1663,69 +1663,80 @@ body.booting #particle-canvas {
 
 body.booting .glow-orb {
     opacity: 0 !important;
-    transform: scale(0.5) !important;
+    transform: scale(0.1) !important;
 }
 
 /* ============================================
    BOOT COMPLETE — CINEMATIC SLOW-MO REVEAL
    ============================================ */
 
-/* Main container: holographic flicker-in */
+/* Main container: cinematic reveal */
 body.boot-complete .app-container {
     opacity: 1;
     transform: scale(1) translateY(0);
     filter: blur(0);
-    animation: holoFlicker 2.2s ease-out forwards;
+    animation: cinematicReveal 3.2s cubic-bezier(0.19, 1, 0.22, 1) 0.2s both;
 }
 
-@keyframes holoFlicker {
-    0%   { opacity: 0; filter: brightness(0.1) blur(15px); transform: scale(0.93) translateY(10px); }
-    8%   { opacity: 0.3; filter: brightness(2.0) blur(8px); }
-    12%  { opacity: 0.1; filter: brightness(0.3) blur(12px); }
-    22%  { opacity: 0.7; filter: brightness(1.8) blur(4px); }
-    28%  { opacity: 0.3; filter: brightness(0.6) blur(6px); }
-    40%  { opacity: 0.9; filter: brightness(1.3) blur(2px); }
-    50%  { opacity: 0.5; filter: brightness(0.8) blur(3px); }
-    65%  { opacity: 1.0; filter: brightness(1.1) blur(0); transform: scale(1) translateY(0); }
-    75%  { opacity: 0.85; }
-    85%  { opacity: 1.0; }
-    100% { opacity: 1.0; filter: none; transform: scale(1) translateY(0); }
+@keyframes cinematicReveal {
+    0% {
+        opacity: 0;
+        transform: scale(0.85) translateY(35px);
+        filter: blur(25px) brightness(0.4);
+        box-shadow: 0 0 0 rgba(var(--accent-cyan-rgb), 0);
+    }
+    40% {
+        opacity: 0.5;
+        filter: blur(12px) brightness(1.4);
+        transform: scale(0.93) translateY(18px);
+    }
+    75% {
+        opacity: 0.95;
+        filter: blur(4px) brightness(1.1);
+        transform: scale(0.99) translateY(4px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+        filter: blur(0) brightness(1);
+        box-shadow: 0 40px 80px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
 }
 
 /* Reactor core: dramatic slow bloom */
 body.boot-complete .reactor-core {
     transform: scale(1) !important;
     opacity: 1 !important;
-    transition: transform 3.5s cubic-bezier(0.16, 1, 0.3, 1) 0.3s, 
-                opacity 3s ease 0.3s !important;
+    transition: transform 4.2s cubic-bezier(0.19, 1, 0.22, 1) 0.6s, 
+                opacity 3.5s ease 0.6s !important;
 }
 
 /* Core aura: ethereal slow fade-in */
 body.boot-complete .core-aura {
     opacity: 1 !important;
     transform: scale(1) !important;
-    transition: opacity 3s cubic-bezier(0.16, 1, 0.3, 1) 0.8s, 
-                transform 4s cubic-bezier(0.16, 1, 0.3, 1) 0.8s !important;
+    transition: opacity 3.8s cubic-bezier(0.19, 1, 0.22, 1) 0.9s, 
+                transform 4.5s cubic-bezier(0.19, 1, 0.22, 1) 0.9s !important;
 }
 
 /* Orbit tracks: staggered unfold */
 body.boot-complete .orbit-track {
     opacity: 1 !important;
     transform: scale(1) rotate(0deg) !important;
-    transition: opacity 2.5s ease 1.0s, 
-                transform 3s cubic-bezier(0.16, 1, 0.3, 1) 1.0s !important;
+    transition: opacity 3s ease 1.2s, 
+                transform 3.8s cubic-bezier(0.19, 1, 0.22, 1) 1.2s !important;
 }
 
 body.boot-complete .orbit-track.orbit-2 {
-    transition-delay: 1.2s !important;
+    transition-delay: 1.5s !important;
 }
 
 body.boot-complete .orbit-track.orbit-3 {
-    transition-delay: 1.4s !important;
+    transition-delay: 1.8s !important;
 }
 
 body.boot-complete .orbit-track.orbit-4 {
-    transition-delay: 1.6s !important;
+    transition-delay: 2.1s !important;
 }
 
 /* Pulse rings: staggered emergence */
@@ -1733,39 +1744,39 @@ body.boot-complete .pulse-ring {
     animation-play-state: running !important;
     opacity: 1 !important;
     transform: scale(1) !important;
-    transition: opacity 2s ease 1.5s, transform 2.5s cubic-bezier(0.16, 1, 0.3, 1) 1.5s !important;
+    transition: opacity 3s ease 1.8s, transform 3.5s cubic-bezier(0.19, 1, 0.22, 1) 1.8s !important;
 }
 
 body.boot-complete .pulse-ring.ring-2 {
-    transition-delay: 1.8s !important;
+    transition-delay: 2.2s !important;
 }
 
 body.boot-complete .pulse-ring.ring-3 {
-    transition-delay: 2.1s !important;
+    transition-delay: 2.6s !important;
 }
 
 /* Header: slides down from above */
 body.boot-complete .header {
     opacity: 1;
     transform: translateY(0);
-    transition: opacity 2.5s cubic-bezier(0.16, 1, 0.3, 1) 1.2s, 
-                transform 2.5s cubic-bezier(0.16, 1, 0.3, 1) 1.2s;
+    transition: opacity 3s cubic-bezier(0.19, 1, 0.22, 1) 1.4s, 
+                transform 3s cubic-bezier(0.19, 1, 0.22, 1) 1.4s;
 }
 
 /* Transcript HUD: slides up from below */
 body.boot-complete .transcript-hud {
     opacity: 1;
     transform: translateY(0);
-    transition: opacity 2.5s cubic-bezier(0.16, 1, 0.3, 1) 1.6s, 
-                transform 2.5s cubic-bezier(0.16, 1, 0.3, 1) 1.6s;
+    transition: opacity 3s cubic-bezier(0.19, 1, 0.22, 1) 1.8s, 
+                transform 3s cubic-bezier(0.19, 1, 0.22, 1) 1.8s;
 }
 
 /* Voice instruction text */
 body.boot-complete .voice-instruction {
     opacity: 1;
     transform: translateY(0);
-    transition: opacity 2s cubic-bezier(0.16, 1, 0.3, 1) 2.0s,
-                transform 2s cubic-bezier(0.16, 1, 0.3, 1) 2.0s;
+    transition: opacity 2.5s cubic-bezier(0.19, 1, 0.22, 1) 2.4s,
+                transform 2.5s cubic-bezier(0.19, 1, 0.22, 1) 2.4s;
 }
 
 /* Particle canvas: very slow atmospheric reveal */
@@ -1778,7 +1789,7 @@ body.boot-complete #particle-canvas {
 body.boot-complete .glow-orb {
     opacity: 1 !important;
     transform: scale(1) !important;
-    transition: opacity 4s ease 1s, transform 5s cubic-bezier(0.16, 1, 0.3, 1) 1s !important;
+    transition: opacity 4s ease 1s, transform 5s cubic-bezier(0.19, 1, 0.22, 1) 1s !important;
 }
 
 /* Hide progress bar when transition starts */
