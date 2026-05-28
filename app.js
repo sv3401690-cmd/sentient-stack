@@ -550,7 +550,19 @@ document.addEventListener('DOMContentLoaded', () => {
             // Trigger alarm sound and TTS telemetry
             playKlaxonAlarm();
             if (typeof speakAloud === 'function') {
-                speakAloud("Industrial robotic arms online. Commencing structure integrity and agility diagnostics. Warning: maximum performance calibration in progress!");
+                let msg = "Industrial robotic arms online. Commencing structure integrity and agility diagnostics. Warning: maximum performance calibration in progress!";
+                if (selectedArmStyle === 'nano-swarm') {
+                    msg = "Nano particles clustered. Initiating swarm synchronization and dispersion check. Please stand back.";
+                } else if (selectedArmStyle === 'mecha-arm') {
+                    msg = "Heavy mecha actuators online. Preparing structural load capacity test. Expecting physical impacts.";
+                } else if (selectedArmStyle === 'plasma-whip') {
+                    msg = "Plasma whips fully energized. Commencing thermal and electric discharge test. High voltage warning.";
+                } else if (selectedArmStyle === 'matrix-sentinel') {
+                    msg = "Sentinel spine override active. Injecting telemetry data into the core structure. Security protocols bypassed.";
+                } else if (selectedArmStyle === 'chrono-gear') {
+                    msg = "Chrono gears coupled. Starting escapement and pressure tolerance sweeps. Venting steam valves.";
+                }
+                speakAloud(msg);
             }
         });
     }
@@ -1478,6 +1490,339 @@ document.addEventListener('DOMContentLoaded', () => {
                 ctx.fill();
             });
             
+        } else if (selectedArmStyle === 'plasma-whip') {
+            // --- PLASMA-WHIP STYLE ---
+            const drawPlasmaSegment = (x1, y1, x2, y2, colorRGB) => {
+                const dx = x2 - x1;
+                const dy = y2 - y1;
+                const len = Math.hypot(dx, dy);
+                const angle = Math.atan2(dy, dx);
+                
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.strokeStyle = `rgba(${colorRGB}, 0.25)`;
+                ctx.lineWidth = 26;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                const steps = 15;
+                for (let i = 0; i <= steps; i++) {
+                    const t = i / steps;
+                    const bx = x1 + dx * t;
+                    const by = y1 + dy * t;
+                    const perpX = -Math.sin(angle);
+                    const perpY = Math.cos(angle);
+                    const shift = Math.sin(time * 12 + t * Math.PI * 4) * 5;
+                    ctx.lineTo(bx + perpX * shift, by + perpY * shift);
+                }
+                ctx.strokeStyle = `rgba(${colorRGB}, 0.85)`;
+                ctx.lineWidth = 6;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                for (let i = 0; i <= steps; i++) {
+                    const t = i / steps;
+                    const bx = x1 + dx * t;
+                    const by = y1 + dy * t;
+                    const perpX = -Math.sin(angle);
+                    const perpY = Math.cos(angle);
+                    const shift = Math.sin(time * 12 + t * Math.PI * 4) * 5;
+                    ctx.lineTo(bx + perpX * shift, by + perpY * shift);
+                }
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            };
+
+            drawPlasmaSegment(sx, sy, ex, ey, primaryColor);
+            drawPlasmaSegment(ex, ey, wx, wy, primaryColor);
+
+            const drawPlasmaJoint = (cx, cy, radius, colorRGB) => {
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius * 1.5, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${colorRGB}, 0.3)`;
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius * 0.7, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
+
+                for (let i = 0; i < 3; i++) {
+                    const ra = Math.random() * Math.PI * 2;
+                    const rx = cx + Math.cos(ra) * radius * 1.8;
+                    const ry = cy + Math.sin(ra) * radius * 1.8;
+                    ctx.beginPath();
+                    ctx.moveTo(cx, cy);
+                    ctx.lineTo(rx, ry);
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 1.2;
+                    ctx.stroke();
+                }
+            };
+            drawPlasmaJoint(sx, sy, 13, secondaryColor);
+            drawPlasmaJoint(ex, ey, 10, secondaryColor);
+            drawPlasmaJoint(wx, wy, 8, secondaryColor);
+
+            const wristAngle = Math.atan2(wy - ey, wx - ex);
+            const fingerLength = 32;
+            const tendrilOffsets = [-fingerAngle * 1.2, -fingerAngle * 0.4, fingerAngle * 0.4, fingerAngle * 1.2];
+            tendrilOffsets.forEach(offset => {
+                const angle = wristAngle + offset;
+                const knuckleX = wx + Math.cos(angle) * (fingerLength * 0.55);
+                const knuckleY = wy + Math.sin(angle) * (fingerLength * 0.55);
+                
+                const tipAngle = angle + (offset > 0 ? -0.22 : 0.22) * (1.2 - fingerAngle);
+                const tipX = knuckleX + Math.cos(tipAngle) * (fingerLength * 0.5);
+                const tipY = knuckleY + Math.sin(tipAngle) * (fingerLength * 0.5);
+
+                const drawWhipFinger = (x1, y1, x2, y2) => {
+                    const dx = x2 - x1;
+                    const dy = y2 - y1;
+                    const Steps = 6;
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y1);
+                    for (let i = 0; i <= Steps; i++) {
+                        const t = i / Steps;
+                        const bx = x1 + dx * t;
+                        const by = y1 + dy * t;
+                        const w = Math.sin(time * 15 + t * Math.PI) * 3;
+                        ctx.lineTo(bx + Math.cos(angle + Math.PI/2)*w, by + Math.sin(angle + Math.PI/2)*w);
+                    }
+                    ctx.strokeStyle = `rgb(${primaryColor})`;
+                    ctx.lineWidth = 3.5;
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y1);
+                    for (let i = 0; i <= Steps; i++) {
+                        const t = i / Steps;
+                        const bx = x1 + dx * t;
+                        const by = y1 + dy * t;
+                        const w = Math.sin(time * 15 + t * Math.PI) * 3;
+                        ctx.lineTo(bx + Math.cos(angle + Math.PI/2)*w, by + Math.sin(angle + Math.PI/2)*w);
+                    }
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 1.2;
+                    ctx.stroke();
+                };
+                drawWhipFinger(wx, wy, knuckleX, knuckleY);
+                drawWhipFinger(knuckleX, knuckleY, tipX, tipY);
+            });
+
+        } else if (selectedArmStyle === 'matrix-sentinel') {
+            // --- MATRIX SENTINEL SPINE STYLE ---
+            const drawSentinelSegment = (x1, y1, x2, y2) => {
+                const dx = x2 - x1;
+                const dy = y2 - y1;
+                const len = Math.hypot(dx, dy);
+                const angle = Math.atan2(dy, dx);
+                const podCount = Math.floor(len / 18);
+
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.strokeStyle = '#050505';
+                ctx.lineWidth = 8;
+                ctx.stroke();
+
+                for (let i = 0; i <= podCount; i++) {
+                    const t = i / podCount;
+                    const px = x1 + dx * t;
+                    const py = y1 + dy * t;
+
+                    ctx.save();
+                    ctx.translate(px, py);
+                    ctx.rotate(angle);
+                    
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, 10, 8, 0, 0, Math.PI * 2);
+                    ctx.fillStyle = '#1c1c20';
+                    ctx.strokeStyle = '#2d2d35';
+                    ctx.lineWidth = 1.5;
+                    ctx.fill();
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 3.5, 0, Math.PI * 2);
+                    ctx.fillStyle = '#ff003c';
+                    ctx.fill();
+                    
+                    ctx.beginPath();
+                    ctx.arc(-1, -1, 1, 0, Math.PI * 2);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fill();
+
+                    ctx.restore();
+                }
+            };
+
+            drawSentinelSegment(sx, sy, ex, ey);
+            drawSentinelSegment(ex, ey, wx, wy);
+
+            const drawSentinelJoint = (cx, cy, radius) => {
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius * 1.5, 0, Math.PI * 2);
+                ctx.fillStyle = '#111115';
+                ctx.strokeStyle = '#ff003c';
+                ctx.lineWidth = 1.2;
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius * 0.6, 0, Math.PI * 2);
+                ctx.fillStyle = '#000000';
+                ctx.fill();
+
+                for (let i = 0; i < 4; i++) {
+                    const a = time * 3 + (i * Math.PI / 2);
+                    const lx = cx + Math.cos(a) * (radius * 0.9);
+                    const ly = cy + Math.sin(a) * (radius * 0.9);
+                    ctx.beginPath();
+                    ctx.arc(lx, ly, 2, 0, Math.PI * 2);
+                    ctx.fillStyle = '#ff003c';
+                    ctx.fill();
+                }
+            };
+            drawSentinelJoint(sx, sy, 14);
+            drawSentinelJoint(ex, ey, 10);
+            drawSentinelJoint(wx, wy, 8);
+
+            const wristAngle = Math.atan2(wy - ey, wx - ex);
+            const fingerLength = 32;
+            const tendrilOffsets = [-fingerAngle * 1.2, -fingerAngle * 0.4, fingerAngle * 0.4, fingerAngle * 1.2];
+            tendrilOffsets.forEach(offset => {
+                const angle = wristAngle + offset;
+                const knuckleX = wx + Math.cos(angle) * (fingerLength * 0.55);
+                const knuckleY = wy + Math.sin(angle) * (fingerLength * 0.55);
+                
+                const tipAngle = angle + (offset > 0 ? -0.22 : 0.22) * (1.2 - fingerAngle);
+                const tipX = knuckleX + Math.cos(tipAngle) * (fingerLength * 0.5);
+                const tipY = knuckleY + Math.sin(tipAngle) * (fingerLength * 0.5);
+
+                ctx.beginPath();
+                ctx.moveTo(wx, wy);
+                ctx.lineTo(knuckleX, knuckleY);
+                ctx.lineTo(tipX, tipY);
+                ctx.strokeStyle = '#18181c';
+                ctx.lineWidth = 4.5;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.arc(tipX, tipY, 3.5, 0, Math.PI * 2);
+                ctx.fillStyle = '#ff003c';
+                ctx.fill();
+            });
+
+        } else if (selectedArmStyle === 'chrono-gear') {
+            // --- CHRONO-GEAR STYLE ---
+            const drawGearSegment = (x1, y1, x2, y2) => {
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.strokeStyle = '#b8860b';
+                ctx.lineWidth = 14;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.strokeStyle = '#ffd700';
+                ctx.lineWidth = 7;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(x1, y1 - 2);
+                ctx.lineTo(x2, y2 - 2);
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            };
+
+            drawGearSegment(sx, sy, ex, ey);
+            drawGearSegment(ex, ey, wx, wy);
+
+            const drawGearJoint = (cx, cy, radius, speedMultiplier) => {
+                const teethCount = 8;
+                const rotation = time * 2.5 * speedMultiplier;
+
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(rotation);
+
+                ctx.beginPath();
+                ctx.arc(0, 0, radius * 1.3, 0, Math.PI * 2);
+                ctx.fillStyle = '#cd7f32';
+                ctx.strokeStyle = '#8b5a2b';
+                ctx.lineWidth = 2;
+                ctx.fill();
+                ctx.stroke();
+
+                for (let i = 0; i < teethCount; i++) {
+                    const angle = (i * Math.PI * 2) / teethCount;
+                    ctx.save();
+                    ctx.rotate(angle);
+                    ctx.fillStyle = '#b8860b';
+                    ctx.fillRect(-3, -radius * 1.7, 6, radius * 0.7);
+                    ctx.restore();
+                }
+
+                ctx.beginPath();
+                ctx.arc(0, 0, 4, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
+
+                ctx.restore();
+            };
+
+            drawGearJoint(sx, sy, 12, 1);
+            drawGearJoint(ex, ey, 9, -1.3);
+            drawGearJoint(wx, wy, 7, 1.8);
+
+            const wristAngle = Math.atan2(wy - ey, wx - ex);
+            const fingerLength = 32;
+            const tendrilOffsets = [-fingerAngle * 1.2, -fingerAngle * 0.4, fingerAngle * 0.4, fingerAngle * 1.2];
+            tendrilOffsets.forEach(offset => {
+                const angle = wristAngle + offset;
+                const knuckleX = wx + Math.cos(angle) * (fingerLength * 0.55);
+                const knuckleY = wy + Math.sin(angle) * (fingerLength * 0.55);
+                
+                const tipAngle = angle + (offset > 0 ? -0.22 : 0.22) * (1.2 - fingerAngle);
+                const tipX = knuckleX + Math.cos(tipAngle) * (fingerLength * 0.5);
+                const tipY = knuckleY + Math.sin(tipAngle) * (fingerLength * 0.5);
+
+                ctx.beginPath();
+                ctx.moveTo(wx, wy);
+                ctx.lineTo(knuckleX, knuckleY);
+                ctx.lineTo(tipX, tipY);
+                ctx.strokeStyle = '#b8860b';
+                ctx.lineWidth = 4;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(wx, wy);
+                ctx.lineTo(knuckleX, knuckleY);
+                ctx.lineTo(tipX, tipY);
+                ctx.strokeStyle = '#ffd700';
+                ctx.lineWidth = 1.8;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.arc(tipX, tipY, 3, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
+            });
+
         } else {
             // --- CYBER-LINK STYLE (DEFAULT) ---
             // Sleek glowing cybernetic energy beam segments
@@ -1901,49 +2246,277 @@ document.addEventListener('DOMContentLoaded', () => {
                 hand2Pos.x += (hand2Target.x - hand2Pos.x) * 0.08;
                 hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.08;
             } else if (previewFrame < 270) {
-                // Phase 2: Laser Firing
-                hand1Target.x = coreCenterX - 140;
-                hand1Target.y = coreCenterY;
-                hand2Target.x = coreCenterX + 140;
-                hand2Target.y = coreCenterY;
+                // Phase 2: Action sequence depending on styling
+                if (selectedArmStyle === 'nano-swarm') {
+                    // --- NANO-SWARM DISINTEGRATION ---
+                    hand1Target.x = coreCenterX - 140;
+                    hand1Target.y = coreCenterY;
+                    hand2Target.x = coreCenterX + 140;
+                    hand2Target.y = coreCenterY;
 
-                hand1FingerAngle = 0.15;
-                hand2FingerAngle = 0.15;
+                    hand1FingerAngle = 0.5;
+                    hand2FingerAngle = 0.5;
 
-                hand1Pos.x += (hand1Target.x - hand1Pos.x) * 0.08;
-                hand1Pos.y += (hand1Target.y - hand1Pos.y) * 0.08;
-                hand2Pos.x += (hand2Target.x - hand2Pos.x) * 0.08;
-                hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.08;
+                    hand1Pos.x += (hand1Target.x - hand1Pos.x) * 0.08;
+                    hand1Pos.y += (hand1Target.y - hand1Pos.y) * 0.08;
+                    hand2Pos.x += (hand2Target.x - hand2Pos.x) * 0.08;
+                    hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.08;
 
-                if (previewFrame === 90) {
-                    playLaserSound(3.0);
-                }
+                    if (previewFrame === 90) {
+                        playLaserSound(3.0); // digital hum
+                    }
 
-                // Draw neon lasers
-                trailCtx.save();
-                trailCtx.shadowBlur = 15;
-                
-                trailCtx.shadowColor = `rgba(${themeCyan}, 0.85)`;
-                trailCtx.strokeStyle = `rgba(${themeCyan}, ${0.65 + Math.random() * 0.35})`;
-                trailCtx.lineWidth = 3.5 + Math.random() * 2.5;
-                trailCtx.beginPath();
-                trailCtx.moveTo(hand1Pos.x, hand1Pos.y);
-                trailCtx.lineTo(coreCenterX + (Math.random() - 0.5) * 8, coreCenterY + (Math.random() - 0.5) * 8);
-                trailCtx.stroke();
+                    // Swirling particle lines going to core
+                    for (let j = 0; j < 3; j++) {
+                        const t = Math.random();
+                        const p1x = hand1Pos.x + (coreCenterX - hand1Pos.x) * t + (Math.random() - 0.5) * 12;
+                        const p1y = hand1Pos.y + (coreCenterY - hand1Pos.y) * t + (Math.random() - 0.5) * 12;
+                        
+                        trailCtx.beginPath();
+                        trailCtx.arc(p1x, p1y, Math.random() * 2 + 1, 0, Math.PI * 2);
+                        trailCtx.fillStyle = `rgba(${themeCyan}, 0.75)`;
+                        trailCtx.fill();
 
-                trailCtx.shadowColor = `rgba(${themePurple}, 0.85)`;
-                trailCtx.strokeStyle = `rgba(${themePurple}, ${0.65 + Math.random() * 0.35})`;
-                trailCtx.lineWidth = 3.5 + Math.random() * 2.5;
-                trailCtx.beginPath();
-                trailCtx.moveTo(hand2Pos.x, hand2Pos.y);
-                trailCtx.lineTo(coreCenterX + (Math.random() - 0.5) * 8, coreCenterY + (Math.random() - 0.5) * 8);
-                trailCtx.stroke();
-                
-                trailCtx.restore();
+                        const p2x = hand2Pos.x + (coreCenterX - hand2Pos.x) * t + (Math.random() - 0.5) * 12;
+                        const p2y = hand2Pos.y + (coreCenterY - hand2Pos.y) * t + (Math.random() - 0.5) * 12;
+                        
+                        trailCtx.beginPath();
+                        trailCtx.arc(p2x, p2y, Math.random() * 2 + 1, 0, Math.PI * 2);
+                        trailCtx.fillStyle = `rgba(${themePurple}, 0.75)`;
+                        trailCtx.fill();
+                    }
 
-                // Sparks near core center
-                if (previewFrame % 3 === 0) {
-                    createExplosion(coreCenterX + (Math.random() - 0.5) * 16, coreCenterY + (Math.random() - 0.5) * 16, Math.random() > 0.5 ? themeCyan : themePurple);
+                    if (previewFrame % 3 === 0) {
+                        createExplosion(coreCenterX + (Math.random() - 0.5) * 16, coreCenterY + (Math.random() - 0.5) * 16, Math.random() > 0.5 ? themeCyan : themePurple);
+                    }
+
+                } else if (selectedArmStyle === 'mecha-arm') {
+                    // --- MECHA INDUSTRIAL PUNCHING ---
+                    const cycle = (previewFrame - 90) % 40;
+                    if (cycle < 15) {
+                        hand1Target.x = coreCenterX - 60;
+                        hand1Target.y = coreCenterY;
+                        hand2Target.x = coreCenterX + 170;
+                        hand2Target.y = coreCenterY + 50;
+                    } else if (cycle < 30) {
+                        hand1Target.x = coreCenterX - 170;
+                        hand1Target.y = coreCenterY + 50;
+                        hand2Target.x = coreCenterX + 60;
+                        hand2Target.y = coreCenterY;
+                    } else {
+                        hand1Target.x = coreCenterX - 140;
+                        hand1Target.y = coreCenterY + 20;
+                        hand2Target.x = coreCenterX + 140;
+                        hand2Target.y = coreCenterY + 20;
+                    }
+
+                    hand1FingerAngle = 0.1;
+                    hand2FingerAngle = 0.1;
+
+                    hand1Pos.x += (hand1Target.x - hand1Pos.x) * 0.22;
+                    hand1Pos.y += (hand1Target.y - hand1Pos.y) * 0.22;
+                    hand2Pos.x += (hand2Target.x - hand2Pos.x) * 0.22;
+                    hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.22;
+
+                    if (cycle === 0 || cycle === 15) {
+                        playExplosionSound();
+                        createExplosion(coreCenterX + (cycle === 0 ? -60 : 60), coreCenterY, '255, 255, 255');
+                        spawnEmotionParticles(['💥', '⚙️', '🛠️']);
+                    }
+
+                } else if (selectedArmStyle === 'plasma-whip') {
+                    // --- PLASMA WHIP ELECTRICAL ARC DISCHARGE ---
+                    hand1Target.x = coreCenterX - 150;
+                    hand1Target.y = coreCenterY;
+                    hand2Target.x = coreCenterX + 150;
+                    hand2Target.y = coreCenterY;
+
+                    hand1FingerAngle = 0.5;
+                    hand2FingerAngle = 0.5;
+
+                    hand1Pos.x += (hand1Target.x - hand1Pos.x) * 0.08;
+                    hand1Pos.y += (hand1Target.y - hand1Pos.y) * 0.08;
+                    hand2Pos.x += (hand2Target.x - hand2Pos.x) * 0.08;
+                    hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.08;
+
+                    if (previewFrame === 90) {
+                        playLaserSound(3.0);
+                    }
+
+                    // Draw 3-4 crackling lightning paths
+                    trailCtx.save();
+                    trailCtx.strokeStyle = '#ffffff';
+                    trailCtx.shadowBlur = 10;
+                    trailCtx.shadowColor = `rgba(${themeCyan}, 0.9)`;
+                    trailCtx.lineWidth = 1.8;
+
+                    for (let j = 0; j < 2; j++) {
+                        trailCtx.beginPath();
+                        trailCtx.moveTo(hand1Pos.x, hand1Pos.y);
+                        const steps = 6;
+                        for (let i = 1; i <= steps; i++) {
+                            const t = i / steps;
+                            const tx = hand1Pos.x + (coreCenterX - hand1Pos.x) * t + (Math.random() - 0.5) * 20;
+                            const ty = hand1Pos.y + (coreCenterY - hand1Pos.y) * t + (Math.random() - 0.5) * 20;
+                            trailCtx.lineTo(tx, ty);
+                        }
+                        trailCtx.stroke();
+                    }
+                    trailCtx.shadowColor = `rgba(${themePurple}, 0.9)`;
+                    for (let j = 0; j < 2; j++) {
+                        trailCtx.beginPath();
+                        trailCtx.moveTo(hand2Pos.x, hand2Pos.y);
+                        const steps = 6;
+                        for (let i = 1; i <= steps; i++) {
+                            const t = i / steps;
+                            const tx = hand2Pos.x + (coreCenterX - hand2Pos.x) * t + (Math.random() - 0.5) * 20;
+                            const ty = hand2Pos.y + (coreCenterY - hand2Pos.y) * t + (Math.random() - 0.5) * 20;
+                            trailCtx.lineTo(tx, ty);
+                        }
+                        trailCtx.stroke();
+                    }
+                    trailCtx.restore();
+
+                    if (previewFrame % 3 === 0) {
+                        createExplosion(coreCenterX + (Math.random() - 0.5) * 16, coreCenterY + (Math.random() - 0.5) * 16, Math.random() > 0.5 ? themeCyan : themePurple);
+                    }
+
+                } else if (selectedArmStyle === 'matrix-sentinel') {
+                    // --- MATRIX SPINE BINARY INJECTION ---
+                    hand1Target.x = coreCenterX - 140;
+                    hand1Target.y = coreCenterY;
+                    hand2Target.x = coreCenterX + 140;
+                    hand2Target.y = coreCenterY;
+
+                    hand1FingerAngle = 0.2;
+                    hand2FingerAngle = 0.2;
+
+                    hand1Pos.x += (hand1Target.x - hand1Pos.x) * 0.08;
+                    hand1Pos.y += (hand1Target.y - hand1Pos.y) * 0.08;
+                    hand2Pos.x += (hand2Target.x - hand2Pos.x) * 0.08;
+                    hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.08;
+
+                    if (previewFrame === 90) {
+                        playLaserSound(3.0);
+                    }
+
+                    // Feed binary text particles
+                    if (previewFrame % 3 === 0) {
+                        matrixChars.push({
+                            x: hand1Pos.x + (coreCenterX - hand1Pos.x) * Math.random(),
+                            y: hand1Pos.y + (coreCenterY - hand1Pos.y) * Math.random() + (Math.random() - 0.5) * 15,
+                            char: Math.random() > 0.5 ? '1' : '0',
+                            opacity: 1.0,
+                            size: Math.random() * 4 + 10,
+                            vy: Math.random() * 2 + 1
+                        });
+                        matrixChars.push({
+                            x: hand2Pos.x + (coreCenterX - hand2Pos.x) * Math.random(),
+                            y: hand2Pos.y + (coreCenterY - hand2Pos.y) * Math.random() + (Math.random() - 0.5) * 15,
+                            char: Math.random() > 0.5 ? '1' : '0',
+                            opacity: 1.0,
+                            size: Math.random() * 4 + 10,
+                            vy: Math.random() * 2 + 1
+                        });
+                    }
+
+                    if (previewFrame % 3 === 0) {
+                        createExplosion(coreCenterX + (Math.random() - 0.5) * 16, coreCenterY + (Math.random() - 0.5) * 16, '0, 255, 70');
+                    }
+
+                } else if (selectedArmStyle === 'chrono-gear') {
+                    // --- CHRONO GEAR STEAM RELEASE ---
+                    const torque = Math.sin(previewFrame * 0.4) * 20;
+                    hand1Target.x = coreCenterX - 140 + torque;
+                    hand1Target.y = coreCenterY - torque;
+                    hand2Target.x = coreCenterX + 140 - torque;
+                    hand2Target.y = coreCenterY + torque;
+
+                    hand1FingerAngle = 0.5;
+                    hand2FingerAngle = 0.5;
+
+                    hand1Pos.x += (hand1Target.x - hand1Pos.x) * 0.08;
+                    hand1Pos.y += (hand1Target.y - hand1Pos.y) * 0.08;
+                    hand2Pos.x += (hand2Target.x - hand2Pos.x) * 0.08;
+                    hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.08;
+
+                    if (previewFrame % 10 === 0) {
+                        playExplosionSound(); // mechanical tick
+                    }
+
+                    // Steam puff particles
+                    if (previewFrame % 6 === 0) {
+                        for (let i = 0; i < 4; i++) {
+                            sparks.push({
+                                x: hand1Pos.x + (Math.random() - 0.5) * 15,
+                                y: hand1Pos.y + (Math.random() - 0.5) * 15,
+                                vx: (Math.random() - 0.5) * 2.5,
+                                vy: -Math.random() * 2.5 - 1.5, // float up
+                                color: '220, 220, 225',
+                                opacity: 0.65,
+                                size: Math.random() * 10 + 4
+                            });
+                            sparks.push({
+                                x: hand2Pos.x + (Math.random() - 0.5) * 15,
+                                y: hand2Pos.y + (Math.random() - 0.5) * 15,
+                                vx: (Math.random() - 0.5) * 2.5,
+                                vy: -Math.random() * 2.5 - 1.5, // float up
+                                color: '220, 220, 225',
+                                opacity: 0.65,
+                                size: Math.random() * 10 + 4
+                            });
+                        }
+                    }
+
+                    if (previewFrame % 4 === 0) {
+                        createExplosion(coreCenterX + (Math.random() - 0.5) * 16, coreCenterY + (Math.random() - 0.5) * 16, '218, 165, 32');
+                    }
+
+                } else {
+                    // --- CYBER-LINK (DEFAULT) NEON LASERS ---
+                    hand1Target.x = coreCenterX - 140;
+                    hand1Target.y = coreCenterY;
+                    hand2Target.x = coreCenterX + 140;
+                    hand2Target.y = coreCenterY;
+
+                    hand1FingerAngle = 0.15;
+                    hand2FingerAngle = 0.15;
+
+                    hand1Pos.x += (hand1Target.x - hand1Pos.x) * 0.08;
+                    hand1Pos.y += (hand1Target.y - hand1Pos.y) * 0.08;
+                    hand2Pos.x += (hand2Target.x - hand2Pos.x) * 0.08;
+                    hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.08;
+
+                    if (previewFrame === 90) {
+                        playLaserSound(3.0);
+                    }
+
+                    // Draw neon lasers
+                    trailCtx.save();
+                    trailCtx.shadowBlur = 15;
+                    
+                    trailCtx.shadowColor = `rgba(${themeCyan}, 0.85)`;
+                    trailCtx.strokeStyle = `rgba(${themeCyan}, ${0.65 + Math.random() * 0.35})`;
+                    trailCtx.lineWidth = 3.5 + Math.random() * 2.5;
+                    trailCtx.beginPath();
+                    trailCtx.moveTo(hand1Pos.x, hand1Pos.y);
+                    trailCtx.lineTo(coreCenterX + (Math.random() - 0.5) * 8, coreCenterY + (Math.random() - 0.5) * 8);
+                    trailCtx.stroke();
+
+                    trailCtx.shadowColor = `rgba(${themePurple}, 0.85)`;
+                    trailCtx.strokeStyle = `rgba(${themePurple}, ${0.65 + Math.random() * 0.35})`;
+                    trailCtx.lineWidth = 3.5 + Math.random() * 2.5;
+                    trailCtx.beginPath();
+                    trailCtx.moveTo(hand2Pos.x, hand2Pos.y);
+                    trailCtx.lineTo(coreCenterX + (Math.random() - 0.5) * 8, coreCenterY + (Math.random() - 0.5) * 8);
+                    trailCtx.stroke();
+                    
+                    trailCtx.restore();
+
+                    // Sparks near core center
+                    if (previewFrame % 3 === 0) {
+                        createExplosion(coreCenterX + (Math.random() - 0.5) * 16, coreCenterY + (Math.random() - 0.5) * 16, Math.random() > 0.5 ? themeCyan : themePurple);
+                    }
                 }
             } else if (previewFrame < 390) {
                 // Phase 3: Energy Orbit
