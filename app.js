@@ -111,6 +111,140 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function playKlaxonAlarm() {
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const audioCtx = new AudioContext();
+            const now = audioCtx.currentTime;
+
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            const filter = audioCtx.createBiquadFilter();
+
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(300, now);
+            
+            // Sweep frequency back and forth
+            for (let i = 0; i < 12; i++) {
+                const t = now + i * 0.4;
+                osc.frequency.linearRampToValueAtTime(600, t + 0.2);
+                osc.frequency.linearRampToValueAtTime(200, t + 0.4);
+            }
+
+            filter.type = 'bandpass';
+            filter.frequency.setValueAtTime(500, now);
+            filter.Q.setValueAtTime(3, now);
+            for (let i = 0; i < 12; i++) {
+                const t = now + i * 0.4;
+                filter.frequency.exponentialRampToValueAtTime(1200, t + 0.2);
+                filter.frequency.exponentialRampToValueAtTime(300, t + 0.4);
+            }
+
+            gainNode.gain.setValueAtTime(0, now);
+            gainNode.gain.linearRampToValueAtTime(0.25, now + 0.05);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 4.8);
+
+            osc.connect(filter);
+            filter.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            osc.start(now);
+            osc.stop(now + 4.8);
+        } catch(e) {
+            console.warn("Failed to play alarm: ", e);
+        }
+    }
+
+    function playLaserSound(duration = 2.0) {
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const audioCtx = new AudioContext();
+            const now = audioCtx.currentTime;
+            
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            const filter = audioCtx.createBiquadFilter();
+            
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(800, now);
+            osc.frequency.exponentialRampToValueAtTime(2000, now + duration * 0.5);
+            osc.frequency.exponentialRampToValueAtTime(400, now + duration);
+            
+            filter.type = 'peaking';
+            filter.frequency.setValueAtTime(1000, now);
+            filter.Q.setValueAtTime(10, now);
+            
+            gainNode.gain.setValueAtTime(0.12, now);
+            gainNode.gain.linearRampToValueAtTime(0.18, now + 0.1);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration);
+            
+            osc.connect(filter);
+            filter.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            osc.start(now);
+            osc.stop(now + duration);
+        } catch(e) {
+            console.warn(e);
+        }
+    }
+
+    function playExplosionSound() {
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const audioCtx = new AudioContext();
+            const now = audioCtx.currentTime;
+            
+            // Sub-bass boom
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(120, now);
+            osc.frequency.exponentialRampToValueAtTime(40, now + 0.8);
+            
+            gainNode.gain.setValueAtTime(0.55, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+            
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            osc.start(now);
+            osc.stop(now + 0.8);
+            
+            // White-noise burst
+            const bufferSize = audioCtx.sampleRate * 0.5;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            
+            const noiseSource = audioCtx.createBufferSource();
+            noiseSource.buffer = buffer;
+            
+            const noiseFilter = audioCtx.createBiquadFilter();
+            noiseFilter.type = 'lowpass';
+            noiseFilter.frequency.setValueAtTime(1000, now);
+            noiseFilter.frequency.exponentialRampToValueAtTime(100, now + 0.5);
+            
+            const noiseGain = audioCtx.createGain();
+            noiseGain.gain.setValueAtTime(0.25, now);
+            noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+            
+            noiseSource.connect(noiseFilter);
+            noiseFilter.connect(noiseGain);
+            noiseGain.connect(audioCtx.destination);
+            
+            noiseSource.start(now);
+            noiseSource.stop(now + 0.5);
+        } catch(e) {
+            console.warn(e);
+        }
+    }
+
     function triggerStartupParticleBurst() {
         const canvas = document.getElementById('particle-canvas');
         if (!canvas) return;
@@ -388,6 +522,36 @@ document.addEventListener('DOMContentLoaded', () => {
         // Prevent clicks inside panel from bubbling up
         cursorSettingsPanel.addEventListener('click', (e) => {
             e.stopPropagation();
+        });
+    }
+
+    // Arms Preview Trigger
+    const armsPreviewBtn = document.getElementById('arms-preview-btn');
+    if (armsPreviewBtn) {
+        armsPreviewBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (isPreviewActive) return;
+
+            // Hide the settings panel
+            if (cursorSettingsPanel) {
+                cursorSettingsPanel.classList.add('hidden');
+            }
+
+            // Start preview
+            isPreviewActive = true;
+            previewFrame = 0;
+
+            // Initialize arm positions to starting positions off-screen to emerge beautifully
+            hand1Pos = { x: currentLayout.h1Start.x, y: currentLayout.h1Start.y };
+            hand2Pos = { x: currentLayout.h2Start.x, y: currentLayout.h2Start.y };
+            hand1Target = { x: currentLayout.h1Start.x, y: currentLayout.h1Start.y };
+            hand2Target = { x: currentLayout.h2Start.x, y: currentLayout.h2Start.y };
+
+            // Trigger alarm sound and TTS telemetry
+            playKlaxonAlarm();
+            if (typeof speakAloud === 'function') {
+                speakAloud("Industrial robotic arms online. Commencing structure integrity and agility diagnostics. Warning: maximum performance calibration in progress!");
+            }
         });
     }
 
@@ -856,6 +1020,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let arm1Base = { x: 0, y: 0 };
     let arm2Base = { x: 0, y: 0 };
     let currentLayout = {};
+    let isPreviewActive = false;
+    let previewFrame = 0;
     
     initBatteryAPI();
 
@@ -1707,7 +1873,177 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // --- BACKGROUND ROBOT HANDS GAME ANIMATION LOOP ---
-        if (!isCursorInApp) {
+        if (isPreviewActive) {
+            // INCREMENT PREVIEW FRAME
+            previewFrame++;
+
+            let coreCenterX = window.innerWidth / 2;
+            let coreCenterY = window.innerHeight / 2;
+            const coreEl = document.getElementById('ai-core');
+            if (coreEl) {
+                const rect = coreEl.getBoundingClientRect();
+                coreCenterX = rect.left + rect.width / 2;
+                coreCenterY = rect.top + rect.height / 2;
+            }
+
+            if (previewFrame < 90) {
+                // Phase 1: Erupt arms
+                hand1Target.x = coreCenterX - 180;
+                hand1Target.y = coreCenterY + 40;
+                hand2Target.x = coreCenterX + 180;
+                hand2Target.y = coreCenterY + 40;
+
+                hand1FingerAngle = 0.55;
+                hand2FingerAngle = 0.55;
+
+                hand1Pos.x += (hand1Target.x - hand1Pos.x) * 0.08;
+                hand1Pos.y += (hand1Target.y - hand1Pos.y) * 0.08;
+                hand2Pos.x += (hand2Target.x - hand2Pos.x) * 0.08;
+                hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.08;
+            } else if (previewFrame < 270) {
+                // Phase 2: Laser Firing
+                hand1Target.x = coreCenterX - 140;
+                hand1Target.y = coreCenterY;
+                hand2Target.x = coreCenterX + 140;
+                hand2Target.y = coreCenterY;
+
+                hand1FingerAngle = 0.15;
+                hand2FingerAngle = 0.15;
+
+                hand1Pos.x += (hand1Target.x - hand1Pos.x) * 0.08;
+                hand1Pos.y += (hand1Target.y - hand1Pos.y) * 0.08;
+                hand2Pos.x += (hand2Target.x - hand2Pos.x) * 0.08;
+                hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.08;
+
+                if (previewFrame === 90) {
+                    playLaserSound(3.0);
+                }
+
+                // Draw neon lasers
+                trailCtx.save();
+                trailCtx.shadowBlur = 15;
+                
+                trailCtx.shadowColor = `rgba(${themeCyan}, 0.85)`;
+                trailCtx.strokeStyle = `rgba(${themeCyan}, ${0.65 + Math.random() * 0.35})`;
+                trailCtx.lineWidth = 3.5 + Math.random() * 2.5;
+                trailCtx.beginPath();
+                trailCtx.moveTo(hand1Pos.x, hand1Pos.y);
+                trailCtx.lineTo(coreCenterX + (Math.random() - 0.5) * 8, coreCenterY + (Math.random() - 0.5) * 8);
+                trailCtx.stroke();
+
+                trailCtx.shadowColor = `rgba(${themePurple}, 0.85)`;
+                trailCtx.strokeStyle = `rgba(${themePurple}, ${0.65 + Math.random() * 0.35})`;
+                trailCtx.lineWidth = 3.5 + Math.random() * 2.5;
+                trailCtx.beginPath();
+                trailCtx.moveTo(hand2Pos.x, hand2Pos.y);
+                trailCtx.lineTo(coreCenterX + (Math.random() - 0.5) * 8, coreCenterY + (Math.random() - 0.5) * 8);
+                trailCtx.stroke();
+                
+                trailCtx.restore();
+
+                // Sparks near core center
+                if (previewFrame % 3 === 0) {
+                    createExplosion(coreCenterX + (Math.random() - 0.5) * 16, coreCenterY + (Math.random() - 0.5) * 16, Math.random() > 0.5 ? themeCyan : themePurple);
+                }
+            } else if (previewFrame < 390) {
+                // Phase 3: Energy Orbit
+                const radius = 135;
+                const angle = (previewFrame - 270) * 0.06;
+                const orbX = coreCenterX + Math.cos(angle) * radius;
+                const orbY = coreCenterY + Math.sin(angle) * radius;
+
+                // Draw orbiting energy orb
+                trailCtx.save();
+                trailCtx.shadowBlur = 25;
+                trailCtx.shadowColor = `rgba(${themeCyan}, 0.85)`;
+                trailCtx.beginPath();
+                let orbGrad = trailCtx.createRadialGradient(orbX, orbY, 0, orbX, orbY, 35);
+                orbGrad.addColorStop(0, '#ffffff');
+                orbGrad.addColorStop(0.3, `rgba(${themeCyan}, 0.9)`);
+                orbGrad.addColorStop(0.7, `rgba(${themePurple}, 0.45)`);
+                orbGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                trailCtx.fillStyle = orbGrad;
+                trailCtx.arc(orbX, orbY, 35, 0, Math.PI * 2);
+                trailCtx.fill();
+                trailCtx.restore();
+
+                // Target positions: track orb
+                hand1Target.x = orbX;
+                hand1Target.y = orbY;
+
+                const oppX = coreCenterX - Math.cos(angle) * radius;
+                const oppY = coreCenterY - Math.sin(angle) * radius;
+                hand2Target.x = oppX;
+                hand2Target.y = oppY;
+
+                hand1FingerAngle = 0.5;
+                hand2FingerAngle = 0.5;
+
+                hand1Pos.x += (hand1Target.x - hand1Pos.x) * 0.12;
+                hand1Pos.y += (hand1Target.y - hand1Pos.y) * 0.12;
+                hand2Pos.x += (hand2Target.x - hand2Pos.x) * 0.12;
+                hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.12;
+            } else if (previewFrame < 440) {
+                // Phase 4: High-speed cross-intercept
+                hand1Target.x = coreCenterX + 90;
+                hand1Target.y = coreCenterY;
+                hand2Target.x = coreCenterX - 90;
+                hand2Target.y = coreCenterY;
+
+                hand1FingerAngle = 0.15;
+                hand2FingerAngle = 0.15;
+
+                hand1Pos.x += (hand1Target.x - hand1Pos.x) * 0.22;
+                hand1Pos.y += (hand1Target.y - hand1Pos.y) * 0.22;
+                hand2Pos.x += (hand2Target.x - hand2Pos.x) * 0.22;
+                hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.22;
+
+                if (previewFrame === 390) {
+                    playExplosionSound();
+                    createExplosion(coreCenterX, coreCenterY, themeCyan);
+                    createExplosion(coreCenterX, coreCenterY, themePurple);
+                    createExplosion(coreCenterX, coreCenterY, '255, 255, 255');
+                    spawnEmotionParticles(['🔥', '⚡️', '🚨', '🦾', '💥', '⚙️', '🛠️']);
+                }
+                if (previewFrame === 410) {
+                    playExplosionSound();
+                    createExplosion(coreCenterX, coreCenterY, themeCyan);
+                    createExplosion(coreCenterX, coreCenterY, themePurple);
+                    createExplosion(coreCenterX, coreCenterY, '255, 255, 255');
+                    spawnEmotionParticles(['🔥', '⚡️', '🚨', '🦾', '💥', '⚙️', '🛠️']);
+                }
+            } else {
+                // Phase 5: Retract
+                hand1Target.x = currentLayout.h1Start.x;
+                hand1Target.y = currentLayout.h1Start.y;
+                hand2Target.x = currentLayout.h2Start.x;
+                hand2Target.y = currentLayout.h2Start.y;
+
+                hand1FingerAngle = 0.6;
+                hand2FingerAngle = 0.6;
+
+                hand1Pos.x += (hand1Target.x - hand1Pos.x) * 0.08;
+                hand1Pos.y += (hand1Target.y - hand1Pos.y) * 0.08;
+                hand2Pos.x += (hand2Target.x - hand2Pos.x) * 0.08;
+                hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.08;
+
+                if (previewFrame >= 480) {
+                    isPreviewActive = false;
+                    const panel = document.getElementById('cursor-settings-panel');
+                    if (panel) {
+                        panel.classList.remove('hidden');
+                    }
+                    gameStage = 'cooldown';
+                    gameCooldownTimer = 180;
+                }
+            }
+
+            const arm1Joints = solveIK(arm1Base.x, arm1Base.y, hand1Pos.x, hand1Pos.y, 240, 200, false);
+            const arm2Joints = solveIK(arm2Base.x, arm2Base.y, hand2Pos.x, hand2Pos.y, 240, 200, true);
+
+            drawRoboticArm(trailCtx, arm1Joints, themeCyan, '15, 30, 45', hand1FingerAngle);
+            drawRoboticArm(trailCtx, arm2Joints, themePurple, '35, 15, 45', hand2FingerAngle);
+        } else if (!isCursorInApp) {
             // Decrement general cooldown
             if (gameStage === 'cooldown') {
                 if (gameCooldownTimer > 0) {
@@ -2366,7 +2702,74 @@ document.addEventListener('DOMContentLoaded', () => {
             jitterY = (Math.random() - 0.5) * 2.5;
         }
         
-        if (voiceState === 'idle') {
+        if (isPreviewActive && coreElement) {
+            let shakeX = 0;
+            let shakeY = 0;
+            if (previewFrame < 90) {
+                // Phase 1: Warning pulse
+                targetAmp = 25;
+                targetFreq = 0.015;
+                targetSpeed = 0.02;
+                const breath = 1.1 + Math.sin(previewFrame * 0.15) * 0.12;
+                coreElement.style.transform = `scale(${breath})`;
+                coreElement.style.borderColor = 'rgb(255, 69, 0)';
+                coreElement.style.boxShadow = `
+                    0 0 30px rgba(255, 69, 0, 0.8),
+                    0 0 60px rgba(255, 69, 0, 0.4),
+                    inset 0 0 15px rgba(255, 69, 0, 0.6)
+                `;
+            } else if (previewFrame < 270) {
+                // Phase 2: Firing lasers - shake heavily and glow magenta/pink warning
+                targetAmp = 40;
+                targetFreq = 0.035;
+                targetSpeed = 0.09;
+                shakeX = (Math.random() - 0.5) * 8;
+                shakeY = (Math.random() - 0.5) * 8;
+                coreElement.style.transform = `scale(1.25) translate(${shakeX}px, ${shakeY}px)`;
+                coreElement.style.borderColor = 'rgb(255, 0, 128)';
+                coreElement.style.boxShadow = `
+                    0 0 35px rgba(255, 0, 128, 0.9),
+                    0 0 65px rgba(255, 0, 128, 0.5),
+                    inset 0 0 20px rgba(255, 0, 128, 0.7)
+                `;
+            } else if (previewFrame < 390) {
+                // Phase 3: Energy Orbit
+                targetAmp = 30;
+                targetFreq = 0.02;
+                targetSpeed = 0.04;
+                const breath = 1.05 + Math.sin(Date.now() * 0.015) * 0.05;
+                coreElement.style.transform = `scale(${breath})`;
+                coreElement.style.borderColor = `rgba(${themeCyan}, 1)`;
+                coreElement.style.boxShadow = `
+                    0 0 35px rgba(${themeCyan}, 0.8),
+                    0 0 65px rgba(${themePurple}, 0.5),
+                    inset 0 0 20px rgba(${themeCyan}, 0.6)
+                `;
+            } else if (previewFrame < 440) {
+                // Phase 4: High-speed cross / Explosion
+                targetAmp = 80;
+                targetFreq = 0.05;
+                targetSpeed = 0.15;
+                shakeX = (Math.random() - 0.5) * 12;
+                shakeY = (Math.random() - 0.5) * 12;
+                coreElement.style.transform = `scale(1.4) translate(${shakeX}px, ${shakeY}px)`;
+                coreElement.style.borderColor = '#ffffff';
+                coreElement.style.boxShadow = `
+                    0 0 45px #ffffff,
+                    0 0 85px rgba(${themeCyan}, 0.95),
+                    0 0 110px rgba(${themePurple}, 0.75),
+                    inset 0 0 30px #ffffff
+                `;
+            } else {
+                // Phase 5: Recovering
+                targetAmp = 18;
+                targetFreq = 0.008;
+                targetSpeed = 0.012;
+                coreElement.style.transform = 'scale(1)';
+                coreElement.style.borderColor = `rgba(${themeCyan}, 0.8)`;
+                coreElement.style.boxShadow = `0 0 20px rgba(${themeCyan}, 0.5)`;
+            }
+        } else if (voiceState === 'idle') {
             targetAmp = 18;
             targetFreq = 0.008;
             targetSpeed = 0.012;
