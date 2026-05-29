@@ -4318,17 +4318,61 @@ document.addEventListener('DOMContentLoaded', () => {
     const userCard = document.querySelector('.user-card');
     const aiCard = document.querySelector('.ai-card');
 
-    // ── Conversation memory (kept in sessionStorage so it survives page navigations)
-    const HISTORY_KEY = 'naz-chat-history';
-    function getChatHistory() {
+    // ── Session-based Conversation Memory (persisted in localStorage)
+    const SESSIONS_KEY = 'naz-chat-sessions';
+    const ACTIVE_SESSION_ID_KEY = 'naz-active-session-id';
+
+    function getSessions() {
         try {
-            return JSON.parse(sessionStorage.getItem(HISTORY_KEY) || '[]');
+            return JSON.parse(localStorage.getItem(SESSIONS_KEY) || '[]');
         } catch { return []; }
     }
-    function saveChatHistory(history) {
-        // Keep last 40 messages to avoid bloat
-        const trimmed = history.slice(-40);
-        sessionStorage.setItem(HISTORY_KEY, JSON.stringify(trimmed));
+
+    function saveSessions(sessions) {
+        localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
+    }
+
+    function getActiveSessionId() {
+        let id = sessionStorage.getItem(ACTIVE_SESSION_ID_KEY);
+        if (!id) {
+            id = 'session-' + Date.now();
+            sessionStorage.setItem(ACTIVE_SESSION_ID_KEY, id);
+        }
+        return id;
+    }
+
+    function getChatHistory(sessionId = getActiveSessionId()) {
+        const sessions = getSessions();
+        const s = sessions.find(item => item.id === sessionId);
+        return s ? s.history : [];
+    }
+
+    function saveChatHistory(history, sessionId = getActiveSessionId()) {
+        const sessions = getSessions();
+        let s = sessions.find(item => item.id === sessionId);
+        
+        if (!s) {
+            // Generate a simple title based on the first message
+            let title = 'New Chat';
+            const firstUserMsg = history.find(m => m.role === 'user');
+            if (firstUserMsg) {
+                title = firstUserMsg.text.substring(0, 20) + (firstUserMsg.text.length > 20 ? '...' : '');
+            }
+            s = { id: sessionId, title: title, history: history };
+            sessions.push(s);
+        } else {
+            s.history = history;
+            // Update title if it was default
+            if (s.title === 'New Chat' || s.title === 'New Conversation') {
+                const firstUserMsg = history.find(m => m.role === 'user');
+                if (firstUserMsg) {
+                    s.title = firstUserMsg.text.substring(0, 20) + (firstUserMsg.text.length > 20 ? '...' : '');
+                }
+            }
+        }
+        
+        saveSessions(sessions);
+        renderSessionsList();
     }
 
     // Side Chat UI Selectors (appContainer is already declared above)
@@ -4338,6 +4382,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatSendBtn = document.getElementById('chat-send-btn');
     const closeChatBtn = document.getElementById('close-chat-btn');
     const newChatBtn = document.getElementById('new-chat-btn');
+    const sessionsListEl = document.getElementById('sessions-list');
 
     function openChatPanel() {
         if (!appContainer) return;
@@ -4345,6 +4390,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Unregister PWA keyboard override drawer since we have a dedicated side panel
         if (inputContainer) inputContainer.classList.add('collapsed');
         renderChatHistory();
+        renderSessionsList();
         setTimeout(() => {
             if (chatInputField) chatInputField.focus();
         }, 100);
@@ -4353,6 +4399,71 @@ document.addEventListener('DOMContentLoaded', () => {
     function closeChatPanel() {
         if (!appContainer) return;
         appContainer.classList.remove('chat-active');
+    }
+
+    function renderSessionsList() {
+        if (!sessionsListEl) return;
+        sessionsListEl.innerHTML = '';
+        const sessions = getSessions();
+        const activeId = getActiveSessionId();
+
+        if (sessions.length === 0) {
+            const emptyEl = document.createElement('div');
+            emptyEl.style.fontSize = '0.65rem';
+            emptyEl.style.color = 'rgba(255, 255, 255, 0.2)';
+            emptyEl.style.padding = '8px';
+            emptyEl.style.textAlign = 'center';
+            emptyEl.textContent = 'No past chats';
+            sessionsListEl.appendChild(emptyEl);
+            return;
+        }
+
+        // Render newer sessions first
+        sessions.slice().reverse().forEach(session => {
+            const item = document.createElement('div');
+            item.className = 'session-item' + (session.id === activeId ? ' active' : '');
+            
+            const titleSpan = document.createElement('span');
+            titleSpan.className = 'session-item-title';
+            titleSpan.textContent = session.title;
+            item.appendChild(titleSpan);
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'session-delete-btn';
+            deleteBtn.innerHTML = '&times;';
+            deleteBtn.title = 'Delete Chat';
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent loading session when deleting
+                deleteSession(session.id);
+            });
+            item.appendChild(deleteBtn);
+
+            item.addEventListener('click', () => {
+                selectSession(session.id);
+            });
+            
+            sessionsListEl.appendChild(item);
+        });
+    }
+
+    function selectSession(sessionId) {
+        sessionStorage.setItem(ACTIVE_SESSION_ID_KEY, sessionId);
+        renderSessionsList();
+        renderChatHistory();
+    }
+
+    function deleteSession(sessionId) {
+        let sessions = getSessions();
+        sessions = sessions.filter(s => s.id !== sessionId);
+        saveSessions(sessions);
+        
+        // If we deleted the current active session, reset active session ID
+        if (getActiveSessionId() === sessionId) {
+            sessionStorage.removeItem(ACTIVE_SESSION_ID_KEY);
+        }
+        
+        renderSessionsList();
+        renderChatHistory();
     }
 
     function renderChatHistory() {
@@ -4493,6 +4604,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Detect printable character keypresses (e.key length is 1) to open side chat panel dynamically
         if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
             // Cancel active voice speech or synthesis to prioritize manual typing
+            isContinuousVoiceActive = false; // Turn off voice loop when typing
             if (window.speechSynthesis) window.speechSynthesis.cancel();
             stopMicrophone();
             voiceState = 'idle';
@@ -4515,7 +4627,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (newChatBtn) {
         newChatBtn.addEventListener('click', () => {
-            saveChatHistory([]);
+            sessionStorage.removeItem(ACTIVE_SESSION_ID_KEY); // Force create new session ID
+            isContinuousVoiceActive = false; // Turn off voice loop
+            renderSessionsList();
             renderChatHistory();
             if (window.speechSynthesis) window.speechSynthesis.cancel();
             stopMicrophone();
@@ -4531,10 +4645,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const text = chatInputField.value.trim();
         if (!text) return;
         
+        isContinuousVoiceActive = false; // Disable voice loop when manually typing
         appendMessageBubble('user', text);
         chatInputField.value = '';
         
-        simulateAIResponse(text);
+        simulateAIResponse(text, false); // False = text-only input (do not speak aloud)
     }
 
     if (chatSendBtn) {
@@ -4547,10 +4662,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 submitChatMessage();
             }
         });
+        chatInputField.addEventListener('focus', () => {
+            isContinuousVoiceActive = false; // Disable voice loop when manually typing
+        });
     }
 
     let voiceState = 'idle'; // 'idle', 'listening', 'processing'
     let ttsEnabled = true;
+    let isContinuousVoiceActive = false;
 
     // -----------------------------------------------------------------
     // CANVAS-BASED Siri-style FLOWING WAVES
@@ -5204,7 +5323,7 @@ document.addEventListener('DOMContentLoaded', () => {
                               (voiceToneSelect.value === 'diagnostic' ? "Naz conversation tone set to strict binary diagnostic mode." : 
                               "Naz conversation tone set to default system mode.");
             speakAloud(alertText);
-            simulateAIResponse(voiceToneSelect.value === 'supportive' ? "hello" : "sync");
+            simulateAIResponse(voiceToneSelect.value === 'supportive' ? "hello" : "sync", false);
         });
     }
 
@@ -5278,6 +5397,15 @@ document.addEventListener('DOMContentLoaded', () => {
         utterance.onend = () => {
             voiceState = 'idle';
             voiceInstruction.textContent = 'TAP CORE TO TRANSMIT COMMAND';
+            
+            // If continuous voice mode is active, wait a moment and trigger listening again!
+            if (isContinuousVoiceActive) {
+                setTimeout(() => {
+                    if (isContinuousVoiceActive && voiceState === 'idle') {
+                        triggerVoiceActive();
+                    }
+                }, 800); // 800ms natural flow pause
+            }
         };
         
         window.speechSynthesis.speak(utterance);
@@ -5285,11 +5413,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function triggerVoiceActive() {
         if (isSystemLocked) return;
+        
         if (voiceState === 'idle') {
-            // Shift to LISTENING
+            // Shift to LISTENING in continuous voice loop mode
+            isContinuousVoiceActive = true;
             voiceState = 'listening';
             aiCore.classList.add('listening');
-            voiceInstruction.textContent = 'LISTENING... TAP TO SUBMIT';
+            voiceInstruction.textContent = 'VOICE ACTIVE... TAP TO STOP';
             userTextElement.textContent = '[ Speak command now... ]';
             aiTextElement.textContent = 'Awaiting vocal transmission...';
             
@@ -5315,7 +5445,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     aiCore.classList.add('thinking');
                     voiceInstruction.textContent = 'DECRYPTING TRANSCRIPT...';
                     
-                    simulateAIResponse(transcript);
+                    simulateAIResponse(transcript, true); // true = voice input (speak output aloud)
                 };
                 
                 recognition.onerror = (event) => {
@@ -5328,7 +5458,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     stopMicrophone();
                     voiceState = 'idle';
                     aiCore.classList.remove('listening', 'thinking');
-                    voiceInstruction.textContent = 'SPEECH TIMEOUT. START TYPING TO OVERRIDE';
+                    voiceInstruction.textContent = 'SPEECH TIMEOUT. TAP TO RESTART';
+                    isContinuousVoiceActive = false; // Turn off on error
                 };
                 
                 recognition.onend = () => {
@@ -5346,44 +5477,33 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (voiceState !== 'listening') return;
                     
                     const dummyCommands = [
-                        "Initiate neural sync diagnostics sequence.",
-                        "Optimize core energy output parameters.",
-                        "Access central matrix mainframe files.",
-                        "Retrieve latest telemetry log updates.",
-                        "Authorize secondary subsystem access."
+                        "Hello Naz, how are you today?",
+                        "Optimize the system pathways."
                     ];
                     const commandText = dummyCommands[Math.floor(Math.random() * dummyCommands.length)];
                     
                     userTextElement.textContent = `"${commandText}"`;
-                    stopMicrophone();
-                    voiceState = 'processing';
-                    aiCore.classList.remove('listening');
-                    aiCore.classList.add('thinking');
-                    voiceInstruction.textContent = 'DECRYPTING TRANSCRIPT...';
-                    simulateAIResponse(commandText);
+                     stopMicrophone();
+                     voiceState = 'processing';
+                     aiCore.classList.remove('listening');
+                     aiCore.classList.add('thinking');
+                     voiceInstruction.textContent = 'DECRYPTING TRANSCRIPT...';
+                     simulateAIResponse(commandText, true);
                 }, 4000);
             }
-        } else if (voiceState === 'listening') {
-            // Force stop to process speech early
+        } else {
+            // Turn off continuous voice chat on explicit user click while active
+            isContinuousVoiceActive = false;
+            if (window.speechSynthesis) window.speechSynthesis.cancel();
+            stopMicrophone();
+            
             if (recognition) {
-                try {
-                    recognition.stop();
-                } catch (e) {}
-            } else {
-                stopMicrophone();
-                voiceState = 'processing';
-                aiCore.classList.remove('listening');
-                aiCore.classList.add('thinking');
-                voiceInstruction.textContent = 'DECRYPTING TRANSCRIPT...';
-                
-                const dummyCommands = [
-                    "Initiate neural sync diagnostics sequence.",
-                    "Optimize core energy output parameters."
-                ];
-                const commandText = dummyCommands[Math.floor(Math.random() * dummyCommands.length)];
-                userTextElement.textContent = `"${commandText}"`;
-                simulateAIResponse(commandText);
+                try { recognition.stop(); } catch(e) {}
             }
+            
+            voiceState = 'idle';
+            aiCore.classList.remove('listening', 'thinking');
+            voiceInstruction.textContent = 'TAP CORE TO TRANSMIT COMMAND';
         }
     }
 
@@ -5391,7 +5511,7 @@ document.addEventListener('DOMContentLoaded', () => {
         voiceTrigger.addEventListener('click', triggerVoiceActive);
     }
 
-    async function simulateAIResponse(queryText) {
+    async function simulateAIResponse(queryText, isVoiceMode = false) {
         voiceState = 'processing';
         aiCore.classList.add('thinking');
         aiTextElement.innerHTML = '';
@@ -5459,8 +5579,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const allBubbles = chatMessagesContainer.querySelectorAll('.chat-message.model .bubble');
         const activeBubble = allBubbles[allBubbles.length - 1];
 
-        // 🌟 SPEAK IMMEDIATELY FOR NATURAL EXPRESSION AND NO LAG
-        speakAloud(response);
+        // 🌟 SPEAK IMMEDIATELY FOR NATURAL EXPRESSION AND NO LAG (ONLY FOR VOICE INPUT)
+        if (isVoiceMode) {
+            speakAloud(response);
+        }
 
         // Typewriter logic for the AI text blocks (runs in parallel)
         let i = 0;
@@ -5509,7 +5631,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Hide input container on send
             toggleKeyboardDrawer(true);
             
-            simulateAIResponse(text);
+            simulateAIResponse(text, false);
         }
     }
 
