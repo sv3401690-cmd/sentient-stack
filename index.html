@@ -65,13 +65,13 @@
         <header class="header">
             <div class="logo-area">
                 <span class="status-indicator-dot pulsing"></span>
-                <span class="logo-text" id="status-text">NAZ ACTIVE</span>
+                <span class="logo-text" id="status-text">NAZ-CORE v1.0</span>
             </div>
             <div class="header-controls">
-                <div class="fun-zone-toggle" id="fun-zone-toggle" data-tooltip="Fun Zone (Combat & Decryption)">
-                    <span class="fun-icon">🎮</span>
+                <div class="fun-zone-toggle" id="fun-zone-toggle" data-tooltip="Fun Zone (Combat, Snap & Customization)">
+                    <span class="fun-icon">⚡</span>
                 </div>
-                <div class="cursor-settings-toggle" id="cursor-settings-toggle" data-tooltip="Cursor Settings">
+                <div class="cursor-settings-toggle" id="cursor-settings-toggle" data-tooltip="Naz System Settings">
                     <span class="settings-icon">⚙️</span>
                 </div>
                 <div class="theme-toggle" id="theme-toggle" data-tooltip="Cycle System Themes">
@@ -350,6 +350,78 @@
                     </div>
                 </div>
 
+            </div>
+        </div>
+
+        <!-- Separate Settings Modal -->
+        <div class="fun-zone-modal hidden" id="settings-modal">
+            <div class="fun-zone-header">
+                <span class="fun-zone-title">⚙️ NAZ SYSTEM SETTINGS ⚙️</span>
+                <button class="fun-zone-close" id="settings-close">&times;</button>
+            </div>
+            
+            <div class="control-hub-body" id="settings-modal-body">
+                <!-- Section 1: Security Settings -->
+                <div class="hub-section">
+                    <h3 class="hub-section-title">🔒 SECURITY PROTOCOLS</h3>
+                    <div class="setting-item" style="margin-bottom: 20px;">
+                        <label style="display: block; font-size: 0.72rem; color: var(--accent-cyan); letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">🔑 SYSTEM PASSCODE</label>
+                        <div style="font-family: monospace; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 10px;">
+                            Active Passcode: <span style="color: #ffffff; font-weight: bold;">1234</span>
+                        </div>
+                        <button class="focus-toggle-btn" id="manual-lock-btn" style="border-color: var(--accent-purple); width: 100%; margin-top: 5px;" data-tooltip="Manually trigger macOS lockdown simulator">
+                            <span class="focus-icon">🔒</span>
+                            <span class="focus-label">TRIGGER SYSTEM LOCKDOWN</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="hub-section-divider"></div>
+
+                <!-- Section 2: Connected Devices -->
+                <div class="hub-section">
+                    <h3 class="hub-section-title">📡 CONNECTED HARDWARE & OS LINKS</h3>
+                    <div class="device-list" style="font-family: monospace; font-size: 0.75rem; color: var(--text-dim);">
+                        <div class="device-item" style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>🧠 NEURAL IMPLANT LINK:</span>
+                            <span style="color: var(--accent-cyan);">ONLINE (98% SIGNAL)</span>
+                        </div>
+                        <div class="device-item" style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>🖥️ SYSTEM HOST OS:</span>
+                            <span id="settings-os-link" style="color: var(--accent-cyan);">DETECTING OS...</span>
+                        </div>
+                        <div class="device-item" style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>🎙️ AUDIO CAPTURE DEVICE:</span>
+                            <span style="color: var(--accent-cyan);">DEFAULT MIC STABLE</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hub-section-divider"></div>
+
+                <!-- Section 3: About Naz -->
+                <div class="hub-section">
+                    <h3 class="hub-section-title">ℹ️ ABOUT NAZ PLATFORM</h3>
+                    <div class="about-details" style="font-family: monospace; font-size: 0.75rem; color: var(--text-dim); line-height: 1.5; margin-bottom: 20px;">
+                        <div>CORE ENGINE: <span style="color: #ffffff;">NAZ-CORE v1.0.4-LTS</span></div>
+                        <div>COMPILER BUILD: <span style="color: #ffffff;">Rustc 1.78 / Node v20</span></div>
+                        <div>NEURAL NODES: <span style="color: #ffffff;">6,280 Connected Synapses</span></div>
+                        <div>UPTIME: <span id="settings-uptime" style="color: #ffffff;">00:00:00</span></div>
+                    </div>
+                </div>
+
+                <div class="hub-section-divider"></div>
+
+                <!-- Section 4: Beast Mode / Autonomous Mode Button -->
+                <div class="hub-section" style="padding-bottom: 20px;">
+                    <h3 class="hub-section-title" style="color: #ff4a5a; text-shadow: 0 0 8px rgba(255, 74, 90, 0.4); border-bottom-color: rgba(255, 74, 90, 0.2);">🔥 AUTONOMOUS PROTOCOL</h3>
+                    <div class="fun-description" style="color: #ff4a5a; opacity: 0.85; margin-bottom: 12px;">
+                        WARNING: Enabling beast mode grants Naz 100% autonomous decision-making authority over all cognitive modules.
+                    </div>
+                    <button class="fun-action-btn" id="beast-mode-btn" style="background: linear-gradient(135deg, rgba(255, 74, 90, 0.3), rgba(120, 10, 20, 0.4)); border-color: #ff4a5a; box-shadow: 0 0 15px rgba(255, 74, 90, 0.3);" data-tooltip="ENGAGE AUTONOMOUS BEAST MODE PROTOCOL">
+                        🔥 ACTIVATE BEAST AUTONOMY
+                    </button>
+                </div>
             </div>
         </div>
 

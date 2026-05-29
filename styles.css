@@ -3011,3 +3011,33 @@ body.boot-complete .glow-orb {
     filter: hue-rotate(180deg) invert(1) !important;
     box-shadow: 0 0 50px rgba(0, 255, 255, 1) !important;
 }
+
+/* =================================================================
+   BEAST MODE AUTONOMOUS PROTOCOL STYLING OVERRIDES
+   ================================================================= */
+body.beast-mode-active {
+    --accent-cyan: #ff003c;
+    --accent-cyan-rgb: 255, 0, 60;
+    --accent-purple: #ff5500;
+    --accent-purple-rgb: 255, 85, 0;
+}
+
+/* Hyper-speed spin animations for Beast Mode */
+body.beast-mode-active .core-logo .spin-slow {
+    animation: spinClockwise 1.5s linear infinite !important;
+}
+
+body.beast-mode-active .core-logo .spin-reverse {
+    animation: spinCounterClockwise 1s linear infinite !important;
+}
+
+/* Additional red alerts and pulsing for beast core */
+body.beast-mode-active .ai-core {
+    box-shadow: 
+        0 0 50px rgba(255, 0, 60, 0.4),
+        inset 0 0 20px rgba(255, 85, 0, 0.3) !important;
+}
+
+body.beast-mode-active .core-aura {
+    background: radial-gradient(circle, rgba(255, 0, 60, 0.5) 0%, rgba(255, 85, 0, 0) 70%) !important;
+}

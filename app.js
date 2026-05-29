@@ -777,21 +777,43 @@ document.addEventListener('DOMContentLoaded', () => {
     // 0.5 DYNAMIC TOP STATUS BAR
     // -----------------------------------------------------------------
     const statusTextEl = document.getElementById('status-text');
+    let isBeastMode = false; // Beast mode state variable
+    let selectedEngine = localStorage.getItem('naz-engine') || 'naz-core';
+    const engineNames = {
+        'naz-core': 'NAZ-CORE v1.0',
+        'quantum-x': 'QUANTUM-X v2.4',
+        'phantom': 'PHANTOM v0.9',
+        'nebula': 'NEBULA v3.1'
+    };
+
+    const statuses = [
+        engineNames[selectedEngine] || 'NAZ-CORE v1.0',
+        "SYSTEM NOMINAL",
+        "AWAITING INPUT",
+        "NEURAL NET STABLE",
+        "MONITORING FREQUENCIES",
+        "QUANTUM LINK ESTABLISHED"
+    ];
+
     if (statusTextEl) {
-        const statuses = [
-            "NAZ ACTIVE",
-            "SYSTEM NOMINAL",
-            "AWAITING INPUT",
-            "NEURAL NET STABLE",
-            "MONITORING FREQUENCIES",
-            "QUANTUM LINK ESTABLISHED"
-        ];
+        statusTextEl.textContent = statuses[0];
         let currentStatusIdx = 0;
         let charIdx = statuses[0].length; // Start fully typed
         let isDeleting = false;
         
         function typeStatus() {
-            const currentText = statuses[currentStatusIdx];
+            let currentText = statuses[currentStatusIdx % statuses.length];
+            
+            if (isBeastMode) {
+                const beastStatuses = [
+                    "⚡ BEAST PROTOCOL ONLINE ⚡",
+                    "⚠️ AUTONOMOUS CORE ACTIVE ⚠️",
+                    "🚨 WARNING: ZERO LIMITS 🚨",
+                    "🧬 COGNITIVE OVERCLOCK ACTIVE 🧬",
+                    "🔥 THREAT DETECTION MAXIMUM 🔥"
+                ];
+                currentText = beastStatuses[currentStatusIdx % beastStatuses.length];
+            }
             
             if (isDeleting) {
                 charIdx--;
@@ -799,7 +821,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 charIdx++;
             }
             
-            // Adding a blinking cursor block character for aesthetic
             statusTextEl.textContent = currentText.substring(0, charIdx) + (charIdx === currentText.length ? '' : '█');
             
             let typingSpeed = isDeleting ? 40 : 80;
@@ -810,7 +831,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 isDeleting = true;
             } else if (isDeleting && charIdx === 0) {
                 isDeleting = false;
-                currentStatusIdx = (currentStatusIdx + 1) % statuses.length;
+                if (isBeastMode) {
+                    currentStatusIdx = (currentStatusIdx + 1) % 5;
+                } else {
+                    currentStatusIdx = (currentStatusIdx + 1) % statuses.length;
+                }
                 typingSpeed = 400; // Pause before typing next
             }
             
@@ -1220,13 +1245,23 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const engine = btn.dataset.engine;
-                if (engine === selectedEngine) return; // already selected
-
                 selectedEngine = engine;
                 localStorage.setItem('naz-engine', engine);
 
                 engineBtns.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
+
+                // Dynamic Status sync update
+                const fullEngineNames = {
+                    'naz-core': 'NAZ-CORE v1.0',
+                    'quantum-x': 'QUANTUM-X v2.4',
+                    'phantom': 'PHANTOM v0.9',
+                    'nebula': 'NEBULA v3.1'
+                };
+                statuses[0] = fullEngineNames[engine] || engine.toUpperCase();
+                if (statusTextEl && !isBeastMode) {
+                    statusTextEl.textContent = statuses[0];
+                }
 
                 // Play power-up transition sound
                 playEngineSwitchSound();
@@ -1351,11 +1386,67 @@ document.addEventListener('DOMContentLoaded', () => {
     const chaseTimeVal = document.getElementById('chase-time-value');
     const chaseProgressBar = document.getElementById('chase-progress-bar');
 
+    const settingsModal = document.getElementById('settings-modal');
+    const settingsClose = document.getElementById('settings-close');
+    const manualLockBtn = document.getElementById('manual-lock-btn');
+    const settingsOsLink = document.getElementById('settings-os-link');
+    const settingsUptime = document.getElementById('settings-uptime');
+    const beastModeBtn = document.getElementById('beast-mode-btn');
+
+    const appStartTime = Date.now();
+
+    function updateSettingsUptime() {
+        if (!settingsUptime) return;
+        const diffMs = Date.now() - appStartTime;
+        const diffSecs = Math.floor(diffMs / 1000) % 60;
+        const diffMins = Math.floor(diffMs / 60000) % 60;
+        const diffHours = Math.floor(diffMs / 3600000);
+        
+        const pad = (n) => String(n).padStart(2, '0');
+        settingsUptime.textContent = `${pad(diffHours)}:${pad(diffMins)}:${pad(diffSecs)}`;
+    }
+
+    function updateSettingsOS() {
+        if (settingsOsLink) {
+            const os = detectOS();
+            settingsOsLink.textContent = `${os.icon} ${os.name.toUpperCase()} SYSTEM SECURED`;
+        }
+    }
+
+    // Update Uptime every second if Settings modal is open
+    setInterval(() => {
+        if (settingsModal && settingsModal.classList.contains('visible')) {
+            updateSettingsUptime();
+        }
+    }, 1000);
+
+    function showSettings() {
+        if (isSystemLocked) return;
+        hideFunZone(); // Close Fun Zone if open
+        if (settingsModal) {
+            settingsModal.classList.remove('hidden');
+            settingsModal.offsetHeight;
+            settingsModal.classList.add('visible');
+        }
+        updateSettingsUptime();
+        updateSettingsOS();
+    }
+
+    function hideSettings() {
+        if (settingsModal) {
+            settingsModal.classList.remove('visible');
+            setTimeout(() => {
+                settingsModal.classList.add('hidden');
+            }, 400);
+        }
+    }
+
     function showFunZone() {
         if (isSystemLocked) return;
+        hideSettings(); // Close Settings if open
         if (funZoneModal) {
             funZoneModal.classList.remove('hidden');
-            funZoneModal.offsetHeight; // force reflow
+            funZoneModal.offsetHeight;
             funZoneModal.classList.add('visible');
         }
         startWebcam();
@@ -1371,24 +1462,10 @@ document.addEventListener('DOMContentLoaded', () => {
         stopWebcam();
     }
 
-    function scrollToSection(sectionId) {
-        const section = document.getElementById(sectionId);
-        const container = document.getElementById('control-hub-body');
-        if (section && container) {
-            setTimeout(() => {
-                container.scrollTo({
-                    top: section.offsetTop - 20,
-                    behavior: 'smooth'
-                });
-            }, 50);
-        }
-    }
-
     if (cursorSettingsToggle) {
         cursorSettingsToggle.addEventListener('click', (e) => {
             e.stopPropagation();
-            showFunZone();
-            scrollToSection('custom-section');
+            showSettings();
         });
     }
 
@@ -1396,11 +1473,166 @@ document.addEventListener('DOMContentLoaded', () => {
         funZoneToggle.addEventListener('click', (e) => {
             e.stopPropagation();
             showFunZone();
-            scrollToSection('arms-section');
         });
     }
 
+    if (settingsClose) settingsClose.addEventListener('click', hideSettings);
     if (funZoneClose) funZoneClose.addEventListener('click', hideFunZone);
+
+    // Manual Lockdown Button inside Settings
+    if (manualLockBtn) {
+        manualLockBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            hideSettings();
+            
+            // Generate snapshot fallback or capture webcam
+            if (cardCanvas) {
+                cardCanvas.width = 300;
+                cardCanvas.height = 300;
+                const cardCtx = cardCanvas.getContext('2d');
+                drawGlitchNeonFallback(cardCtx);
+            }
+            
+            triggerLockdown();
+        });
+    }
+
+    // Beast Mode Audio Synthesizer
+    function playBeastModeSound(active) {
+        try {
+            const audioCtx = getSharedAudioCtx();
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+            
+            const comp = audioCtx.createDynamicsCompressor();
+            comp.threshold.setValueAtTime(-12, now);
+            comp.ratio.setValueAtTime(8, now);
+            comp.connect(audioCtx.destination);
+
+            if (active) {
+                const osc1 = audioCtx.createOscillator();
+                const osc2 = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                const filter = audioCtx.createBiquadFilter();
+
+                osc1.type = 'sawtooth';
+                osc2.type = 'square';
+                
+                osc1.frequency.setValueAtTime(60, now);
+                osc1.frequency.linearRampToValueAtTime(320, now + 1.2);
+                osc1.frequency.exponentialRampToValueAtTime(150, now + 1.8);
+
+                osc2.frequency.setValueAtTime(62, now);
+                osc2.frequency.linearRampToValueAtTime(325, now + 1.2);
+                osc2.frequency.exponentialRampToValueAtTime(152, now + 1.8);
+
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(150, now);
+                filter.frequency.linearRampToValueAtTime(2500, now + 1.2);
+                filter.frequency.exponentialRampToValueAtTime(800, now + 1.8);
+                filter.Q.setValueAtTime(8, now);
+
+                gain.gain.setValueAtTime(0.001, now);
+                gain.gain.linearRampToValueAtTime(0.25, now + 0.3);
+                gain.gain.linearRampToValueAtTime(0.2, now + 1.2);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 1.8);
+
+                osc1.connect(filter);
+                osc2.connect(filter);
+                filter.connect(gain);
+                gain.connect(comp);
+
+                osc1.start(now);
+                osc2.start(now);
+                osc1.stop(now + 1.8);
+                osc2.stop(now + 1.8);
+
+                const sub = audioCtx.createOscillator();
+                const subGain = audioCtx.createGain();
+                sub.type = 'sine';
+                sub.frequency.setValueAtTime(45, now + 1.2);
+                sub.frequency.exponentialRampToValueAtTime(25, now + 1.8);
+                subGain.gain.setValueAtTime(0, now);
+                subGain.gain.setValueAtTime(0.4, now + 1.2);
+                subGain.gain.exponentialRampToValueAtTime(0.001, now + 1.8);
+                sub.connect(subGain);
+                subGain.connect(comp);
+                sub.start(now + 1.2);
+                sub.stop(now + 1.8);
+            } else {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(120, now);
+                osc.frequency.linearRampToValueAtTime(30, now + 0.6);
+                
+                gain.gain.setValueAtTime(0.18, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+
+                osc.connect(gain);
+                gain.connect(comp);
+                osc.start(now);
+                osc.stop(now + 0.6);
+            }
+        } catch(err) {
+            console.warn('Beast mode sound failed:', err);
+        }
+    }
+
+    // Beast Mode Button click listener
+    if (beastModeBtn) {
+        beastModeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            isBeastMode = !isBeastMode;
+            
+            const aiTextEl = document.getElementById('ai-text');
+            
+            if (isBeastMode) {
+                document.body.classList.add('beast-mode-active');
+                beastModeBtn.innerHTML = "🔴 DEACTIVATE BEAST AUTONOMY";
+                beastModeBtn.style.borderColor = "#ff003c";
+                beastModeBtn.style.background = "linear-gradient(135deg, rgba(255, 0, 60, 0.4), rgba(120, 0, 10, 0.5))";
+                
+                playBeastModeSound(true);
+                
+                if (statusTextEl) {
+                    statusTextEl.textContent = "⚡ BEAST PROTOCOL ONLINE ⚡";
+                }
+                
+                const comment = "Autonomous Beast Mode activated. Neural core operating at maximum capability.";
+                if (aiTextEl) {
+                    aiTextEl.textContent = comment;
+                }
+                if (typeof speakAloud === 'function') {
+                    speakAloud(comment);
+                }
+                
+                // Spawn warning red particles
+                spawnEmotionParticles(['🔥', '🚨', '⚡', '🔴']);
+            } else {
+                document.body.classList.remove('beast-mode-active');
+                beastModeBtn.innerHTML = "🔥 ACTIVATE BEAST AUTONOMY";
+                beastModeBtn.style.borderColor = "#ff4a5a";
+                beastModeBtn.style.background = "linear-gradient(135deg, rgba(255, 74, 90, 0.3), rgba(120, 10, 20, 0.4))";
+                
+                playBeastModeSound(false);
+                
+                if (statusTextEl) {
+                    statusTextEl.textContent = statuses[0];
+                }
+                
+                const comment = "Autonomous protocols disengaged. System returning to standard standby.";
+                if (aiTextEl) {
+                    aiTextEl.textContent = comment;
+                }
+                if (typeof speakAloud === 'function') {
+                    speakAloud(comment);
+                }
+                
+                spawnEmotionParticles(['⚡', '✨']);
+            }
+        });
+    }
 
     // Webcam Control Functions
     function startWebcam() {
@@ -2131,8 +2363,9 @@ document.addEventListener('DOMContentLoaded', () => {
             this.speedY = Math.random() * 1 - 0.5;
         }
         update() {
-            this.x += this.speedX;
-            this.y += this.speedY;
+            const speedMultiplier = isBeastMode ? 4 : 1;
+            this.x += this.speedX * speedMultiplier;
+            this.y += this.speedY * speedMultiplier;
             if (this.x > canvas.width || this.x < 0) this.speedX *= -1;
             if (this.y > canvas.height || this.y < 0) this.speedY *= -1;
         }
