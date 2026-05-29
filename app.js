@@ -4476,6 +4476,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    document.addEventListener('keydown', (e) => {
+        if (isSystemLocked) return;
+
         // Escape key closes the side chat panel
         if (e.key === 'Escape') {
             closeChatPanel();
