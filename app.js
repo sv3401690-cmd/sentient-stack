@@ -5283,8 +5283,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let response = '';
 
+        // Use production API URL if testing locally (file:// or localhost) to bypass local environment gaps
+        const isLocal = window.location.hostname === 'localhost' || 
+                        window.location.hostname === '127.0.0.1' || 
+                        window.location.protocol === 'file:';
+        const apiEndpoint = isLocal ? 'https://sentient-stack.vercel.app/api/chat' : '/api/chat';
+
         try {
-            const res = await fetch('/api/chat', {
+            const res = await fetch(apiEndpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -5775,12 +5781,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // Auto-import from URL hash on load
     checkURLForSettings();
 
-    // Register Service Worker for PWA (makes it installable as a standalone app)
+    // Unregister any active Service Workers and clear caches to avoid sticky caching issues
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js')
-                .then(reg => console.log('Service Worker registered successfully:', reg.scope))
-                .catch(err => console.log('Service Worker registration failed:', err));
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+            for (let registration of registrations) {
+                registration.unregister().then(() => {
+                    console.log('Service Worker unregistered');
+                });
+            }
+        });
+        caches.keys().then(names => {
+            for (let name of names) {
+                caches.delete(name);
+            }
         });
     }
 
