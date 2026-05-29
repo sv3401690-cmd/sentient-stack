@@ -161,36 +161,7 @@
             </div>
         </footer>
         
-        <!-- Fullscreen Camera Shutter Flash -->
-        <div class="shutter-flash" id="shutter-flash"></div>
 
-        <!-- Floating 3D Encrypted Photo Target Bouncer -->
-        <div class="floating-photo-card hidden" id="floating-photo-card">
-            <div class="hologram-glow"></div>
-            <div class="photo-inner">
-                <canvas id="photo-canvas-render"></canvas>
-            </div>
-            <div class="capture-target-box">
-                <span class="hud-bracket top-left"></span>
-                <span class="hud-bracket top-right"></span>
-                <span class="hud-bracket bottom-left"></span>
-                <span class="hud-bracket bottom-right"></span>
-                <span class="hud-target-label">DECRYPT</span>
-            </div>
-        </div>
-
-        <!-- Fun Zone HUD Timer ( chase sequence overlay ) -->
-        <div class="decryption-chase-hud hidden" id="decryption-chase-hud">
-            <div class="chase-header">⚠️ DURESS PROTOCOL ENGAGED ⚠️</div>
-            <div class="chase-timer-box">
-                <span class="chase-label">SYSTEM LOCKDOWN IN:</span>
-                <span class="chase-time" id="chase-time-value">60.00s</span>
-            </div>
-            <div class="chase-progress-bar-container">
-                <div class="chase-progress-bar" id="chase-progress-bar"></div>
-            </div>
-            <div class="chase-instruction">AVOID THE FLOATING CARD! DO NOT LET IT HIT YOUR CURSOR!</div>
-        </div>
 
         <!-- Unified Settings & Fun Zone Modal -->
         <div class="fun-zone-modal hidden" id="fun-zone-modal">
@@ -325,30 +296,7 @@
                     <button class="fun-action-btn" id="fun-arms-preview-trigger" data-tooltip="Guidance: Shows the preview for the selected arm style. You can only see the preview of the currently active arm.">⚡ INITIALIZE PREVIEW</button>
                 </div>
 
-                <div class="hub-section-divider"></div>
-                
-                <!-- Section 3: Sheesh Snap Game -->
-                <div class="hub-section" id="sheesh-section">
-                    <h3 class="hub-section-title">📸 SHEESH SNAP DECRYPTION</h3>
-                    <div class="fun-description">
-                        Naz will take your photo and split its encryption. Avoid the bouncing holographic card for 60 seconds to verify identity. If the card touches your cursor, your system goes into lockdown immediately.
-                    </div>
-                    
-                    <div class="webcam-box">
-                        <div class="webcam-viewport">
-                            <video id="webcam-feed" autoplay playsinline muted class="hidden"></video>
-                            <div class="webcam-overlay-grid"></div>
-                            <div class="webcam-placeholder-avatar" id="webcam-placeholder">
-                                <span class="webcam-placeholder-icon">📸</span>
-                                <span class="webcam-placeholder-text">CAMERA DISENGAGED (STANDBY)</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="sheesh-controls">
-                        <button class="fun-action-btn sheesh-btn-color" id="fun-sheesh-trigger">📸 TAKE SNAP & ENGAGE</button>
-                    </div>
-                </div>
+
 
             </div>
         </div>

@@ -1117,7 +1117,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Restore status bar cycling
                 if (statusTextEl) {
-                    statusTextEl.textContent = 'NAZ ACTIVE';
+                    const engineNames = {
+                        'naz-core': 'NAZ-CORE v1.0',
+                        'quantum-x': 'QUANTUM-X v2.4',
+                        'phantom': 'PHANTOM v0.9',
+                        'nebula': 'NEBULA v3.1'
+                    };
+                    const selectedEngine = localStorage.getItem('naz-engine') || 'naz-core';
+                    statusTextEl.textContent = engineNames[selectedEngine] || 'NAZ-CORE v1.0';
                 }
 
                 playFocusChime(false);
@@ -1369,28 +1376,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // FUN ZONE & macOS LOCK SCREEN SYSTEM
     // =================================================================
     let isSystemLocked = false;
-    let webcamStream = null;
-    let isChasing = false;
-    let chaseTimer = null;
-    let chaseTimeLeft = 60;
-    let physicsFrameId = null;
     let previewTriggerSource = null; // 'settings' or 'fun-zone'
-
-    // Bouncer Physics Variables
-    let cardX = 100;
-    let cardY = 100;
-    let cardVx = 4;
-    let cardVy = 3;
-    let cardAngleX = 0;
-    let cardAngleY = 0;
 
     const funZoneToggle = document.getElementById('fun-zone-toggle');
     const funZoneModal = document.getElementById('fun-zone-modal');
     const funZoneClose = document.getElementById('fun-zone-close');
     const funArmsPreviewTrigger = document.getElementById('fun-arms-preview-trigger');
-    const funSheeshTrigger = document.getElementById('fun-sheesh-trigger');
-    const photoCard = document.getElementById('floating-photo-card');
-    const cardCanvas = document.getElementById('photo-canvas-render');
     const lockScreen = document.getElementById('macos-lock-screen');
     const lockForm = document.getElementById('lock-screen-form');
     const lockPasswordInput = document.getElementById('lock-password-input');
@@ -1398,9 +1389,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const lockErrorMsg = document.getElementById('lock-error-msg');
     const lockCanvas = document.getElementById('lock-avatar-canvas');
     const lockAvatarFallback = document.getElementById('lock-avatar-fallback');
-    const chaseHud = document.getElementById('decryption-chase-hud');
-    const chaseTimeVal = document.getElementById('chase-time-value');
-    const chaseProgressBar = document.getElementById('chase-progress-bar');
 
     const settingsModal = document.getElementById('settings-modal');
     const settingsClose = document.getElementById('settings-close');
@@ -1465,7 +1453,6 @@ document.addEventListener('DOMContentLoaded', () => {
             funZoneModal.offsetHeight;
             funZoneModal.classList.add('visible');
         }
-        startWebcam();
     }
 
     function hideFunZone() {
@@ -1475,7 +1462,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 funZoneModal.classList.add('hidden');
             }, 400);
         }
-        stopWebcam();
     }
 
     if (cursorSettingsToggle) {
@@ -1500,15 +1486,6 @@ document.addEventListener('DOMContentLoaded', () => {
         manualLockBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             hideSettings();
-            
-            // Generate snapshot fallback or capture webcam
-            if (cardCanvas) {
-                cardCanvas.width = 300;
-                cardCanvas.height = 300;
-                const cardCtx = cardCanvas.getContext('2d');
-                drawGlitchNeonFallback(cardCtx);
-            }
-            
             triggerLockdown();
         });
     }
@@ -1648,126 +1625,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Webcam Control Functions
-    function startWebcam() {
-        const video = document.getElementById('webcam-feed');
-        const placeholder = document.getElementById('webcam-placeholder');
-        if (!video) return;
-
-        if (webcamStream) return; // already running
-
-        navigator.mediaDevices.getUserMedia({ video: true, audio: false })
-            .then(stream => {
-                webcamStream = stream;
-                video.srcObject = stream;
-                video.classList.remove('hidden');
-                if (placeholder) placeholder.classList.add('hidden');
-            })
-            .catch(err => {
-                console.warn("Webcam access failed:", err);
-                video.classList.add('hidden');
-                if (placeholder) {
-                     placeholder.classList.remove('hidden');
-                     const textLabel = placeholder.querySelector('.webcam-placeholder-text');
-                     if (textLabel) textLabel.textContent = "WEBCAM INOPERABLE (DEMO GENERATOR ENGAGED)";
-                }
-            });
-    }
-
-    function stopWebcam() {
-        const video = document.getElementById('webcam-feed');
-        const placeholder = document.getElementById('webcam-placeholder');
-        if (webcamStream) {
-            webcamStream.getTracks().forEach(track => track.stop());
-            webcamStream = null;
-        }
-        if (video) {
-            video.srcObject = null;
-            video.classList.add('hidden');
-        }
-        if (placeholder) {
-             placeholder.classList.remove('hidden');
-             const textLabel = placeholder.querySelector('.webcam-placeholder-text');
-             if (textLabel) textLabel.textContent = "CAMERA DISENGAGED (STANDBY)";
-        }
-    }
-
-    // Synthesize Camera Shutter Sound
-    function playCameraShutterSound() {
-        try {
-            const audioCtx = getSharedAudioCtx();
-            if (!audioCtx) return;
-            const now = audioCtx.currentTime;
-
-            // Shutter burst noise
-            const bufferSize = audioCtx.sampleRate * 0.15;
-            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) {
-                data[i] = Math.random() * 2 - 1;
-            }
-
-            const noiseNode = audioCtx.createBufferSource();
-            noiseNode.buffer = buffer;
-
-            const filter = audioCtx.createBiquadFilter();
-            filter.type = 'bandpass';
-            filter.frequency.setValueAtTime(1000, now);
-            filter.frequency.exponentialRampToValueAtTime(300, now + 0.15);
-            filter.Q.setValueAtTime(3, now);
-
-            const gainNode = audioCtx.createGain();
-            gainNode.gain.setValueAtTime(0.4, now);
-            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
-
-            noiseNode.connect(filter);
-            filter.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            noiseNode.start(now);
-
-            // Metallic clack
-            const osc = audioCtx.createOscillator();
-            const oscGain = audioCtx.createGain();
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(180, now);
-            osc.frequency.exponentialRampToValueAtTime(80, now + 0.08);
-
-            oscGain.gain.setValueAtTime(0.5, now);
-            oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-
-            osc.connect(oscGain);
-            oscGain.connect(audioCtx.destination);
-            osc.start(now);
-            osc.stop(now + 0.08);
-        } catch (e) {
-            console.error("Camera shutter sound error:", e);
-        }
-    }
-
-    // Countdown Ticking Warning Chimes
-    function playTickSound(isUrgent = false) {
-        try {
-            const audioCtx = getSharedAudioCtx();
-            if (!audioCtx) return;
-            const now = audioCtx.currentTime;
-            const osc = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(isUrgent ? 1600 : 1200, now);
-
-            gainNode.gain.setValueAtTime(isUrgent ? 0.25 : 0.12, now);
-            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
-
-            osc.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            osc.start(now);
-            osc.stop(now + 0.06);
-        } catch (e) {
-            console.error("Tick sound error:", e);
-        }
-    }
-
     // macOS Sonoma Lock Sound
     function playMacLockSound() {
         try {
@@ -1814,356 +1671,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {}
     }
 
-    // Success Catch Chime
-    function playGameWinSound() {
-        try {
-            const audioCtx = getSharedAudioCtx();
-            if (!audioCtx) return;
-            const now = audioCtx.currentTime;
-
-            const frequencies = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50];
-            frequencies.forEach((freq, index) => {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(freq, now + index * 0.06);
-
-                gain.gain.setValueAtTime(0.15, now + index * 0.06);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + index * 0.06 + 0.25);
-
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(now + index * 0.06);
-                osc.stop(now + index * 0.06 + 0.3);
-            });
-        } catch (e) {}
-    }
-
-    // Draw custom glitch neon fallback
-    function drawGlitchNeonFallback(ctx) {
-        ctx.clearRect(0, 0, 300, 300);
-
-        ctx.fillStyle = '#050212';
-        ctx.fillRect(0, 0, 300, 300);
-
-        ctx.strokeStyle = 'rgba(255, 0, 127, 0.15)';
-        ctx.lineWidth = 1;
-        for (let i = 0; i <= 300; i += 30) {
-            ctx.beginPath();
-            ctx.moveTo(i, 0);
-            ctx.lineTo(i, 300);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(0, i);
-            ctx.lineTo(300, i);
-            ctx.stroke();
-        }
-
-        const cx = 150;
-        const cy = 150;
-
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = '#00ffff';
-        ctx.strokeStyle = '#00ffff';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(cx, cy, 60, 0, Math.PI * 2);
-        ctx.stroke();
-
-        ctx.shadowBlur = 20;
-        ctx.shadowColor = '#ff007f';
-        ctx.strokeStyle = '#ff007f';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(cx, cy, 80, Math.PI * 0.25, Math.PI * 1.75);
-        ctx.stroke();
-
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = '#00ffff';
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText('NAZ SYSTEM DURESS', cx, cy - 10);
-        ctx.font = '12px monospace';
-        ctx.fillText('IDENTITY SHUNT ACTIVE', cx, cy + 15);
-        ctx.shadowBlur = 0;
-    }
-
-    let lastTeleportTime = 0;
-
-    function handleChaseSuccess() {
-        isChasing = false;
-        clearInterval(chaseTimer);
-        if (physicsFrameId) cancelAnimationFrame(physicsFrameId);
-
-        if (photoCard) {
-            photoCard.style.opacity = '0';
-            photoCard.style.pointerEvents = 'none';
-            setTimeout(() => {
-                photoCard.classList.add('hidden');
-            }, 300);
-        }
-
-        if (chaseHud) {
-            chaseHud.classList.remove('visible');
-            setTimeout(() => {
-                chaseHud.classList.add('hidden');
-            }, 400);
-        }
-
-        playGameWinSound();
-        showFunZone();
-        speakAloud("Security verification complete. Identity confirmed.");
-
-        const statusIndicator = document.getElementById('status-text');
-        if (statusIndicator) statusIndicator.textContent = "VERIFIED OPERATOR";
-    }
-
-    // 3D Photo Card Bouncer Physics Loop
-    function updateCardPhysics() {
-        if (!isChasing) return;
-
-        const card = document.getElementById('floating-photo-card');
-        if (!card) return;
-
-        const cardWidth = card.offsetWidth || 200;
-        const cardHeight = card.offsetHeight || 200;
-        const screenWidth = window.innerWidth;
-        const screenHeight = window.innerHeight;
-
-        // Check if mouse hits the card -> immediate out/lockdown
-        if (mouse && mouse.x !== null && mouse.y !== null) {
-            if (mouse.x >= cardX && mouse.x <= cardX + cardWidth &&
-                mouse.y >= cardY && mouse.y <= cardY + cardHeight) {
-                triggerLockdown();
-                return;
-            }
-        }
-
-        cardX += cardVx;
-        cardY += cardVy;
-
-        let bounced = false;
-
-        if (cardX <= 0) {
-            cardX = 0;
-            cardVx = -cardVx;
-            bounced = true;
-        } else if (cardX + cardWidth >= screenWidth) {
-            cardX = screenWidth - cardWidth;
-            cardVx = -cardVx;
-            bounced = true;
-        }
-
-        if (cardY <= 0) {
-            cardY = 0;
-            cardVy = -cardVy;
-            bounced = true;
-        } else if (cardY + cardHeight >= screenHeight) {
-            cardY = screenHeight - cardHeight;
-            cardVy = -cardVy;
-            bounced = true;
-        }
-
-        if (bounced) {
-            const speed = Math.sqrt(cardVx * cardVx + cardVy * cardVy);
-            if (speed < 30) {
-                cardVx *= 1.08;
-                cardVy *= 1.08;
-            }
-        }
-
-        // Teleportation mechanic: Teleport to random location every 1.2s to 2s
-        const now = Date.now();
-        if (now - lastTeleportTime > Math.random() * 800 + 1200) {
-            lastTeleportTime = now;
-
-            card.classList.add('teleport-glitch');
-            setTimeout(() => {
-                card.classList.remove('teleport-glitch');
-            }, 200);
-
-            cardX = Math.random() * (screenWidth - cardWidth - 100) + 50;
-            cardY = Math.random() * (screenHeight - cardHeight - 100) + 50;
-
-            const angle = Math.random() * Math.PI * 2;
-            const currentSpeed = Math.sqrt(cardVx * cardVx + cardVy * cardVy);
-            const speed = Math.min(Math.max(currentSpeed * 1.08, 12), 32);
-            cardVx = Math.cos(angle) * speed;
-            cardVy = Math.sin(angle) * speed;
-
-            try {
-                const audioCtx = getSharedAudioCtx();
-                if (audioCtx) {
-                    const nowAudio = audioCtx.currentTime;
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(600, nowAudio);
-                    osc.frequency.exponentialRampToValueAtTime(1800, nowAudio + 0.15);
-                    gain.gain.setValueAtTime(0.08, nowAudio);
-                    gain.gain.exponentialRampToValueAtTime(0.001, nowAudio + 0.15);
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-                    osc.start(nowAudio);
-                    osc.stop(nowAudio + 0.15);
-                }
-            } catch(err) {}
-        }
-
-        const targetAngleX = (cardVy / 15) * 22;
-        const targetAngleY = -(cardVx / 15) * 22;
-
-        cardAngleX += (targetAngleX - cardAngleX) * 0.1;
-        cardAngleY += (targetAngleY - cardAngleY) * 0.1;
-
-        card.style.left = `${cardX}px`;
-        card.style.top = `${cardY}px`;
-        card.style.transform = `perspective(800px) rotateX(${cardAngleX}deg) rotateY(${cardAngleY}deg)`;
-
-        physicsFrameId = requestAnimationFrame(updateCardPhysics);
-    }
-
-    // Sheesh Snap Event Trigger
-    if (funSheeshTrigger) {
-        funSheeshTrigger.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (isSystemLocked || isChasing) return;
-
-            // Play whir clack shutter sound
-            playCameraShutterSound();
-
-            // Flash Screen overlay
-            const flash = document.getElementById('shutter-flash');
-            if (flash) {
-                flash.classList.add('active');
-                setTimeout(() => {
-                    flash.classList.remove('active');
-                }, 500);
-            }
-
-            // Copy snapshot frame to card canvas
-            const video = document.getElementById('webcam-feed');
-            if (cardCanvas) {
-                cardCanvas.width = 300;
-                cardCanvas.height = 300;
-                const cardCtx = cardCanvas.getContext('2d');
-
-                if (webcamStream && video && video.readyState === video.HAVE_ENOUGH_DATA) {
-                    cardCtx.save();
-                    cardCtx.translate(300, 0);
-                    cardCtx.scale(-1, 1);
-
-                    const minDim = Math.min(video.videoWidth, video.videoHeight);
-                    const sx = (video.videoWidth - minDim) / 2;
-                    const sy = (video.videoHeight - minDim) / 2;
-
-                    cardCtx.drawImage(video, sx, sy, minDim, minDim, 0, 0, 300, 300);
-                    cardCtx.restore();
-                } else {
-                    drawGlitchNeonFallback(cardCtx);
-                }
-            }
-
-            // Hide Fun Zone modal immediately
-            hideFunZone();
-
-            // Start chase sequence
-            startChaseSequence();
-        });
-    }
-
-    function startChaseSequence() {
-        isChasing = true;
-        chaseTimeLeft = 60.00;
-
-        if (chaseTimer) clearInterval(chaseTimer);
-        if (physicsFrameId) cancelAnimationFrame(physicsFrameId);
-
-        if (chaseHud) {
-            chaseHud.classList.remove('hidden');
-            chaseHud.offsetHeight;
-            chaseHud.classList.add('visible');
-        }
-
-        if (photoCard) {
-            photoCard.classList.remove('hidden');
-            photoCard.style.opacity = '1';
-            photoCard.style.pointerEvents = 'auto';
-        }
-
-        const screenWidth = window.innerWidth;
-        const screenHeight = window.innerHeight;
-        cardX = screenWidth / 2 - 100;
-        cardY = screenHeight / 2 - 100;
-
-        const angle = Math.random() * Math.PI * 2;
-        const speed = 10;
-        cardVx = Math.cos(angle) * speed;
-        cardVy = Math.sin(angle) * speed;
-
-        lastTeleportTime = Date.now();
-        updateCardPhysics();
-
-        chaseTimer = setInterval(() => {
-            chaseTimeLeft -= 0.05;
-            if (chaseTimeLeft <= 0) {
-                chaseTimeLeft = 0;
-                clearInterval(chaseTimer);
-                handleChaseSuccess();
-            }
-
-            if (chaseTimeVal) {
-                chaseTimeVal.textContent = `${chaseTimeLeft.toFixed(2)}s`;
-            }
-
-            if (chaseProgressBar) {
-                const pct = (chaseTimeLeft / 60) * 100;
-                chaseProgressBar.style.width = `${pct}%`;
-                if (chaseTimeLeft < 15) {
-                    chaseProgressBar.style.backgroundColor = '#ff4a5a';
-                } else if (chaseTimeLeft < 30) {
-                    chaseProgressBar.style.backgroundColor = '#ffb800';
-                } else {
-                    chaseProgressBar.style.backgroundColor = '#00ff66';
-                }
-            }
-
-            const elapsedMs = Math.round((60 - chaseTimeLeft) * 1000);
-            if (chaseTimeLeft > 15) {
-                if (elapsedMs % 1000 < 50) {
-                    playTickSound(false);
-                }
-            } else {
-                if (elapsedMs % 250 < 50) {
-                    playTickSound(true);
-                }
-            }
-        }, 50);
-    }
-
-    if (photoCard) {
-        photoCard.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (!isChasing) return;
-            triggerLockdown();
-        });
-    }
-
     function triggerLockdown() {
-        isChasing = false;
         isSystemLocked = true;
-
-        if (chaseTimer) clearInterval(chaseTimer);
-        if (physicsFrameId) cancelAnimationFrame(physicsFrameId);
-
-        if (photoCard) photoCard.classList.add('hidden');
-        if (chaseHud) {
-            chaseHud.classList.remove('visible');
-            chaseHud.classList.add('hidden');
-        }
-
-        stopWebcam();
 
         // Lock screen visible
         if (lockScreen) {
@@ -2179,14 +1688,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 500);
         }
 
-        // Draw card avatar on macOS lock screen profile canvas
-        if (lockCanvas && cardCanvas) {
-            lockCanvas.width = 90;
-            lockCanvas.height = 90;
-            const lockCtx = lockCanvas.getContext('2d');
-            lockCtx.drawImage(cardCanvas, 0, 0, 300, 300, 0, 0, 90, 90);
-            lockCanvas.classList.remove('hidden');
-            if (lockAvatarFallback) lockAvatarFallback.classList.add('hidden');
+        // Use fallback profile icon
+        if (lockCanvas) {
+            lockCanvas.classList.add('hidden');
+        }
+        if (lockAvatarFallback) {
+            lockAvatarFallback.classList.remove('hidden');
         }
 
         playMacLockSound();
@@ -2213,7 +1720,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 speakAloud("System unlocked. Welcome back Operator.");
 
                 const statusIndicator = document.getElementById('status-text');
-                if (statusIndicator) statusIndicator.textContent = "NAZ ACTIVE";
+                if (statusIndicator) {
+                    const engineNames = {
+                        'naz-core': 'NAZ-CORE v1.0',
+                        'quantum-x': 'QUANTUM-X v2.4',
+                        'phantom': 'PHANTOM v0.9',
+                        'nebula': 'NEBULA v3.1'
+                    };
+                    const selectedEngine = localStorage.getItem('naz-engine') || 'naz-core';
+                    statusIndicator.textContent = engineNames[selectedEngine] || 'NAZ-CORE v1.0';
+                }
             } else {
                 if (lockPasswordWrapper) {
                     lockPasswordWrapper.classList.add('macos-shake');
