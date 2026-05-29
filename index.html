@@ -68,6 +68,9 @@
                 <span class="logo-text" id="status-text">NAZ ACTIVE</span>
             </div>
             <div class="header-controls">
+                <div class="fun-zone-toggle" id="fun-zone-toggle" data-tooltip="Fun Zone (Combat & Decryption)">
+                    <span class="fun-icon">🎮</span>
+                </div>
                 <div class="cursor-settings-toggle" id="cursor-settings-toggle" data-tooltip="Cursor Settings">
                     <span class="settings-icon">⚙️</span>
                 </div>
@@ -120,7 +123,7 @@
                 </div>
             </div>
             <div class="setting-item" style="margin-bottom: 15px;">
-                <button class="preview-btn" id="arms-preview-btn" data-tooltip="Previews the currently selected arm style — select an arm above, then click to see it in action">⚡ PREVIEW</button>
+                <button class="preview-btn" id="arms-preview-btn" data-tooltip="Open the Naz Fun Zone containing system previews and snaps">🎮 FUN ZONE</button>
             </div>
             <div class="setting-item" style="margin-bottom: 15px;">
                 <label>🎯 NAZ VOICE FOCUS</label>
@@ -240,6 +243,123 @@
             </div>
         </footer>
         
+        <!-- Fullscreen Camera Shutter Flash -->
+        <div class="shutter-flash" id="shutter-flash"></div>
+
+        <!-- Floating 3D Encrypted Photo Target Bouncer -->
+        <div class="floating-photo-card hidden" id="floating-photo-card">
+            <div class="hologram-glow"></div>
+            <div class="photo-inner">
+                <canvas id="photo-canvas-render"></canvas>
+            </div>
+            <div class="capture-target-box">
+                <span class="hud-bracket top-left"></span>
+                <span class="hud-bracket top-right"></span>
+                <span class="hud-bracket bottom-left"></span>
+                <span class="hud-bracket bottom-right"></span>
+                <span class="hud-target-label">DECRYPT</span>
+            </div>
+        </div>
+
+        <!-- Fun Zone HUD Timer ( chase sequence overlay ) -->
+        <div class="decryption-chase-hud hidden" id="decryption-chase-hud">
+            <div class="chase-header">⚠️ DURESS PROTOCOL ENGAGED ⚠️</div>
+            <div class="chase-timer-box">
+                <span class="chase-label">SYSTEM LOCKDOWN IN:</span>
+                <span class="chase-time" id="chase-time-value">60.00s</span>
+            </div>
+            <div class="chase-progress-bar-container">
+                <div class="chase-progress-bar" id="chase-progress-bar"></div>
+            </div>
+            <div class="chase-instruction">INTERCEPT THE FLOATING ENCRYPTED CARD IN THE VIEWPORT</div>
+        </div>
+
+        <!-- Fun Zone Modal -->
+        <div class="fun-zone-modal hidden" id="fun-zone-modal">
+            <div class="fun-zone-header">
+                <span class="fun-zone-title">👾 NAZ FUN ZONE 👾</span>
+                <button class="fun-zone-close" id="fun-zone-close">&times;</button>
+            </div>
+            
+            <div class="fun-tabs">
+                <button class="fun-tab active" data-tab="arms-tab-content">🦾 COMBAT ARMS</button>
+                <button class="fun-tab" data-tab="sheesh-tab-content">📸 SHEESH SNAP</button>
+            </div>
+            
+            <!-- Tab 1: Combat Arms Preview -->
+            <div class="fun-tab-content active-content" id="arms-tab-content">
+                <div class="fun-description">
+                    Deploy cybernetic weaponry and verify mechanical joints with hyper-active core calibration.
+                </div>
+                
+                <div class="core-fun-container">
+                    <div class="core-fun-preview" id="core-fun-preview">
+                        <!-- Glitch core clone inside fun zone modal -->
+                        <div class="fun-core-element" id="fun-core-element">
+                            <div class="fun-core-inner"></div>
+                            <div class="fun-core-ring ring-1"></div>
+                            <div class="fun-core-ring ring-2"></div>
+                            <div class="fun-core-ring ring-3"></div>
+                        </div>
+                    </div>
+                    <div class="core-fun-hud">
+                        <div class="hud-line">SYSTEM STATUS: <span id="fun-core-status">STANDBY</span></div>
+                        <div class="hud-line">CALIBRATION: <span id="fun-core-calib">100.0%</span></div>
+                        <div class="hud-line">CORE SHUNT: <span id="fun-core-shunt">STABLE</span></div>
+                    </div>
+                </div>
+                
+                <button class="fun-action-btn" id="fun-arms-preview-trigger" data-tooltip="Guidance: Shows the preview for the selected arm style. You can only see the preview of the currently active arm.">⚡ INITIALIZE PREVIEW</button>
+            </div>
+            
+            <!-- Tab 2: Sheesh Snap Game -->
+            <div class="fun-tab-content" id="sheesh-tab-content">
+                <div class="fun-description">
+                    Naz will take your photo and split its encryption. Catch the floating card within 60 seconds to verify identity, or your system goes into lockdown.
+                </div>
+                
+                <div class="webcam-box">
+                    <div class="webcam-viewport">
+                        <video id="webcam-feed" autoplay playsinline muted class="hidden"></video>
+                        <div class="webcam-overlay-grid"></div>
+                        <div class="webcam-placeholder-avatar" id="webcam-placeholder">
+                            <span class="webcam-placeholder-icon">📸</span>
+                            <span class="webcam-placeholder-text">CAMERA DISENGAGED (STANDBY)</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="sheesh-controls">
+                    <button class="fun-action-btn sheesh-btn-color" id="fun-sheesh-trigger">📸 TAKE SNAP & ENGAGE</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fullscreen macOS style lock screen overlay -->
+        <div class="macos-lock-screen hidden" id="macos-lock-screen">
+            <div class="lock-screen-bg"></div>
+            <div class="lock-content">
+                <div class="lock-avatar-container">
+                    <canvas id="lock-avatar-canvas" class="lock-avatar"></canvas>
+                    <div class="lock-avatar-fallback" id="lock-avatar-fallback">👤</div>
+                </div>
+                <div class="lock-username">Operator</div>
+                <form id="lock-screen-form" class="lock-form" onsubmit="event.preventDefault();">
+                    <div class="password-wrapper" id="lock-password-wrapper">
+                        <input type="password" id="lock-password-input" class="lock-input" placeholder="Enter Password" autocomplete="off">
+                        <button type="submit" class="lock-submit-btn" id="lock-submit-btn" aria-label="Login">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                </form>
+                <div class="lock-hint">Passcode: 1234</div>
+                <div class="lock-error-msg hidden" id="lock-error-msg">Incorrect Passcode. Try Again.</div>
+            </div>
+        </div>
+
         <!-- OS Detection Toast -->
         <div class="os-detect-toast" id="os-detect-toast">
             <span class="os-detect-icon" id="os-detect-icon">🖥️</span>

@@ -2228,3 +2228,783 @@ body.boot-complete .glow-orb {
     75% { transform: scale(1.05); }
     100% { transform: scale(1); filter: brightness(1); }
 }
+
+/* ============================================
+   FUN ZONE AND CHASE GAME STYLING
+   ============================================ */
+
+/* Header controls: Fun Zone toggle button */
+.fun-zone-toggle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1.5px solid rgba(255, 0, 127, 0.25);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: 0 0 5px rgba(255, 0, 127, 0.1);
+}
+
+.fun-zone-toggle:hover {
+    background: rgba(255, 0, 127, 0.1);
+    border-color: rgba(255, 0, 127, 0.85);
+    box-shadow: 0 0 10px rgba(255, 0, 127, 0.4), inset 0 0 5px rgba(255, 0, 127, 0.2);
+    transform: scale(1.06);
+}
+
+.fun-zone-toggle:active {
+    transform: scale(0.95);
+}
+
+.fun-icon {
+    font-size: 0.95rem;
+    filter: drop-shadow(0 0 2px rgba(255,0,127,0.5));
+}
+
+/* Modal Window Container */
+.fun-zone-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
+    width: 520px;
+    max-width: 90vw;
+    background: rgba(10, 10, 20, 0.85);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid rgba(255, 0, 127, 0.35);
+    border-radius: 20px;
+    box-shadow: 
+        0 20px 50px rgba(0, 0, 0, 0.7),
+        0 0 30px rgba(255, 0, 127, 0.15),
+        inset 0 0 20px rgba(255, 0, 127, 0.05);
+    z-index: 1500;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+    font-family: 'Outfit', sans-serif;
+    color: var(--text-main);
+    overflow: hidden;
+}
+
+.fun-zone-modal.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* Header Area */
+.fun-zone-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.fun-zone-title {
+    font-size: 0.9rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #ffffff;
+    text-shadow: 0 0 8px rgba(255, 0, 127, 0.6);
+}
+
+.fun-zone-close {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.fun-zone-close:hover {
+    color: #ff007f;
+    transform: scale(1.1);
+}
+
+/* Tab Switching buttons */
+.fun-tabs {
+    display: flex;
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.fun-tab {
+    flex: 1;
+    background: none;
+    border: none;
+    padding: 14px;
+    color: var(--text-dim);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    position: relative;
+    outline: none;
+}
+
+.fun-tab:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.fun-tab.active {
+    color: #ff007f;
+    background: rgba(255, 0, 127, 0.05);
+}
+
+.fun-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: #ff007f;
+    box-shadow: 0 0 10px #ff007f;
+}
+
+/* Tab contents */
+.fun-tab-content {
+    display: none;
+    padding: 24px;
+}
+
+.fun-tab-content.active-content {
+    display: block;
+    animation: tabFadeIn 0.4s ease;
+}
+
+@keyframes tabFadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fun-description {
+    font-size: 0.75rem;
+    line-height: 1.6;
+    color: var(--text-dim);
+    margin-bottom: 20px;
+    font-family: monospace;
+}
+
+/* Action button inside Fun Zone */
+.fun-action-btn {
+    width: 100%;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, rgba(255, 0, 127, 0.25), rgba(139, 0, 255, 0.2));
+    border: 1.5px solid #ff007f;
+    border-radius: 12px;
+    color: #ffffff;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: 0 0 15px rgba(255, 0, 127, 0.25);
+    outline: none;
+}
+
+.fun-action-btn:hover {
+    background: linear-gradient(135deg, rgba(255, 0, 127, 0.4), rgba(139, 0, 255, 0.35));
+    box-shadow: 0 0 25px rgba(255, 0, 127, 0.5), 0 0 10px rgba(139, 0, 255, 0.3);
+    transform: translateY(-1.5px);
+}
+
+.fun-action-btn:active {
+    transform: translateY(0.5px);
+}
+
+.sheesh-btn-color {
+    border-color: #8b00ff;
+    background: linear-gradient(135deg, rgba(139, 0, 255, 0.25), rgba(255, 0, 127, 0.2));
+    box-shadow: 0 0 15px rgba(139, 0, 255, 0.25);
+}
+
+.sheesh-btn-color:hover {
+    background: linear-gradient(135deg, rgba(139, 0, 255, 0.4), rgba(255, 0, 127, 0.35));
+    box-shadow: 0 0 25px rgba(139, 0, 255, 0.5), 0 0 10px rgba(255, 0, 127, 0.3);
+    border-color: #8b00ff;
+}
+
+/* Core Fun Grid Area */
+.core-fun-container {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 20px;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 24px;
+}
+
+.core-fun-preview {
+    width: 140px;
+    height: 140px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px dashed rgba(255, 0, 127, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.core-fun-hud {
+    font-family: monospace;
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.hud-line {
+    letter-spacing: 1px;
+}
+
+.hud-line span {
+    color: #ff007f;
+    font-weight: 700;
+    text-shadow: 0 0 5px rgba(255, 0, 127, 0.4);
+}
+
+/* Cloned Miniature Glitch Core inside Fun Zone */
+.fun-core-element {
+    position: relative;
+    width: 55px;
+    height: 55px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.fun-core-inner {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #ffffff 0%, #ff007f 65%, transparent 100%);
+    box-shadow: 0 0 15px #ff007f;
+    position: relative;
+    z-index: 2;
+}
+
+.fun-core-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 0, 127, 0.45);
+    box-shadow: 0 0 8px rgba(255, 0, 127, 0.2);
+}
+
+.fun-core-ring.ring-1 {
+    width: 42px;
+    height: 42px;
+    animation: funRotate1 3s linear infinite;
+}
+
+.fun-core-ring.ring-2 {
+    width: 54px;
+    height: 54px;
+    animation: funRotate2 5s linear infinite;
+    border-style: dashed;
+}
+
+.fun-core-ring.ring-3 {
+    width: 66px;
+    height: 66px;
+    animation: funRotate3 7s linear infinite;
+}
+
+@keyframes funRotate1 { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+@keyframes funRotate2 { 0% { transform: rotate(0deg); } 100% { transform: rotate(-360deg); } }
+@keyframes funRotate3 { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+/* Glitched states triggered on cloned core */
+.fun-core-element.glitching {
+    animation: funCoreVibrate 0.1s linear infinite;
+}
+
+.fun-core-element.glitching .fun-core-inner {
+    animation: funColorCycle 0.5s linear infinite;
+}
+
+@keyframes funCoreVibrate {
+    0%, 100% { transform: translate(0, 0) scale(1.0); filter: brightness(1.0); }
+    20% { transform: translate(-2px, 1px) scale(1.08); filter: brightness(1.8) drop-shadow(2px -1px 0 #00ffff); }
+    40% { transform: translate(1px, -2px) scale(0.92); filter: brightness(1.4) drop-shadow(-2px 2px 0 #ff007f); }
+    60% { transform: translate(-1px, -1px) scale(1.1); filter: brightness(2.0); }
+    80% { transform: translate(2px, 2px) scale(0.95); filter: brightness(1.6) drop-shadow(1px 1px 0 #ffffff); }
+}
+
+@keyframes funColorCycle {
+    0% { background: radial-gradient(circle, #ffffff 0%, #ff007f 65%, transparent 100%); box-shadow: 0 0 15px #ff007f; }
+    33% { background: radial-gradient(circle, #ffffff 0%, #00ffff 65%, transparent 100%); box-shadow: 0 0 15px #00ffff; }
+    66% { background: radial-gradient(circle, #ffffff 0%, #8b00ff 65%, transparent 100%); box-shadow: 0 0 15px #8b00ff; }
+    100% { background: radial-gradient(circle, #ffffff 0%, #ff007f 65%, transparent 100%); box-shadow: 0 0 15px #ff007f; }
+}
+
+/* Webcam capture layout */
+.webcam-box {
+    width: 100%;
+    margin-bottom: 24px;
+}
+
+.webcam-viewport {
+    width: 100%;
+    height: 220px;
+    border-radius: 14px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(139, 0, 255, 0.3);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.webcam-viewport video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1); /* Mirror camera */
+}
+
+/* Laser Scanner overlay */
+.webcam-overlay-grid {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: 
+        linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px) 0 0 / 20px 20px,
+        linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px) 0 0 / 20px 20px;
+}
+
+.webcam-viewport::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 2.5px;
+    background: rgba(139, 0, 255, 0.7);
+    box-shadow: 0 0 10px rgba(139, 0, 255, 0.8), 0 0 20px rgba(139, 0, 255, 0.4);
+    animation: scannerBarSweep 3.0s ease-in-out infinite;
+    z-index: 5;
+    pointer-events: none;
+}
+
+@keyframes scannerBarSweep {
+    0% { top: 0%; opacity: 0.1; }
+    5%, 95% { opacity: 0.95; }
+    50% { top: 98%; }
+    100% { top: 0%; opacity: 0.1; }
+}
+
+.webcam-placeholder-avatar {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+}
+
+.webcam-placeholder-icon {
+    font-size: 2.5rem;
+    filter: drop-shadow(0 0 8px rgba(139, 0, 255, 0.6));
+    animation: avatarFloat 2s ease-in-out infinite alternate;
+}
+
+@keyframes avatarFloat {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-6px); }
+}
+
+.webcam-placeholder-text {
+    font-family: monospace;
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+}
+
+/* Shutter camera flash overlay */
+.shutter-flash {
+    position: fixed;
+    inset: 0;
+    background: #ffffff;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.05s ease-out;
+}
+
+.shutter-flash.active {
+    opacity: 1;
+    transition: none; /* instant white */
+}
+
+/* Floating holographic bouncer photo card */
+.floating-photo-card {
+    position: fixed;
+    width: 130px;
+    height: 130px;
+    background: rgba(10, 10, 25, 0.8);
+    border: 2px solid #8b00ff;
+    box-shadow: 
+        0 0 20px rgba(139, 0, 255, 0.5), 
+        0 10px 30px rgba(0, 0, 0, 0.6),
+        inset 0 0 10px rgba(139, 0, 255, 0.2);
+    border-radius: 12px;
+    z-index: 1400;
+    cursor: pointer;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transform-style: preserve-3d;
+    perspective: 800px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.floating-photo-card:hover {
+    border-color: #ff007f;
+    box-shadow: 
+        0 0 30px rgba(255, 0, 127, 0.8), 
+        0 15px 40px rgba(0, 0, 0, 0.8),
+        inset 0 0 15px rgba(255, 0, 127, 0.3);
+}
+
+.photo-inner {
+    width: calc(100% - 10px);
+    height: calc(100% - 10px);
+    border-radius: 8px;
+    background: #020205;
+    overflow: hidden;
+    position: relative;
+}
+
+.photo-inner canvas {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.hologram-glow {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 40%, rgba(139, 0, 255, 0.15) 60%, rgba(139, 0, 255, 0.4) 100%);
+    pointer-events: none;
+    z-index: 3;
+}
+
+.capture-target-box {
+    position: absolute;
+    inset: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    pointer-events: none;
+    z-index: 4;
+}
+
+/* Corner bracket marks on floating card */
+.hud-bracket {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border: 1.5px solid #8b00ff;
+    pointer-events: none;
+}
+
+.floating-photo-card:hover .hud-bracket {
+    border-color: #ff007f;
+}
+
+.hud-bracket.top-left { top: 0; left: 0; border-right: none; border-bottom: none; }
+.hud-bracket.top-right { top: 0; right: 0; border-left: none; border-bottom: none; }
+.hud-bracket.bottom-left { bottom: 0; left: 0; border-right: none; border-top: none; }
+.hud-bracket.bottom-right { bottom: 0; right: 0; border-left: none; border-top: none; }
+
+.hud-target-label {
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: monospace;
+    font-size: 0.48rem;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    color: #ffffff;
+    background: rgba(139, 0, 255, 0.85);
+    padding: 1.5px 5px;
+    border-radius: 4px;
+    text-shadow: 0 0 3px rgba(255, 255, 255, 0.6);
+}
+
+.floating-photo-card:hover .hud-target-label {
+    background: rgba(255, 0, 127, 0.85);
+}
+
+/* Chase countdown Timer HUD bar */
+.decryption-chase-hud {
+    position: fixed;
+    top: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 480px;
+    max-width: 90vw;
+    background: rgba(10, 5, 20, 0.9);
+    border: 1px solid rgba(255, 0, 127, 0.5);
+    box-shadow: 0 5px 30px rgba(255, 0, 127, 0.3), inset 0 0 10px rgba(255, 0, 127, 0.1);
+    border-radius: 0 0 14px 14px;
+    padding: 12px 20px;
+    z-index: 1450;
+    font-family: 'Outfit', sans-serif;
+    text-align: center;
+    transition: top 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.decryption-chase-hud.visible {
+    top: 0;
+}
+
+.chase-header {
+    font-family: monospace;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #ff007f;
+    margin-bottom: 6px;
+    text-shadow: 0 0 6px rgba(255, 0, 127, 0.5);
+}
+
+.chase-timer-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.chase-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-dim);
+}
+
+.chase-time {
+    font-family: monospace;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #ffffff;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+/* Progress bar inside Chase HUD */
+.chase-progress-bar-container {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+.chase-progress-bar {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #00ffff, #ff007f);
+    box-shadow: 0 0 8px #ff007f;
+    transition: width 0.1s linear;
+}
+
+.chase-instruction {
+    font-family: monospace;
+    font-size: 0.52rem;
+    letter-spacing: 1.2px;
+    color: var(--text-dim);
+}
+
+/* macOS Lock Screen overlay */
+.macos-lock-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 100000; /* overlay boot sequence loader */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.macos-lock-screen.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Blur gradient Sonoma theme lock screen background */
+.lock-screen-bg {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 20% 30%, #431260 0%, #15082a 50%, #03010c 100%);
+    background-size: cover;
+    z-index: -1;
+}
+
+.lock-screen-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: 
+        radial-gradient(circle at 80% 20%, rgba(255, 0, 127, 0.12) 0%, transparent 45%),
+        radial-gradient(circle at 10% 80%, rgba(0, 255, 255, 0.1) 0%, transparent 40%);
+    filter: blur(40px);
+}
+
+.lock-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 320px;
+    text-align: center;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #ffffff;
+    z-index: 2;
+}
+
+.lock-avatar-container {
+    position: relative;
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    margin-bottom: 16px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.lock-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.lock-avatar-fallback {
+    font-size: 2.2rem;
+    color: rgba(255,255,255,0.7);
+}
+
+.lock-username {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 24px;
+    letter-spacing: 0.5px;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+}
+
+.lock-form {
+    width: 100%;
+    margin-bottom: 14px;
+}
+
+.password-wrapper {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    padding: 3px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.1), 0 4px 10px rgba(0,0,0,0.15);
+    transition: all 0.2s ease;
+}
+
+.password-wrapper:focus-within {
+    background: rgba(255, 255, 255, 0.32);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.lock-input {
+    flex: 1;
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 0.8rem;
+    padding: 7px 15px;
+    outline: none;
+    font-family: inherit;
+    text-align: center;
+}
+
+.lock-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.lock-submit-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    color: #ffffff;
+    transition: background 0.2s ease, transform 0.2s ease;
+    margin-right: 2px;
+}
+
+.lock-submit-btn:hover {
+    background: rgba(255, 255, 255, 0.65);
+    transform: scale(1.05);
+}
+
+.lock-submit-btn svg {
+    width: 12px;
+    height: 12px;
+}
+
+.lock-hint {
+    font-size: 0.68rem;
+    color: rgba(255, 255, 255, 0.5);
+    font-family: monospace;
+}
+
+.lock-error-msg {
+    margin-top: 15px;
+    font-size: 0.72rem;
+    color: #ff4a5a;
+    font-weight: 500;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+/* macOS Shake animation on incorrect passcode input */
+.macos-shake {
+    animation: macosShake 0.4s ease-in-out;
+}
+
+@keyframes macosShake {
+    0%, 100% { transform: translateX(0); }
+    15%, 45%, 75% { transform: translateX(-12px); }
+    30%, 60%, 90% { transform: translateX(12px); }
+}

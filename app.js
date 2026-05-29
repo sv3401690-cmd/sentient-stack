@@ -1336,30 +1336,715 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Arms Preview Trigger
+    // Arms Preview Trigger -> opens Fun Zone instead
     const armsPreviewBtn = document.getElementById('arms-preview-btn');
     if (armsPreviewBtn) {
         armsPreviewBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (isPreviewActive) return;
+            showFunZone();
+        });
+    }
 
-            // Hide the settings panel
-            if (cursorSettingsPanel) {
-                cursorSettingsPanel.classList.add('hidden');
+    // =================================================================
+    // FUN ZONE & macOS LOCK SCREEN SYSTEM
+    // =================================================================
+    let isSystemLocked = false;
+    let webcamStream = null;
+    let isChasing = false;
+    let chaseTimer = null;
+    let chaseTimeLeft = 60;
+    let physicsFrameId = null;
+    let previewTriggerSource = null; // 'settings' or 'fun-zone'
+
+    // Bouncer Physics Variables
+    let cardX = 100;
+    let cardY = 100;
+    let cardVx = 4;
+    let cardVy = 3;
+    let cardAngleX = 0;
+    let cardAngleY = 0;
+
+    const funZoneToggle = document.getElementById('fun-zone-toggle');
+    const funZoneModal = document.getElementById('fun-zone-modal');
+    const funZoneClose = document.getElementById('fun-zone-close');
+    const funArmsPreviewTrigger = document.getElementById('fun-arms-preview-trigger');
+    const funSheeshTrigger = document.getElementById('fun-sheesh-trigger');
+    const photoCard = document.getElementById('floating-photo-card');
+    const cardCanvas = document.getElementById('photo-canvas-render');
+    const lockScreen = document.getElementById('macos-lock-screen');
+    const lockForm = document.getElementById('lock-screen-form');
+    const lockPasswordInput = document.getElementById('lock-password-input');
+    const lockPasswordWrapper = document.getElementById('lock-password-wrapper');
+    const lockErrorMsg = document.getElementById('lock-error-msg');
+    const lockCanvas = document.getElementById('lock-avatar-canvas');
+    const lockAvatarFallback = document.getElementById('lock-avatar-fallback');
+    const chaseHud = document.getElementById('decryption-chase-hud');
+    const chaseTimeVal = document.getElementById('chase-time-value');
+    const chaseProgressBar = document.getElementById('chase-progress-bar');
+
+    let activeTab = 'arms-tab-content';
+
+    function showFunZone() {
+        if (isSystemLocked) return;
+        if (funZoneModal) {
+            funZoneModal.classList.remove('hidden');
+            funZoneModal.offsetHeight; // force reflow
+            funZoneModal.classList.add('visible');
+        }
+        if (cursorSettingsPanel) {
+            cursorSettingsPanel.classList.add('hidden');
+        }
+        if (activeTab === 'sheesh-tab-content') {
+            startWebcam();
+        }
+    }
+
+    function hideFunZone() {
+        if (funZoneModal) {
+            funZoneModal.classList.remove('visible');
+            setTimeout(() => {
+                funZoneModal.classList.add('hidden');
+            }, 400);
+        }
+        stopWebcam();
+    }
+
+    if (funZoneToggle) funZoneToggle.addEventListener('click', showFunZone);
+    if (funZoneClose) funZoneClose.addEventListener('click', hideFunZone);
+
+    // Wire up tabs selection
+    const funTabs = document.querySelectorAll('.fun-tab');
+    funTabs.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            e.stopPropagation();
+            funTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            const targetTab = tab.getAttribute('data-tab');
+            activeTab = targetTab;
+
+            document.querySelectorAll('.fun-tab-content').forEach(content => {
+                content.classList.remove('active-content');
+            });
+            const activeEl = document.getElementById(targetTab);
+            if (activeEl) activeEl.classList.add('active-content');
+
+            if (targetTab === 'sheesh-tab-content') {
+                startWebcam();
+            } else {
+                stopWebcam();
+            }
+        });
+    });
+
+    // Webcam Control Functions
+    function startWebcam() {
+        const video = document.getElementById('webcam-feed');
+        const placeholder = document.getElementById('webcam-placeholder');
+        if (!video) return;
+
+        if (webcamStream) return; // already running
+
+        navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+            .then(stream => {
+                webcamStream = stream;
+                video.srcObject = stream;
+                video.classList.remove('hidden');
+                if (placeholder) placeholder.classList.add('hidden');
+            })
+            .catch(err => {
+                console.warn("Webcam access failed:", err);
+                video.classList.add('hidden');
+                if (placeholder) {
+                     placeholder.classList.remove('hidden');
+                     const textLabel = placeholder.querySelector('.webcam-placeholder-text');
+                     if (textLabel) textLabel.textContent = "WEBCAM INOPERABLE (DEMO GENERATOR ENGAGED)";
+                }
+            });
+    }
+
+    function stopWebcam() {
+        const video = document.getElementById('webcam-feed');
+        const placeholder = document.getElementById('webcam-placeholder');
+        if (webcamStream) {
+            webcamStream.getTracks().forEach(track => track.stop());
+            webcamStream = null;
+        }
+        if (video) {
+            video.srcObject = null;
+            video.classList.add('hidden');
+        }
+        if (placeholder) {
+             placeholder.classList.remove('hidden');
+             const textLabel = placeholder.querySelector('.webcam-placeholder-text');
+             if (textLabel) textLabel.textContent = "CAMERA DISENGAGED (STANDBY)";
+        }
+    }
+
+    // Synthesize Camera Shutter Sound
+    function playCameraShutterSound() {
+        try {
+            const audioCtx = getSharedAudioCtx();
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+
+            // Shutter burst noise
+            const bufferSize = audioCtx.sampleRate * 0.15;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
             }
 
-            // Start preview
+            const noiseNode = audioCtx.createBufferSource();
+            noiseNode.buffer = buffer;
+
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.setValueAtTime(1000, now);
+            filter.frequency.exponentialRampToValueAtTime(300, now + 0.15);
+            filter.Q.setValueAtTime(3, now);
+
+            const gainNode = audioCtx.createGain();
+            gainNode.gain.setValueAtTime(0.4, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+
+            noiseNode.connect(filter);
+            filter.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            noiseNode.start(now);
+
+            // Metallic clack
+            const osc = audioCtx.createOscillator();
+            const oscGain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(180, now);
+            osc.frequency.exponentialRampToValueAtTime(80, now + 0.08);
+
+            oscGain.gain.setValueAtTime(0.5, now);
+            oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+
+            osc.connect(oscGain);
+            oscGain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.08);
+        } catch (e) {
+            console.error("Camera shutter sound error:", e);
+        }
+    }
+
+    // Countdown Ticking Warning Chimes
+    function playTickSound(isUrgent = false) {
+        try {
+            const audioCtx = getSharedAudioCtx();
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(isUrgent ? 1600 : 1200, now);
+
+            gainNode.gain.setValueAtTime(isUrgent ? 0.25 : 0.12, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.06);
+        } catch (e) {
+            console.error("Tick sound error:", e);
+        }
+    }
+
+    // macOS Sonoma Lock Sound
+    function playMacLockSound() {
+        try {
+            const audioCtx = getSharedAudioCtx();
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(320, now);
+            osc.frequency.exponentialRampToValueAtTime(130, now + 0.15);
+
+            gain.gain.setValueAtTime(0.3, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.15);
+        } catch (e) {}
+    }
+
+    // macOS Sonoma Unlock Sound
+    function playMacUnlockSound() {
+        try {
+            const audioCtx = getSharedAudioCtx();
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+
+            const osc1 = audioCtx.createOscillator();
+            const gain1 = audioCtx.createGain();
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(320, now);
+            osc1.frequency.setValueAtTime(480, now + 0.05);
+
+            gain1.gain.setValueAtTime(0.25, now);
+            gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+            osc1.connect(gain1);
+            gain1.connect(audioCtx.destination);
+            osc1.start(now);
+            osc1.stop(now + 0.2);
+        } catch (e) {}
+    }
+
+    // Success Catch Chime
+    function playGameWinSound() {
+        try {
+            const audioCtx = getSharedAudioCtx();
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+
+            const frequencies = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50];
+            frequencies.forEach((freq, index) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, now + index * 0.06);
+
+                gain.gain.setValueAtTime(0.15, now + index * 0.06);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + index * 0.06 + 0.25);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now + index * 0.06);
+                osc.stop(now + index * 0.06 + 0.3);
+            });
+        } catch (e) {}
+    }
+
+    // Draw custom glitch neon fallback
+    function drawGlitchNeonFallback(ctx) {
+        ctx.clearRect(0, 0, 300, 300);
+
+        ctx.fillStyle = '#050212';
+        ctx.fillRect(0, 0, 300, 300);
+
+        ctx.strokeStyle = 'rgba(255, 0, 127, 0.15)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= 300; i += 30) {
+            ctx.beginPath();
+            ctx.moveTo(i, 0);
+            ctx.lineTo(i, 300);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(0, i);
+            ctx.lineTo(300, i);
+            ctx.stroke();
+        }
+
+        const cx = 150;
+        const cy = 150;
+
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = '#00ffff';
+        ctx.strokeStyle = '#00ffff';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 60, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = '#ff007f';
+        ctx.strokeStyle = '#ff007f';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 80, Math.PI * 0.25, Math.PI * 1.75);
+        ctx.stroke();
+
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#00ffff';
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('NAZ SYSTEM DURESS', cx, cy - 10);
+        ctx.font = '12px monospace';
+        ctx.fillText('IDENTITY SHUNT ACTIVE', cx, cy + 15);
+        ctx.shadowBlur = 0;
+    }
+
+    // 3D Photo Card Bouncer Physics Loop
+    function updateCardPhysics() {
+        if (!isChasing) return;
+
+        const card = document.getElementById('floating-photo-card');
+        if (!card) return;
+
+        const cardWidth = card.offsetWidth || 200;
+        const cardHeight = card.offsetHeight || 200;
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight;
+
+        cardX += cardVx;
+        cardY += cardVy;
+
+        let bounced = false;
+
+        if (cardX <= 0) {
+            cardX = 0;
+            cardVx = -cardVx;
+            bounced = true;
+        } else if (cardX + cardWidth >= screenWidth) {
+            cardX = screenWidth - cardWidth;
+            cardVx = -cardVx;
+            bounced = true;
+        }
+
+        if (cardY <= 0) {
+            cardY = 0;
+            cardVy = -cardVy;
+            bounced = true;
+        } else if (cardY + cardHeight >= screenHeight) {
+            cardY = screenHeight - cardHeight;
+            cardVy = -cardVy;
+            bounced = true;
+        }
+
+        if (bounced) {
+            const speed = Math.sqrt(cardVx * cardVx + cardVy * cardVy);
+            if (speed < 18) {
+                cardVx *= 1.04;
+                cardVy *= 1.04;
+            }
+        }
+
+        const targetAngleX = (cardVy / 15) * 22;
+        const targetAngleY = -(cardVx / 15) * 22;
+
+        cardAngleX += (targetAngleX - cardAngleX) * 0.1;
+        cardAngleY += (targetAngleY - cardAngleY) * 0.1;
+
+        card.style.left = `${cardX}px`;
+        card.style.top = `${cardY}px`;
+        card.style.transform = `perspective(800px) rotateX(${cardAngleX}deg) rotateY(${cardAngleY}deg)`;
+
+        physicsFrameId = requestAnimationFrame(updateCardPhysics);
+    }
+
+    // Sheesh Snap Event Trigger
+    if (funSheeshTrigger) {
+        funSheeshTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (isSystemLocked || isChasing) return;
+
+            // Play whir clack shutter sound
+            playCameraShutterSound();
+
+            // Flash Screen overlay
+            const flash = document.getElementById('shutter-flash');
+            if (flash) {
+                flash.classList.add('active');
+                setTimeout(() => {
+                    flash.classList.remove('active');
+                }, 500);
+            }
+
+            // Copy snapshot frame to card canvas
+            const video = document.getElementById('webcam-feed');
+            if (cardCanvas) {
+                cardCanvas.width = 300;
+                cardCanvas.height = 300;
+                const cardCtx = cardCanvas.getContext('2d');
+
+                if (webcamStream && video && video.readyState === video.HAVE_ENOUGH_DATA) {
+                    cardCtx.save();
+                    cardCtx.translate(300, 0);
+                    cardCtx.scale(-1, 1);
+
+                    const minDim = Math.min(video.videoWidth, video.videoHeight);
+                    const sx = (video.videoWidth - minDim) / 2;
+                    const sy = (video.videoHeight - minDim) / 2;
+
+                    cardCtx.drawImage(video, sx, sy, minDim, minDim, 0, 0, 300, 300);
+                    cardCtx.restore();
+                } else {
+                    drawGlitchNeonFallback(cardCtx);
+                }
+            }
+
+            // Hide Fun Zone modal immediately
+            hideFunZone();
+
+            // Start chase sequence
+            startChaseSequence();
+        });
+    }
+
+    function startChaseSequence() {
+        isChasing = true;
+        chaseTimeLeft = 60.00;
+
+        if (chaseTimer) clearInterval(chaseTimer);
+        if (physicsFrameId) cancelAnimationFrame(physicsFrameId);
+
+        if (chaseHud) {
+            chaseHud.classList.remove('hidden');
+            chaseHud.offsetHeight;
+            chaseHud.classList.add('visible');
+        }
+
+        if (photoCard) {
+            photoCard.classList.remove('hidden');
+            photoCard.style.opacity = '1';
+            photoCard.style.pointerEvents = 'auto';
+        }
+
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight;
+        cardX = screenWidth / 2 - 100;
+        cardY = screenHeight / 2 - 100;
+
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 4;
+        cardVx = Math.cos(angle) * speed;
+        cardVy = Math.sin(angle) * speed;
+
+        updateCardPhysics();
+
+        chaseTimer = setInterval(() => {
+            chaseTimeLeft -= 0.05;
+            if (chaseTimeLeft <= 0) {
+                chaseTimeLeft = 0;
+                clearInterval(chaseTimer);
+                triggerLockdown();
+            }
+
+            if (chaseTimeVal) {
+                chaseTimeVal.textContent = `${chaseTimeLeft.toFixed(2)}s`;
+            }
+
+            if (chaseProgressBar) {
+                const pct = (chaseTimeLeft / 60) * 100;
+                chaseProgressBar.style.width = `${pct}%`;
+                if (chaseTimeLeft < 15) {
+                    chaseProgressBar.style.backgroundColor = '#ff4a5a';
+                } else if (chaseTimeLeft < 30) {
+                    chaseProgressBar.style.backgroundColor = '#ffb800';
+                } else {
+                    chaseProgressBar.style.backgroundColor = '#00ff66';
+                }
+            }
+
+            const elapsedMs = Math.round((60 - chaseTimeLeft) * 1000);
+            if (chaseTimeLeft > 15) {
+                if (elapsedMs % 1000 < 50) {
+                    playTickSound(false);
+                }
+            } else {
+                if (elapsedMs % 250 < 50) {
+                    playTickSound(true);
+                }
+            }
+        }, 50);
+    }
+
+    if (photoCard) {
+        photoCard.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!isChasing) return;
+
+            isChasing = false;
+            clearInterval(chaseTimer);
+            if (physicsFrameId) cancelAnimationFrame(physicsFrameId);
+
+            photoCard.style.opacity = '0';
+            photoCard.style.pointerEvents = 'none';
+            setTimeout(() => {
+                photoCard.classList.add('hidden');
+            }, 300);
+
+            if (chaseHud) {
+                chaseHud.classList.remove('visible');
+                setTimeout(() => {
+                    chaseHud.classList.add('hidden');
+                }, 400);
+            }
+
+            playGameWinSound();
+            showFunZone();
+            speakAloud("Security verification complete. Identity confirmed.");
+
+            const statusIndicator = document.getElementById('status-text');
+            if (statusIndicator) statusIndicator.textContent = "VERIFIED OPERATOR";
+        });
+    }
+
+    function triggerLockdown() {
+        isChasing = false;
+        isSystemLocked = true;
+
+        if (chaseTimer) clearInterval(chaseTimer);
+        if (physicsFrameId) cancelAnimationFrame(physicsFrameId);
+
+        if (photoCard) photoCard.classList.add('hidden');
+        if (chaseHud) {
+            chaseHud.classList.remove('visible');
+            chaseHud.classList.add('hidden');
+        }
+
+        stopWebcam();
+
+        // Lock screen visible
+        if (lockScreen) {
+            lockScreen.classList.remove('hidden');
+            lockScreen.offsetHeight;
+            lockScreen.classList.add('visible');
+        }
+
+        if (lockPasswordInput) {
+            lockPasswordInput.value = '';
+            setTimeout(() => {
+                lockPasswordInput.focus();
+            }, 500);
+        }
+
+        // Draw card avatar on macOS lock screen profile canvas
+        if (lockCanvas && cardCanvas) {
+            lockCanvas.width = 90;
+            lockCanvas.height = 90;
+            const lockCtx = lockCanvas.getContext('2d');
+            lockCtx.drawImage(cardCanvas, 0, 0, 300, 300, 0, 0, 90, 90);
+            lockCanvas.classList.remove('hidden');
+            if (lockAvatarFallback) lockAvatarFallback.classList.add('hidden');
+        }
+
+        playMacLockSound();
+        speakAloud("System lockdown triggered. Please enter passcode.");
+    }
+
+    if (lockForm) {
+        lockForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (!lockPasswordInput) return;
+
+            const pass = lockPasswordInput.value.trim();
+            if (pass === '1234') {
+                isSystemLocked = false;
+                playMacUnlockSound();
+
+                if (lockScreen) {
+                    lockScreen.classList.remove('visible');
+                    setTimeout(() => {
+                        lockScreen.classList.add('hidden');
+                    }, 800);
+                }
+
+                speakAloud("System unlocked. Welcome back Operator.");
+
+                const statusIndicator = document.getElementById('status-text');
+                if (statusIndicator) statusIndicator.textContent = "NAZ ACTIVE";
+            } else {
+                if (lockPasswordWrapper) {
+                    lockPasswordWrapper.classList.add('macos-shake');
+                    setTimeout(() => {
+                        lockPasswordWrapper.classList.remove('macos-shake');
+                    }, 400);
+                }
+
+                if (lockErrorMsg) {
+                    lockErrorMsg.classList.remove('hidden');
+                    setTimeout(() => {
+                        lockErrorMsg.classList.add('hidden');
+                    }, 3000);
+                }
+
+                lockPasswordInput.value = '';
+                lockPasswordInput.focus();
+
+                // Synth low frequency error chime
+                try {
+                    const audioCtx = getSharedAudioCtx();
+                    if (audioCtx) {
+                        const now = audioCtx.currentTime;
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(100, now);
+                        gain.gain.setValueAtTime(0.15, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                        osc.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        osc.start(now);
+                        osc.stop(now + 0.35);
+                    }
+                } catch (err) {}
+            }
+        });
+    }
+
+    // Tab 1 preview trigger: Combat Arms Preview + hyper glitchy core
+    if (funArmsPreviewTrigger) {
+        funArmsPreviewTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (isPreviewActive) return;
+
+            previewTriggerSource = 'fun-zone';
+            hideFunZone();
+
+            // Setup preview variables
             isPreviewActive = true;
             previewFrame = 0;
 
-            // Initialize arm positions to starting positions off-screen to emerge beautifully
             hand1Pos = { x: currentLayout.h1Start.x, y: currentLayout.h1Start.y };
             hand2Pos = { x: currentLayout.h2Start.x, y: currentLayout.h2Start.y };
             hand1Target = { x: currentLayout.h1Start.x, y: currentLayout.h1Start.y };
             hand2Target = { x: currentLayout.h2Start.x, y: currentLayout.h2Start.y };
 
-            // Trigger weapon reload sound
             playWeaponReloadSound();
+
+            // Glitch elements inside Combat Arms Tab in Fun Zone modal
+            const funCore = document.getElementById('fun-core-element');
+            const funCoreStatus = document.getElementById('fun-core-status');
+            const funCoreCalib = document.getElementById('fun-core-calib');
+            const funCoreShunt = document.getElementById('fun-core-shunt');
+
+            if (funCore) funCore.classList.add('glitching');
+
+            let glitchInterval = setInterval(() => {
+                if (!isPreviewActive) {
+                    clearInterval(glitchInterval);
+                    if (funCore) funCore.classList.remove('glitching');
+                    if (funCoreStatus) funCoreStatus.textContent = "STANDBY";
+                    if (funCoreCalib) funCoreCalib.textContent = "100.0%";
+                    if (funCoreShunt) funCoreShunt.textContent = "STABLE";
+                    if (funCore) funCore.style.filter = '';
+                    return;
+                }
+
+                if (funCoreStatus) {
+                    const statuses = ["CALIBRATING", "INJECTING", "CHARGING", "OVERCLOCK", "TESTING JOINT"];
+                    funCoreStatus.textContent = statuses[Math.floor(Math.random() * statuses.length)];
+                }
+                if (funCoreCalib) {
+                    funCoreCalib.textContent = `${(Math.random() * 120 + 80).toFixed(1)}%`;
+                }
+                if (funCoreShunt) {
+                    const shunts = ["STABLE", "VOLATILE", "FLUCTUATING", "CRITICAL", "DIVERGENT"];
+                    funCoreShunt.textContent = shunts[Math.floor(Math.random() * shunts.length)];
+                }
+
+                if (funCore) {
+                    const rHue = Math.floor(Math.random() * 360);
+                    const rContrast = Math.floor(Math.random() * 150 + 100);
+                    const rSaturate = Math.floor(Math.random() * 200 + 100);
+                    funCore.style.filter = `hue-rotate(${rHue}deg) contrast(${rContrast}%) saturate(${rSaturate}%)`;
+                }
+            }, 80);
         });
     }
 
@@ -3389,9 +4074,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (previewFrame >= 240) {
                     isPreviewActive = false;
-                    const panel = document.getElementById('cursor-settings-panel');
-                    if (panel) {
-                        panel.classList.remove('hidden');
+                    if (previewTriggerSource === 'settings') {
+                        const panel = document.getElementById('cursor-settings-panel');
+                        if (panel) {
+                            panel.classList.remove('hidden');
+                        }
+                    } else if (previewTriggerSource === 'fun-zone') {
+                        showFunZone();
                     }
                     gameStage = 'cooldown';
                     gameCooldownTimer = 180;
@@ -3802,6 +4491,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Close on Escape key press, or open and focus input when typing printable characters
     document.addEventListener('keydown', (e) => {
+        if (isSystemLocked) return;
         if (e.key === 'Escape' && inputContainer && !inputContainer.classList.contains('collapsed')) {
             toggleKeyboardDrawer(true);
             userInput.blur();
@@ -4544,6 +5234,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function triggerVoiceActive() {
+        if (isSystemLocked) return;
         if (voiceState === 'idle') {
             // Shift to LISTENING
             voiceState = 'listening';
