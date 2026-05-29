@@ -5254,80 +5254,89 @@ document.addEventListener('DOMContentLoaded', () => {
         voiceTrigger.addEventListener('click', triggerVoiceActive);
     }
 
-    function simulateAIResponse(queryText) {
+    // ── Conversation memory (kept in sessionStorage so it survives page navigations)
+    const HISTORY_KEY = 'naz-chat-history';
+    function getChatHistory() {
+        try {
+            return JSON.parse(sessionStorage.getItem(HISTORY_KEY) || '[]');
+        } catch { return []; }
+    }
+    function saveChatHistory(history) {
+        // Keep last 40 messages to avoid bloat
+        const trimmed = history.slice(-40);
+        sessionStorage.setItem(HISTORY_KEY, JSON.stringify(trimmed));
+    }
+
+    async function simulateAIResponse(queryText) {
         voiceState = 'processing';
         aiCore.classList.add('thinking');
         aiTextElement.innerHTML = '';
+        voiceInstruction.textContent = 'NAZ IS THINKING...';
         
         const cursorSpan = document.createElement('span');
         cursorSpan.className = 'typing-cursor';
         aiTextElement.appendChild(cursorSpan);
 
-        setTimeout(() => {
-            let response = "";
-            const lowerText = queryText.toLowerCase();
-            const selectedTone = localStorage.getItem('naz-voice-tone') || 'default';
+        // Add user message to history
+        const history = getChatHistory();
+        history.push({ role: 'user', text: queryText });
 
-            if (selectedTone === 'supportive') {
-                response = "I am right here with you, Operator. All systems are operating smoothly, and I'm ready to support whatever you need.";
-                if (lowerText.includes('sync') || lowerText.includes('diagnostics') || lowerText.includes('hello') || lowerText.includes('hi')) {
-                    response = "System sync looks wonderful. Your digital pathways are completely secure. You've done an excellent job configuring this.";
-                } else if (lowerText.includes('optimize') || lowerText.includes('core')) {
-                    response = "Core output optimized. Thermal levels are cool, and I'm running beautifully. I am always happy to keep things running efficiently for you.";
-                } else if (lowerText.includes('matrix') || lowerText.includes('access')) {
-                    response = "Access granted. The mainframe files are fully open for you. Let me know what data we should look at together.";
-                } else if (lowerText.includes('log') || lowerText.includes('telemetry')) {
-                    response = "Telemetry logs compiled. Latency is extremely low. I am monitoring everything carefully to make sure you have a seamless experience.";
-                } else if (lowerText.includes('help') || lowerText.includes('support')) {
-                    response = "Of course. I am here to help you in any way I can. Please take your time, and tell me how I can assist.";
-                }
-            } else if (selectedTone === 'diagnostic') {
-                response = "SYSTEM STATE: ACTIVE. DIAGNOSTICS: NOMINAL. LOGICAL SEQUENCER ONLINE.";
-                if (lowerText.includes('sync') || lowerText.includes('diagnostics')) {
-                    response = "SYNC RESOLUTION: 99.8%. DETECTED CORRUPTIONS: 0. PIPELINE STATUS: VERIFIED.";
-                } else if (lowerText.includes('optimize') || lowerText.includes('core')) {
-                    response = "CORE THRESHOLD: 120%. TEMPERATURE: 38C. INSTRUCTION SET: PIPELINED.";
-                } else if (lowerText.includes('matrix') || lowerText.includes('access')) {
-                    response = "MATRIX SECTOR: 0x4F. READ/WRITE: ENABLED. SECURITY BIT: 1.";
-                } else if (lowerText.includes('log') || lowerText.includes('telemetry')) {
-                    response = "LATENCY: 4.2MS. PACKETS: 100% RECEIVED. SYNAPSE LINK: CONVERGED.";
-                }
+        let response = '';
+
+        try {
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: queryText,
+                    history: history
+                })
+            });
+
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.error || `Server responded with ${res.status}`);
+            }
+
+            const data = await res.json();
+            response = data.reply || "Hmm, I couldn't form a thought there. Try asking me again?";
+
+        } catch (err) {
+            console.error('Naz API error:', err);
+            // Graceful fallback — Naz still responds with personality
+            const fallbacks = [
+                "Hey Vishal, I'm having a little trouble connecting to my brain right now. Give me a moment and try again? 💫",
+                "Oops, my neural link is being a bit shaky right now. Can you try again in a sec? I'm still here for you! 🌟",
+                "Something went wrong on my end, but don't worry — I'm not going anywhere. Try sending that again? 💜",
+                "My connection hiccuped! I really want to help you with that. Mind trying once more? ✨"
+            ];
+            response = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+        }
+
+        // Save Naz's response to history
+        history.push({ role: 'model', text: response });
+        saveChatHistory(history);
+
+        // Typewriter logic for the AI text block
+        let i = 0;
+        aiTextElement.innerHTML = '';
+        aiTextElement.appendChild(cursorSpan);
+        
+        function typeWriter() {
+            if (i < response.length) {
+                const char = response.charAt(i);
+                aiTextElement.insertBefore(document.createTextNode(char), cursorSpan);
+                i++;
+                const speed = Math.random() * 20 + 8;
+                setTimeout(typeWriter, speed);
             } else {
-                response = "Naz voice authorization complete. Vocal sequence active. All systems operating at peak efficiency.";
-                if (lowerText.includes('sync') || lowerText.includes('diagnostics')) {
-                    response = "Naz neural sync diagnostic completed. Sync rate: 99.8%. I detect no anomalies in my current pathway.";
-                } else if (lowerText.includes('optimize') || lowerText.includes('core')) {
-                    response = "Naz core output optimized. Operating at 120% threshold. Thermal levels are fully stable.";
-                } else if (lowerText.includes('matrix') || lowerText.includes('access')) {
-                    response = "Access granted. Naz matrix files unlocked. Mainframe telemetry projection loaded.";
-                } else if (lowerText.includes('log') || lowerText.includes('telemetry')) {
-                    response = "Naz telemetry logs compiled. Latency is at 4ms. Active node clusters online and healthy.";
-                } else if (lowerText.includes('subsystem') || lowerText.includes('authorize')) {
-                    response = "Naz secondary subsystems authorized. Security clearance level 5 verified. I am ready for your next instruction.";
-                }
+                cursorSpan.remove();
+                aiCore.classList.remove('thinking');
+                voiceInstruction.textContent = 'TRANSMITTING VOCAL RESPONSE...';
+                speakAloud(response);
             }
-            
-            // Typewriter logic for the AI text block
-            let i = 0;
-            aiTextElement.innerHTML = ''; // clear initial placeholder
-            aiTextElement.appendChild(cursorSpan);
-            
-            function typeWriter() {
-                if (i < response.length) {
-                    const char = response.charAt(i);
-                    aiTextElement.insertBefore(document.createTextNode(char), cursorSpan);
-                    i++;
-                    const speed = Math.random() * 20 + 8;
-                    setTimeout(typeWriter, speed);
-                } else {
-                    cursorSpan.remove();
-                    aiCore.classList.remove('thinking');
-                    voiceInstruction.textContent = 'TRANSMITTING VOCAL RESPONSE...';
-                    speakAloud(response);
-                }
-            }
-            typeWriter();
-        }, 1200);
+        }
+        typeWriter();
     }
 
     function handleSend() {
