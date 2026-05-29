@@ -4961,7 +4961,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const englishVoices = voices.filter(v => v.lang.startsWith('en') || v.lang.includes('en') || v.lang.includes('EN'));
         const otherVoices = voices.filter(v => !v.lang.startsWith('en') && !v.lang.includes('en') && !v.lang.includes('EN'));
         
-        const femaleNames = ['samantha', 'zira', 'karen', 'tessa', 'moira', 'veena', 'google uk english female', 'female', 'hazel', 'susan', 'victoria', 'kathy', 'princess', 'fiona', 'serena'];
+        const femaleNames = ['siri', 'samantha', 'zira', 'karen', 'tessa', 'moira', 'veena', 'google uk english female', 'female', 'hazel', 'susan', 'victoria', 'kathy', 'princess', 'fiona', 'serena', 'premium', 'natural', 'enhanced'];
         
         const englishFemale = [];
         const englishOther = [];
@@ -5083,7 +5083,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!ttsEnabled || !window.speechSynthesis) return;
         window.speechSynthesis.cancel();
         
-        const cleanText = text.replace(/[*_#`~[\]"']/g, '');
+        // Replaces markdown formatting and strips emojis/symbols so TTS doesn't read them aloud
+        let cleanText = text.replace(/[*_#`~[\]"']/g, '');
+        // Strip out emojis and unicode pictographs
+        cleanText = cleanText.replace(/[\u{1F300}-\u{1FAFF}]|[\u{1F600}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{2600}-\u{27BF}]|[\u{1F900}-\u{1F9FF}]|[\u{1FA00}-\u{1FAFF}]/gu, '');
+        // Strip other symbols and icons
+        cleanText = cleanText.replace(/[👤⚙️⚡👾•]/gu, '');
+        // Standardize whitespace
+        cleanText = cleanText.replace(/\s+/g, ' ').trim();
+
         const utterance = new SpeechSynthesisUtterance(cleanText);
         let voices = window.speechSynthesis.getVoices();
         
@@ -5100,7 +5108,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         let voice = voices.find(v => v.name === selectedVoiceName);
         if (!voice) {
-            const femaleVoiceNames = ['samantha', 'zira', 'karen', 'tessa', 'moira', 'veena', 'google uk english female', 'female', 'hazel', 'susan', 'victoria', 'kathy', 'princess', 'fiona', 'serena'];
+            const femaleVoiceNames = ['siri', 'samantha', 'zira', 'karen', 'tessa', 'moira', 'veena', 'google uk english female', 'female', 'hazel', 'susan', 'victoria', 'kathy', 'princess', 'fiona', 'serena', 'premium', 'natural', 'enhanced'];
             voice = voices.find(v => {
                 const name = v.name.toLowerCase();
                 return femaleVoiceNames.some(f => name.includes(f)) && (v.lang.startsWith('en') || v.lang.includes('en'));
