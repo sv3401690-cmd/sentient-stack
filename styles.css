@@ -2958,32 +2958,36 @@ body.beast-mode-active .core-aura {
    7. PREMIUM SIDE-BY-SIDE CHAT INTERFACE
    ================================================================= */
 .side-chat-panel {
-    position: absolute;
-    top: 0;
-    right: -100%; /* Hidden off-screen by default */
-    width: 75%;
+    display: none; /* Hidden by default */
+    width: 55%;
     height: 100%;
     background: rgba(8, 8, 12, 0.72);
     backdrop-filter: blur(40px);
     -webkit-backdrop-filter: blur(40px);
     border-left: 1px solid rgba(255, 255, 255, 0.08);
-    display: flex;
     flex-direction: column;
     z-index: 100;
-    transition: right 0.5s cubic-bezier(0.19, 1, 0.22, 1);
     padding: 20px 24px;
     box-shadow: -20px 0 50px rgba(0, 0, 0, 0.6);
 }
 
 .app-container.chat-active .side-chat-panel {
-    right: 0; /* Slide in */
+    display: flex; /* Instant open, no slide animations */
 }
 
-/* Slide core panel to the left side and collapse it to 25% width */
+/* Side-by-side layout when chat is active */
+.app-container.chat-active .portal-body {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Slide core panel to the left side and size to 45% width */
 .app-container.chat-active .voice-core-panel {
-    transform: translateX(-15%) scale(0.7);
-    width: 25%;
-    opacity: 0.8;
+    width: 45%;
+    transform: none; /* No artificial translation offset needed */
+    opacity: 1;
 }
 
 .app-container.chat-active .transcript-hud {
@@ -2997,7 +3001,7 @@ body.beast-mode-active .core-aura {
 }
 
 .voice-core-panel {
-    transition: transform 0.5s cubic-bezier(0.19, 1, 0.22, 1), width 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+    transition: width 0.3s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
 /* Chat Header */
@@ -3243,6 +3247,8 @@ body.beast-mode-active .core-aura {
 /* Adjustments for smaller viewports */
 @media (max-width: 768px) {
     .side-chat-panel {
+        position: absolute;
+        left: 0;
         width: 100%;
         border-left: none;
         border-top: 1px solid rgba(255, 255, 255, 0.08);
