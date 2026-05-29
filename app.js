@@ -2412,10 +2412,17 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.classList.remove('active');
         }
         btn.addEventListener('click', () => {
-            armStyleOpts.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
             selectedArmStyle = btn.getAttribute('data-style');
             localStorage.setItem('naz-arm-style', selectedArmStyle);
+
+            // Synchronize active classes on all buttons across panels
+            armStyleOpts.forEach(b => {
+                if (b.getAttribute('data-style') === selectedArmStyle) {
+                    b.classList.add('active');
+                } else {
+                    b.classList.remove('active');
+                }
+            });
             
             // Flash effect on core to confirm change
             if (aiCoreEl) {
