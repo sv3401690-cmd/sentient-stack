@@ -163,11 +163,22 @@
                     </div>
                 </div>
                 <div class="chat-container-split">
-                    <!-- Left Sidebar: Chat History List -->
+                    <!-- Left Sidebar: Chat History List & Engine Selector -->
                     <div class="chat-history-sidebar">
-                        <div class="sidebar-header">PAST CONVERSATIONS</div>
-                        <div class="sessions-list" id="sessions-list">
-                            <!-- List of past sessions -->
+                        <div class="sidebar-section conversations-section">
+                            <div class="sidebar-header">PAST CONVERSATIONS</div>
+                            <div class="sessions-list" id="sessions-list">
+                                <!-- List of past sessions -->
+                            </div>
+                        </div>
+                        <div class="sidebar-section engine-section">
+                            <div class="sidebar-header">NAZ ENGINE SELECTOR</div>
+                            <div class="chat-engine-options" id="chat-engine-options">
+                                <button class="chat-engine-opt active" data-engine="naz-core" data-tooltip="Standard system core">NAZ v1.0</button>
+                                <button class="chat-engine-opt" data-engine="quantum-x" data-tooltip="High-capacity logic processing">QUANTUM</button>
+                                <button class="chat-engine-opt" data-engine="phantom" data-tooltip="Stealth diagnostics core">PHANTOM</button>
+                                <button class="chat-engine-opt" data-engine="nebula" data-tooltip="High-dimensional reasoning">NEBULA</button>
+                            </div>
                         </div>
                     </div>
                     <!-- Right Area: Active Message Board -->

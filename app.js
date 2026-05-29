@@ -1262,95 +1262,139 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    if (engineContainer) {
-        const engineBtns = engineContainer.querySelectorAll('.engine-opt');
+    function switchEngine(engine) {
+        selectedEngine = engine;
+        localStorage.setItem('naz-engine', engine);
 
-        // Restore saved engine
-        const savedEng = localStorage.getItem('naz-engine');
-        if (savedEng) {
+        // Update active class on Fun Zone controls
+        if (engineContainer) {
+            const engineBtns = engineContainer.querySelectorAll('.engine-opt');
             engineBtns.forEach(b => {
                 b.classList.remove('active');
-                if (b.dataset.engine === savedEng) b.classList.add('active');
+                if (b.dataset.engine === engine) b.classList.add('active');
             });
         }
 
-        const initialEngine = savedEng || 'naz-core';
-        const engineNameEl = document.getElementById('settings-engine-name');
-        if (engineNameEl) {
-            const fullEngineNames = {
-                'naz-core': 'NAZ-CORE v1.0',
-                'quantum-x': 'QUANTUM-X v2.4',
-                'phantom': 'PHANTOM v0.9',
-                'nebula': 'NEBULA v3.1'
-            };
-            engineNameEl.textContent = fullEngineNames[initialEngine] || 'NAZ-CORE v1.0';
+        // Update active class on Chat Panel controls
+        const chatEngineContainer = document.getElementById('chat-engine-options');
+        if (chatEngineContainer) {
+            const chatEngineBtns = chatEngineContainer.querySelectorAll('.chat-engine-opt');
+            chatEngineBtns.forEach(b => {
+                b.classList.remove('active');
+                if (b.dataset.engine === engine) b.classList.add('active');
+            });
         }
 
+        // Dynamic Status sync update
+        const fullEngineNames = {
+            'naz-core': 'NAZ-CORE v1.0',
+            'quantum-x': 'QUANTUM-X v2.4',
+            'phantom': 'PHANTOM v0.9',
+            'nebula': 'NEBULA v3.1'
+        };
+        statuses[0] = fullEngineNames[engine] || engine.toUpperCase();
+        if (statusTextEl && !isBeastMode) {
+            statusTextEl.textContent = statuses[0];
+        }
+        const engineNameEl = document.getElementById('settings-engine-name');
+        if (engineNameEl) {
+            engineNameEl.textContent = statuses[0];
+        }
+
+        // Play power-up transition sound
+        playEngineSwitchSound();
+
+        // Core reboot animation
+        const coreEl = document.getElementById('ai-core');
+        if (coreEl) {
+            coreEl.classList.remove('engine-reboot');
+            void coreEl.offsetWidth;
+            coreEl.classList.add('engine-reboot');
+            setTimeout(() => coreEl.classList.remove('engine-reboot'), 800);
+        }
+
+        // Naz reaction
+        const engineNames = {
+            'naz-core': 'NAZ-CORE v1',
+            'quantum-x': 'QUANTUM-X',
+            'phantom': 'PHANTOM',
+            'nebula': 'NEBULA'
+        };
+        const engineEmojis = {
+            'naz-core': ['⚡', '🤖', '🔋', '💎', '✨'],
+            'quantum-x': ['⚛️', '🔮', '🌀', '💠', '🧬'],
+            'phantom': ['👻', '🕶️', '🌑', '💨', '🖤'],
+            'nebula': ['🌌', '✨', '🎨', '💫', '🪐']
+        };
+
+        const displayName = engineNames[engine] || engine.toUpperCase();
+        const aiTextEl = document.getElementById('ai-text');
+        if (aiTextEl) {
+            aiTextEl.textContent = `Engine switched to ${displayName}. Systems recalibrating...`;
+        }
+        
+        // Push notice inside chat board as well if open
+        if (typeof appendMessageBubble === 'function' && appContainer && appContainer.classList.contains('chat-active')) {
+            const systemMsg = `System notification: Engine migrated to ${displayName}`;
+            appendMessageBubble('system', systemMsg);
+        }
+
+        if (typeof speakAloud === 'function') {
+            speakAloud(`Engine switched to ${displayName}. Systems recalibrating.`);
+        }
+
+        spawnEmotionParticles(engineEmojis[engine] || ['⚡', '✨']);
+
+        // Visual surge
+        themeSurge = 1.0;
+    }
+
+    // Restore saved engine on load for both UI views
+    const savedEng = localStorage.getItem('naz-engine') || 'naz-core';
+    if (engineContainer) {
+        const engineBtns = engineContainer.querySelectorAll('.engine-opt');
+        engineBtns.forEach(b => {
+            b.classList.remove('active');
+            if (b.dataset.engine === savedEng) b.classList.add('active');
+        });
+    }
+    const chatEngineContainer = document.getElementById('chat-engine-options');
+    if (chatEngineContainer) {
+        const chatEngineBtns = chatEngineContainer.querySelectorAll('.chat-engine-opt');
+        chatEngineBtns.forEach(b => {
+            b.classList.remove('active');
+            if (b.dataset.engine === savedEng) b.classList.add('active');
+        });
+    }
+
+    const initialEngine = savedEng;
+    const engineNameEl = document.getElementById('settings-engine-name');
+    if (engineNameEl) {
+        const fullEngineNames = {
+            'naz-core': 'NAZ-CORE v1.0',
+            'quantum-x': 'QUANTUM-X v2.4',
+            'phantom': 'PHANTOM v0.9',
+            'nebula': 'NEBULA v3.1'
+        };
+        engineNameEl.textContent = fullEngineNames[initialEngine] || 'NAZ-CORE v1.0';
+    }
+
+    // Attach click listeners
+    if (engineContainer) {
+        const engineBtns = engineContainer.querySelectorAll('.engine-opt');
         engineBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const engine = btn.dataset.engine;
-                selectedEngine = engine;
-                localStorage.setItem('naz-engine', engine);
-
-                engineBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-
-                // Dynamic Status sync update
-                const fullEngineNames = {
-                    'naz-core': 'NAZ-CORE v1.0',
-                    'quantum-x': 'QUANTUM-X v2.4',
-                    'phantom': 'PHANTOM v0.9',
-                    'nebula': 'NEBULA v3.1'
-                };
-                statuses[0] = fullEngineNames[engine] || engine.toUpperCase();
-                if (statusTextEl && !isBeastMode) {
-                    statusTextEl.textContent = statuses[0];
-                }
-                const engineNameEl = document.getElementById('settings-engine-name');
-                if (engineNameEl) {
-                    engineNameEl.textContent = statuses[0];
-                }
-
-                // Play power-up transition sound
-                playEngineSwitchSound();
-
-                // Core reboot animation
-                const coreEl = document.getElementById('ai-core');
-                if (coreEl) {
-                    coreEl.classList.remove('engine-reboot');
-                    void coreEl.offsetWidth;
-                    coreEl.classList.add('engine-reboot');
-                    setTimeout(() => coreEl.classList.remove('engine-reboot'), 800);
-                }
-
-                // Naz reaction
-                const engineNames = {
-                    'naz-core': 'NAZ-CORE v1',
-                    'quantum-x': 'QUANTUM-X',
-                    'phantom': 'PHANTOM',
-                    'nebula': 'NEBULA'
-                };
-                const engineEmojis = {
-                    'naz-core': ['⚡', '🤖', '🔋', '💎', '✨'],
-                    'quantum-x': ['⚛️', '🔮', '🌀', '💠', '🧬'],
-                    'phantom': ['👻', '🕶️', '🌑', '💨', '🖤'],
-                    'nebula': ['🌌', '✨', '🎨', '💫', '🪐']
-                };
-
-                const displayName = engineNames[engine] || engine.toUpperCase();
-                const aiTextEl = document.getElementById('ai-text');
-                if (aiTextEl) {
-                    aiTextEl.textContent = `Engine switched to ${displayName}. Systems recalibrating...`;
-                }
-                if (typeof speakAloud === 'function') {
-                    speakAloud(`Engine switched to ${displayName}. Systems recalibrating.`);
-                }
-
-                spawnEmotionParticles(engineEmojis[engine] || ['⚡', '✨']);
-
-                // Visual surge
-                themeSurge = 1.0;
+                switchEngine(btn.dataset.engine);
+            });
+        });
+    }
+    if (chatEngineContainer) {
+        const chatEngineBtns = chatEngineContainer.querySelectorAll('.chat-engine-opt');
+        chatEngineBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                switchEngine(btn.dataset.engine);
             });
         });
     }
@@ -4513,8 +4557,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const bubbleWrapper = document.createElement('div');
-        bubbleWrapper.className = `chat-message ${role === 'user' ? 'user' : 'model'}`;
+        bubbleWrapper.className = `chat-message ${role === 'user' ? 'user' : (role === 'system' ? 'system' : 'model')}`;
         
+        // Add high-tech metadata label (except for system notification text)
+        if (role !== 'system') {
+            const meta = document.createElement('div');
+            meta.className = 'chat-message-meta';
+            meta.textContent = role === 'user' ? '👤 VISHAL' : '🤖 NAZ';
+            bubbleWrapper.appendChild(meta);
+        }
+
         const bubble = document.createElement('div');
         bubble.className = 'bubble';
         bubble.textContent = text;
