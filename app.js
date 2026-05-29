@@ -4331,8 +4331,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sessionStorage.setItem(HISTORY_KEY, JSON.stringify(trimmed));
     }
 
-    // Side Chat UI Selectors
-    const appContainer = document.querySelector('.app-container');
+    // Side Chat UI Selectors (appContainer is already declared above)
     const sideChatPanel = document.getElementById('side-chat-panel');
     const chatMessagesContainer = document.getElementById('chat-messages-container');
     const chatInputField = document.getElementById('chat-input-field');
