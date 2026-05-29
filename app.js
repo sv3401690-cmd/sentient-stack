@@ -1377,6 +1377,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =================================================================
     let isSystemLocked = false;
     let previewTriggerSource = null; // 'settings' or 'fun-zone'
+    let beastInterval = null;
 
     const funZoneToggle = document.getElementById('fun-zone-toggle');
     const funZoneModal = document.getElementById('fun-zone-modal');
@@ -1572,6 +1573,82 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function startBeastAutonomy() {
+        if (beastInterval) clearInterval(beastInterval);
+        
+        beastInterval = setInterval(() => {
+            if (!isBeastMode) {
+                clearInterval(beastInterval);
+                return;
+            }
+
+            const actionType = Math.floor(Math.random() * 4);
+            const aiTextEl = document.getElementById('ai-text');
+            
+            if (actionType === 0) {
+                // Autonomously customize cursor style
+                const opts = document.querySelectorAll('.cursor-opt');
+                if (opts.length > 0) {
+                    const randomOpt = opts[Math.floor(Math.random() * opts.length)];
+                    const styleName = randomOpt.textContent.trim();
+                    randomOpt.click();
+                    
+                    const msg = `Autonomously calibrating synaptic interface to cursor effect: ${styleName}`;
+                    if (aiTextEl) aiTextEl.textContent = msg;
+                    if (typeof speakAloud === 'function') speakAloud(msg);
+                }
+            } else if (actionType === 1) {
+                // Autonomously customize core design
+                const opts = document.querySelectorAll('.core-design-opt');
+                if (opts.length > 0) {
+                    const randomOpt = opts[Math.floor(Math.random() * opts.length)];
+                    const designName = randomOpt.textContent.trim();
+                    randomOpt.click();
+                    
+                    const msg = `Autonomously re-aligning primary core geometry: ${designName}`;
+                    if (aiTextEl) aiTextEl.textContent = msg;
+                    if (typeof speakAloud === 'function') speakAloud(msg);
+                }
+            } else if (actionType === 2) {
+                // Autonomously calibrate weapon joints / preview robotic arm
+                const opts = document.querySelectorAll('.arm-opt');
+                if (opts.length > 0) {
+                    const randomOpt = opts[Math.floor(Math.random() * opts.length)];
+                    const armName = randomOpt.textContent.trim();
+                    randomOpt.click();
+                    
+                    const previewTrigger = document.getElementById('fun-arms-preview-trigger');
+                    if (previewTrigger) previewTrigger.click();
+                    
+                    const msg = `Autonomously testing cybernetic combat joints: ${armName}`;
+                    if (aiTextEl) aiTextEl.textContent = msg;
+                    if (typeof speakAloud === 'function') speakAloud(msg);
+                }
+            } else if (actionType === 3) {
+                // Autonomously cycle engine model
+                const opts = document.querySelectorAll('.engine-opt');
+                if (opts.length > 0) {
+                    const randomOpt = opts[Math.floor(Math.random() * opts.length)];
+                    const engineName = randomOpt.textContent.trim();
+                    randomOpt.click();
+                    
+                    const msg = `Autonomously switching core engine processor to: ${engineName}`;
+                    if (aiTextEl) aiTextEl.textContent = msg;
+                    if (typeof speakAloud === 'function') speakAloud(msg);
+                }
+            }
+
+            spawnEmotionParticles(['🔥', '🚨', '⚡', '🔴']);
+        }, 4500); // Trigger action every 4.5 seconds
+    }
+
+    function stopBeastAutonomy() {
+        if (beastInterval) {
+            clearInterval(beastInterval);
+            beastInterval = null;
+        }
+    }
+
     // Beast Mode Button click listener
     if (beastModeBtn) {
         beastModeBtn.addEventListener('click', (e) => {
@@ -1601,6 +1678,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Spawn warning red particles
                 spawnEmotionParticles(['🔥', '🚨', '⚡', '🔴']);
+                
+                // Engage autonomous behavior
+                startBeastAutonomy();
             } else {
                 document.body.classList.remove('beast-mode-active');
                 beastModeBtn.textContent = "Activate";
@@ -1621,6 +1701,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 
                 spawnEmotionParticles(['⚡', '✨']);
+                
+                // Disengage autonomous behavior
+                stopBeastAutonomy();
             }
         });
     }
