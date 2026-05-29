@@ -2851,6 +2851,9 @@ body.beast-mode-active .core-aura {
     flex-direction: column;
     gap: 2px;
     text-align: left;
+    min-width: 0;
+    flex: 1;
+    margin-right: 12px;
 }
 
 .settings-label {
@@ -2870,6 +2873,14 @@ body.beast-mode-active .core-aura {
     color: #ffffff;
     font-family: monospace;
     text-align: right;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.settings-action {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
 }
 
 /* Simple Action Buttons */
@@ -2886,6 +2897,8 @@ body.beast-mode-active .core-aura {
     cursor: pointer;
     transition: all 0.25s ease;
     outline: none;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .settings-btn:hover {
