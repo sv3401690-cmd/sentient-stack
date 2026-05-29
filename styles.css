@@ -305,8 +305,8 @@ body.cursor-active #cursor-trail-canvas {
     z-index: 11;
 }
 
-/* Theme Switcher & Settings Buttons */
-.theme-toggle, .cursor-settings-toggle {
+/* Theme Switcher, Settings & Chat Toggle Buttons */
+.theme-toggle, .cursor-settings-toggle, .chat-toggle {
     width: 42px;
     height: 42px;
     border-radius: 50%;
@@ -320,21 +320,28 @@ body.cursor-active #cursor-trail-canvas {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.theme-toggle:hover, .cursor-settings-toggle:hover {
+.theme-toggle:hover, .cursor-settings-toggle:hover, .chat-toggle:hover {
     transform: rotate(15deg) scale(1.1);
     background: rgba(255, 255, 255, 0.08);
     border-color: var(--accent-cyan);
     box-shadow: 0 0 15px rgba(var(--accent-cyan-rgb), 0.4);
 }
 
-.theme-toggle:active, .cursor-settings-toggle:active {
+.theme-toggle:active, .cursor-settings-toggle:active, .chat-toggle:active {
     transform: scale(0.95);
 }
 
-.theme-icon, .settings-icon {
+.theme-icon, .settings-icon, .chat-icon {
     font-size: 1.15rem;
     filter: drop-shadow(0 0 2px rgba(255,255,255,0.5));
     line-height: 1;
+}
+
+/* Highlight the chat-toggle button when chat interface is active */
+.app-container.chat-active .chat-toggle {
+    background: rgba(var(--accent-cyan-rgb), 0.15);
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 15px rgba(var(--accent-cyan-rgb), 0.3);
 }
 
 /* Floating Settings Panel */

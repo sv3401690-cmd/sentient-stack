@@ -1454,6 +1454,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function showSettings() {
         if (isSystemLocked) return;
         hideFunZone(); // Close Fun Zone if open
+        if (typeof closeChatPanel === 'function') closeChatPanel(); // Close Chat Panel if open
         if (settingsModal) {
             settingsModal.classList.remove('hidden');
             settingsModal.offsetHeight;
@@ -1475,6 +1476,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function showFunZone() {
         if (isSystemLocked) return;
         hideSettings(); // Close Settings if open
+        if (typeof closeChatPanel === 'function') closeChatPanel(); // Close Chat Panel if open
         if (funZoneModal) {
             funZoneModal.classList.remove('hidden');
             funZoneModal.offsetHeight;
@@ -4383,9 +4385,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeChatBtn = document.getElementById('close-chat-btn');
     const newChatBtn = document.getElementById('new-chat-btn');
     const sessionsListEl = document.getElementById('sessions-list');
+    const chatToggle = document.getElementById('chat-toggle');
 
     function openChatPanel() {
         if (!appContainer) return;
+        
+        // Hide Settings and Fun Zone modals if open to keep viewport clean
+        if (typeof hideSettings === 'function') hideSettings();
+        if (typeof hideFunZone === 'function') hideFunZone();
+        
         appContainer.classList.add('chat-active');
         // Unregister PWA keyboard override drawer since we have a dedicated side panel
         if (inputContainer) inputContainer.classList.add('collapsed');
@@ -4623,6 +4631,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Bind event listeners for the side chat panel
     if (closeChatBtn) {
         closeChatBtn.addEventListener('click', closeChatPanel);
+    }
+
+    if (chatToggle) {
+        chatToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (appContainer.classList.contains('chat-active')) {
+                closeChatPanel();
+            } else {
+                openChatPanel();
+            }
+        });
     }
 
     if (newChatBtn) {
