@@ -454,6 +454,31 @@ body.cursor-active #cursor-trail-canvas {
     z-index: 10;
 }
 
+.header-clock {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: monospace;
+    letter-spacing: 1px;
+    pointer-events: none;
+}
+
+.clock-time {
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: var(--accent-cyan);
+    text-shadow: 0 0 10px rgba(var(--accent-cyan-rgb), 0.5);
+    transition: color 0.3s, text-shadow 0.3s;
+}
+
+.clock-date {
+    font-size: 0.58rem;
+    color: var(--text-dim);
+    margin-top: 2px;
+    text-transform: uppercase;
+}
+
 .header h1 {
     font-weight: 800;
     font-size: 1.2rem;

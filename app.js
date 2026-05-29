@@ -774,6 +774,32 @@ document.addEventListener('DOMContentLoaded', () => {
     applyTheme(currentThemeIndex);
 
     // -----------------------------------------------------------------
+    // 0.45 LIVE HEADER CLOCK & DATE
+    // -----------------------------------------------------------------
+    const clockTimeEl = document.getElementById('clock-time-val');
+    const clockDateEl = document.getElementById('clock-date-val');
+
+    function updateLiveClock() {
+        const now = new Date();
+        
+        const hrs = String(now.getHours()).padStart(2, '0');
+        const mins = String(now.getMinutes()).padStart(2, '0');
+        const secs = String(now.getSeconds()).padStart(2, '0');
+        
+        if (clockTimeEl) {
+            clockTimeEl.textContent = `${hrs}:${mins}:${secs}`;
+        }
+        
+        const options = { month: 'short', day: 'numeric', year: 'numeric' };
+        if (clockDateEl) {
+            clockDateEl.textContent = now.toLocaleDateString('en-US', options);
+        }
+    }
+    
+    updateLiveClock();
+    setInterval(updateLiveClock, 1000);
+
+    // -----------------------------------------------------------------
     // 0.5 DYNAMIC TOP STATUS BAR
     // -----------------------------------------------------------------
     const statusTextEl = document.getElementById('status-text');
