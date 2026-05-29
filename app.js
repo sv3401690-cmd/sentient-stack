@@ -1241,6 +1241,18 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
+        const initialEngine = savedEng || 'naz-core';
+        const engineNameEl = document.getElementById('settings-engine-name');
+        if (engineNameEl) {
+            const fullEngineNames = {
+                'naz-core': 'NAZ-CORE v1.0',
+                'quantum-x': 'QUANTUM-X v2.4',
+                'phantom': 'PHANTOM v0.9',
+                'nebula': 'NEBULA v3.1'
+            };
+            engineNameEl.textContent = fullEngineNames[initialEngine] || 'NAZ-CORE v1.0';
+        }
+
         engineBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -1261,6 +1273,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 statuses[0] = fullEngineNames[engine] || engine.toUpperCase();
                 if (statusTextEl && !isBeastMode) {
                     statusTextEl.textContent = statuses[0];
+                }
+                const engineNameEl = document.getElementById('settings-engine-name');
+                if (engineNameEl) {
+                    engineNameEl.textContent = statuses[0];
                 }
 
                 // Play power-up transition sound
@@ -1589,9 +1605,8 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (isBeastMode) {
                 document.body.classList.add('beast-mode-active');
-                beastModeBtn.innerHTML = "🔴 DEACTIVATE BEAST AUTONOMY";
-                beastModeBtn.style.borderColor = "#ff003c";
-                beastModeBtn.style.background = "linear-gradient(135deg, rgba(255, 0, 60, 0.4), rgba(120, 0, 10, 0.5))";
+                beastModeBtn.textContent = "Deactivate";
+                beastModeBtn.classList.add('active');
                 
                 playBeastModeSound(true);
                 
@@ -1611,9 +1626,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 spawnEmotionParticles(['🔥', '🚨', '⚡', '🔴']);
             } else {
                 document.body.classList.remove('beast-mode-active');
-                beastModeBtn.innerHTML = "🔥 ACTIVATE BEAST AUTONOMY";
-                beastModeBtn.style.borderColor = "#ff4a5a";
-                beastModeBtn.style.background = "linear-gradient(135deg, rgba(255, 74, 90, 0.3), rgba(120, 10, 20, 0.4))";
+                beastModeBtn.textContent = "Activate";
+                beastModeBtn.classList.remove('active');
                 
                 playBeastModeSound(false);
                 

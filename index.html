@@ -354,74 +354,113 @@
         </div>
 
         <!-- Separate Settings Modal -->
-        <div class="fun-zone-modal hidden" id="settings-modal">
+        <div class="fun-zone-modal settings-modal-clean hidden" id="settings-modal">
             <div class="fun-zone-header">
-                <span class="fun-zone-title">⚙️ NAZ SYSTEM SETTINGS ⚙️</span>
+                <span class="fun-zone-title">⚙️ SYSTEM SETTINGS</span>
                 <button class="fun-zone-close" id="settings-close">&times;</button>
             </div>
             
-            <div class="control-hub-body" id="settings-modal-body">
-                <!-- Section 1: Security Settings -->
-                <div class="hub-section">
-                    <h3 class="hub-section-title">🔒 SECURITY PROTOCOLS</h3>
-                    <div class="setting-item" style="margin-bottom: 20px;">
-                        <label style="display: block; font-size: 0.72rem; color: var(--accent-cyan); letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">🔑 SYSTEM PASSCODE</label>
-                        <div style="font-family: monospace; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 10px;">
-                            Active Passcode: <span style="color: #ffffff; font-weight: bold;">1234</span>
+            <div class="settings-modal-body" id="settings-modal-body">
+                
+                <!-- Category 1: General & About -->
+                <div class="settings-category">
+                    <div class="category-header">
+                        <span class="category-icon">ℹ️</span>
+                        <span class="category-title">General Info</span>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-info">
+                            <div class="settings-label">Core Engine</div>
+                            <div class="settings-sub">Active system brain architecture</div>
                         </div>
-                        <button class="focus-toggle-btn" id="manual-lock-btn" style="border-color: var(--accent-purple); width: 100%; margin-top: 5px;" data-tooltip="Manually trigger macOS lockdown simulator">
-                            <span class="focus-icon">🔒</span>
-                            <span class="focus-label">TRIGGER SYSTEM LOCKDOWN</span>
-                        </button>
+                        <div class="settings-value" id="settings-engine-name">NAZ-CORE v1.0</div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-info">
+                            <div class="settings-label">Neural Nodes</div>
+                            <div class="settings-sub">Linked digital synapses count</div>
+                        </div>
+                        <div class="settings-value">6,280 Nodes</div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-info">
+                            <div class="settings-label">System Uptime</div>
+                            <div class="settings-sub">Elapsed operating runtime</div>
+                        </div>
+                        <div class="settings-value" id="settings-uptime">00:00:00</div>
                     </div>
                 </div>
 
-                <div class="hub-section-divider"></div>
+                <!-- Category 2: Connections -->
+                <div class="settings-category">
+                    <div class="category-header">
+                        <span class="category-icon">📡</span>
+                        <span class="category-title">Connections</span>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-info">
+                            <div class="settings-label">Host OS Link</div>
+                            <div class="settings-sub">Local system diagnostics</div>
+                        </div>
+                        <div class="settings-value" id="settings-os-link">Detecting...</div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-info">
+                            <div class="settings-label">Implant Signal</div>
+                            <div class="settings-sub">Neural sync telemetry</div>
+                        </div>
+                        <div class="settings-value" style="color: var(--accent-cyan);">98% Stable</div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-info">
+                            <div class="settings-label">Audio Link</div>
+                            <div class="settings-sub">Voice receiver frequency</div>
+                        </div>
+                        <div class="settings-value" style="color: var(--accent-cyan);">Nominal</div>
+                    </div>
+                </div>
 
-                <!-- Section 2: Connected Devices -->
-                <div class="hub-section">
-                    <h3 class="hub-section-title">📡 CONNECTED HARDWARE & OS LINKS</h3>
-                    <div class="device-list" style="font-family: monospace; font-size: 0.75rem; color: var(--text-dim);">
-                        <div class="device-item" style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <span>🧠 NEURAL IMPLANT LINK:</span>
-                            <span style="color: var(--accent-cyan);">ONLINE (98% SIGNAL)</span>
+                <!-- Category 3: Security & Duress -->
+                <div class="settings-category">
+                    <div class="category-header">
+                        <span class="category-icon">🔒</span>
+                        <span class="category-title">Security</span>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-info">
+                            <div class="settings-label">Lock Passcode</div>
+                            <div class="settings-sub">Operator decryption authorization</div>
                         </div>
-                        <div class="device-item" style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <span>🖥️ SYSTEM HOST OS:</span>
-                            <span id="settings-os-link" style="color: var(--accent-cyan);">DETECTING OS...</span>
+                        <div class="settings-value" style="font-weight: bold; letter-spacing: 1px;">1234</div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-info">
+                            <div class="settings-label">Duress Protocol</div>
+                            <div class="settings-sub">Simulate screen lock immediately</div>
                         </div>
-                        <div class="device-item" style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <span>🎙️ AUDIO CAPTURE DEVICE:</span>
-                            <span style="color: var(--accent-cyan);">DEFAULT MIC STABLE</span>
+                        <div class="settings-action">
+                            <button class="settings-btn" id="manual-lock-btn">Lock Screen</button>
                         </div>
                     </div>
                 </div>
 
-                <div class="hub-section-divider"></div>
-
-                <!-- Section 3: About Naz -->
-                <div class="hub-section">
-                    <h3 class="hub-section-title">ℹ️ ABOUT NAZ PLATFORM</h3>
-                    <div class="about-details" style="font-family: monospace; font-size: 0.75rem; color: var(--text-dim); line-height: 1.5; margin-bottom: 20px;">
-                        <div>CORE ENGINE: <span style="color: #ffffff;">NAZ-CORE v1.0.4-LTS</span></div>
-                        <div>COMPILER BUILD: <span style="color: #ffffff;">Rustc 1.78 / Node v20</span></div>
-                        <div>NEURAL NODES: <span style="color: #ffffff;">6,280 Connected Synapses</span></div>
-                        <div>UPTIME: <span id="settings-uptime" style="color: #ffffff;">00:00:00</span></div>
+                <!-- Category 4: Beast Mode Autonomy -->
+                <div class="settings-category danger-zone">
+                    <div class="category-header">
+                        <span class="category-icon">🔥</span>
+                        <span class="category-title">Beast Protocol</span>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-info">
+                            <div class="settings-label" style="color: #ff4a5a;">Beast Autonomy</div>
+                            <div class="settings-sub">Grant autonomous decision logic authority</div>
+                        </div>
+                        <div class="settings-action">
+                            <button class="settings-btn beast-action-btn" id="beast-mode-btn">Activate</button>
+                        </div>
                     </div>
                 </div>
 
-                <div class="hub-section-divider"></div>
-
-                <!-- Section 4: Beast Mode / Autonomous Mode Button -->
-                <div class="hub-section" style="padding-bottom: 20px;">
-                    <h3 class="hub-section-title" style="color: #ff4a5a; text-shadow: 0 0 8px rgba(255, 74, 90, 0.4); border-bottom-color: rgba(255, 74, 90, 0.2);">🔥 AUTONOMOUS PROTOCOL</h3>
-                    <div class="fun-description" style="color: #ff4a5a; opacity: 0.85; margin-bottom: 12px;">
-                        WARNING: Enabling beast mode grants Naz 100% autonomous decision-making authority over all cognitive modules.
-                    </div>
-                    <button class="fun-action-btn" id="beast-mode-btn" style="background: linear-gradient(135deg, rgba(255, 74, 90, 0.3), rgba(120, 10, 20, 0.4)); border-color: #ff4a5a; box-shadow: 0 0 15px rgba(255, 74, 90, 0.3);" data-tooltip="ENGAGE AUTONOMOUS BEAST MODE PROTOCOL">
-                        🔥 ACTIVATE BEAST AUTONOMY
-                    </button>
-                </div>
             </div>
         </div>
 

@@ -3041,3 +3041,154 @@ body.beast-mode-active .ai-core {
 body.beast-mode-active .core-aura {
     background: radial-gradient(circle, rgba(255, 0, 60, 0.5) 0%, rgba(255, 85, 0, 0) 70%) !important;
 }
+
+/* =================================================================
+   CLEAN & CATEGORIZED SETTINGS LAYOUT
+   ================================================================= */
+.settings-modal-clean {
+    background: rgba(10, 10, 15, 0.96) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
+}
+
+.settings-modal-body {
+    padding: 20px 24px;
+    max-height: 70vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(var(--accent-cyan-rgb), 0.3) rgba(255, 255, 255, 0.02);
+}
+
+.settings-modal-body::-webkit-scrollbar {
+    width: 4px;
+}
+
+.settings-modal-body::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 2px;
+}
+
+.settings-modal-body::-webkit-scrollbar-thumb {
+    background: rgba(var(--accent-cyan-rgb), 0.35);
+    border-radius: 2px;
+}
+
+/* Category Wrapper Cards */
+.settings-category {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    transition: all 0.3s ease;
+}
+
+.settings-category.danger-zone {
+    background: rgba(255, 74, 90, 0.015);
+    border: 1px solid rgba(255, 74, 90, 0.08);
+}
+
+.category-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.category-icon {
+    font-size: 0.95rem;
+}
+
+.category-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: #ffffff;
+    text-transform: uppercase;
+}
+
+/* Single Setting Row */
+.settings-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.settings-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.settings-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-align: left;
+}
+
+.settings-label {
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.settings-sub {
+    font-size: 0.62rem;
+    color: var(--text-dim);
+    font-family: monospace;
+}
+
+.settings-value {
+    font-size: 0.74rem;
+    color: #ffffff;
+    font-family: monospace;
+    text-align: right;
+}
+
+/* Simple Action Buttons */
+.settings-btn {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #ffffff;
+    padding: 6px 14px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    outline: none;
+}
+
+.settings-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-0.5px);
+}
+
+.settings-btn:active {
+    transform: translateY(0.5px);
+}
+
+.settings-btn.beast-action-btn {
+    background: rgba(255, 74, 90, 0.08);
+    border-color: rgba(255, 74, 90, 0.35);
+    color: #ff4a5a;
+}
+
+.settings-btn.beast-action-btn:hover {
+    background: rgba(255, 74, 90, 0.18);
+    border-color: rgba(255, 74, 90, 0.6);
+    color: #ffffff;
+}
+
+.settings-btn.beast-action-btn.active {
+    background: #ff4a5a;
+    border-color: #ff4a5a;
+    color: #ffffff;
+}
