@@ -1129,7 +1129,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // -----------------------------------------------------------------
     // 0.3 ENGINE SWITCHER
     // -----------------------------------------------------------------
-    let selectedEngine = localStorage.getItem('naz-engine') || 'naz-core';
+    selectedEngine = localStorage.getItem('naz-engine') || 'naz-core';
 
     const engineContainer = document.getElementById('engine-options');
 
