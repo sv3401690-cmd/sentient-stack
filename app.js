@@ -1351,8 +1351,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const chaseTimeVal = document.getElementById('chase-time-value');
     const chaseProgressBar = document.getElementById('chase-progress-bar');
 
-    let activeTab = 'custom-tab-content';
-
     function showFunZone() {
         if (isSystemLocked) return;
         if (funZoneModal) {
@@ -1360,9 +1358,7 @@ document.addEventListener('DOMContentLoaded', () => {
             funZoneModal.offsetHeight; // force reflow
             funZoneModal.classList.add('visible');
         }
-        if (activeTab === 'sheesh-tab-content') {
-            startWebcam();
-        }
+        startWebcam();
     }
 
     function hideFunZone() {
@@ -1375,31 +1371,16 @@ document.addEventListener('DOMContentLoaded', () => {
         stopWebcam();
     }
 
-    function activateTab(tabId) {
-        const funTabs = document.querySelectorAll('.fun-tab');
-        funTabs.forEach(tab => {
-            const targetTab = tab.getAttribute('data-tab');
-            if (targetTab === tabId) {
-                tab.classList.add('active');
-            } else {
-                tab.classList.remove('active');
-            }
-        });
-
-        activeTab = tabId;
-
-        document.querySelectorAll('.fun-tab-content').forEach(content => {
-            if (content.id === tabId) {
-                content.classList.add('active-content');
-            } else {
-                content.classList.remove('active-content');
-            }
-        });
-
-        if (tabId === 'sheesh-tab-content') {
-            startWebcam();
-        } else {
-            stopWebcam();
+    function scrollToSection(sectionId) {
+        const section = document.getElementById(sectionId);
+        const container = document.getElementById('control-hub-body');
+        if (section && container) {
+            setTimeout(() => {
+                container.scrollTo({
+                    top: section.offsetTop - 20,
+                    behavior: 'smooth'
+                });
+            }, 50);
         }
     }
 
@@ -1407,7 +1388,7 @@ document.addEventListener('DOMContentLoaded', () => {
         cursorSettingsToggle.addEventListener('click', (e) => {
             e.stopPropagation();
             showFunZone();
-            activateTab('custom-tab-content');
+            scrollToSection('custom-section');
         });
     }
 
@@ -1415,25 +1396,11 @@ document.addEventListener('DOMContentLoaded', () => {
         funZoneToggle.addEventListener('click', (e) => {
             e.stopPropagation();
             showFunZone();
-            if (activeTab === 'custom-tab-content') {
-                activateTab('arms-tab-content');
-            } else {
-                activateTab(activeTab);
-            }
+            scrollToSection('arms-section');
         });
     }
 
     if (funZoneClose) funZoneClose.addEventListener('click', hideFunZone);
-
-    // Wire up tabs selection
-    const funTabs = document.querySelectorAll('.fun-tab');
-    funTabs.forEach(tab => {
-        tab.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const targetTab = tab.getAttribute('data-tab');
-            activateTab(targetTab);
-        });
-    });
 
     // Webcam Control Functions
     function startWebcam() {
@@ -1718,11 +1685,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const screenWidth = window.innerWidth;
         const screenHeight = window.innerHeight;
 
-        // Check if mouse hits the card -> immediate win
+        // Check if mouse hits the card -> immediate out/lockdown
         if (mouse && mouse.x !== null && mouse.y !== null) {
             if (mouse.x >= cardX && mouse.x <= cardX + cardWidth &&
                 mouse.y >= cardY && mouse.y <= cardY + cardHeight) {
-                handleChaseSuccess();
+                triggerLockdown();
                 return;
             }
         }
@@ -1897,7 +1864,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (chaseTimeLeft <= 0) {
                 chaseTimeLeft = 0;
                 clearInterval(chaseTimer);
-                triggerLockdown();
+                handleChaseSuccess();
             }
 
             if (chaseTimeVal) {
@@ -1933,7 +1900,7 @@ document.addEventListener('DOMContentLoaded', () => {
         photoCard.addEventListener('click', (e) => {
             e.stopPropagation();
             if (!isChasing) return;
-            handleChaseSuccess();
+            triggerLockdown();
         });
     }
 

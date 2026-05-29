@@ -2327,87 +2327,56 @@ body.boot-complete .glow-orb {
     transform: scale(1.1);
 }
 
-/* Tab Switching buttons */
-.fun-tabs {
-    display: flex;
-    background: rgba(255, 255, 255, 0.02);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.fun-tab {
-    flex: 1;
-    background: none;
-    border: none;
-    padding: 14px;
-    color: var(--text-dim);
-    font-family: 'Outfit', sans-serif;
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-align: center;
-    position: relative;
-    outline: none;
-}
-
-.fun-tab:hover {
-    color: #ffffff;
-    background: rgba(255, 255, 255, 0.02);
-}
-
-.fun-tab.active {
-    color: var(--accent-cyan);
-    background: rgba(var(--accent-cyan-rgb), 0.05);
-}
-
-.fun-tab.active::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background: var(--accent-cyan);
-    box-shadow: 0 0 10px var(--accent-cyan);
-}
-
-/* Tab contents */
-.fun-tab-content {
-    display: none;
+/* Control Hub Scrollable Container */
+.control-hub-body {
     padding: 24px;
     max-height: 70vh;
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: rgba(var(--accent-cyan-rgb), 0.3) rgba(255, 255, 255, 0.02);
+    scroll-behavior: smooth;
 }
 
-.fun-tab-content::-webkit-scrollbar {
+.control-hub-body::-webkit-scrollbar {
     width: 4px;
 }
 
-.fun-tab-content::-webkit-scrollbar-track {
+.control-hub-body::-webkit-scrollbar-track {
     background: rgba(255, 255, 255, 0.02);
     border-radius: 2px;
 }
 
-.fun-tab-content::-webkit-scrollbar-thumb {
+.control-hub-body::-webkit-scrollbar-thumb {
     background: rgba(var(--accent-cyan-rgb), 0.35);
     border-radius: 2px;
 }
 
-.fun-tab-content::-webkit-scrollbar-thumb:hover {
+.control-hub-body::-webkit-scrollbar-thumb:hover {
     background: var(--accent-cyan);
 }
 
-.fun-tab-content.active-content {
-    display: block;
-    animation: tabFadeIn 0.4s ease;
+/* Control Hub Sections */
+.hub-section {
+    padding: 10px 0;
 }
 
-@keyframes tabFadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
+.hub-section-title {
+    font-size: 0.85rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    color: var(--accent-cyan);
+    text-shadow: 0 0 8px rgba(var(--accent-cyan-rgb), 0.4);
+    margin-top: 10px;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    text-transform: uppercase;
+}
+
+.hub-section-divider {
+    height: 1px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 70%);
+    margin: 32px 0 24px 0;
 }
 
 .fun-description {

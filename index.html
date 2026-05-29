@@ -189,7 +189,7 @@
             <div class="chase-progress-bar-container">
                 <div class="chase-progress-bar" id="chase-progress-bar"></div>
             </div>
-            <div class="chase-instruction">INTERCEPT THE FLOATING ENCRYPTED CARD IN THE VIEWPORT</div>
+            <div class="chase-instruction">AVOID THE FLOATING CARD! DO NOT LET IT HIT YOUR CURSOR!</div>
         </div>
 
         <!-- Unified Settings & Fun Zone Modal -->
@@ -199,151 +199,157 @@
                 <button class="fun-zone-close" id="fun-zone-close">&times;</button>
             </div>
             
-            <div class="fun-tabs">
-                <button class="fun-tab active" data-tab="custom-tab-content">🎨 CUSTOMIZATION</button>
-                <button class="fun-tab" data-tab="arms-tab-content">🦾 COMBAT ARMS</button>
-                <button class="fun-tab" data-tab="sheesh-tab-content">📸 SHEESH SNAP</button>
-            </div>
-
-            <!-- Tab 1: Customization Settings -->
-            <div class="fun-tab-content active-content" id="custom-tab-content">
-                <div class="fun-description">
-                    Configure portal interface designs, cursor trails, engine parameters, and sync profiles.
-                </div>
+            <!-- Unified Scrollable Control Hub Content -->
+            <div class="control-hub-body" id="control-hub-body">
                 
-                <div class="setting-item" style="margin-bottom: 20px;">
-                    <label style="display: block; font-size: 0.72rem; color: var(--accent-cyan); letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">🔮 CURSOR EFFECT</label>
-                    <div class="cursor-options" id="cursor-options">
-                        <button class="cursor-opt active" data-style="quantum">QUANTUM</button>
-                        <button class="cursor-opt" data-style="matrix">MATRIX</button>
-                        <button class="cursor-opt" data-style="stardust">STARDUST</button>
-                        <button class="cursor-opt" data-style="plasma">PLASMA</button>
-                        <button class="cursor-opt" data-style="nova">NOVA</button>
-                        <button class="cursor-opt" data-style="cybergrid">CYBER-GRID</button>
+                <!-- Section 1: Customization Settings -->
+                <div class="hub-section" id="custom-section">
+                    <h3 class="hub-section-title">🎨 PORTAL CUSTOMIZATION</h3>
+                    <div class="fun-description">
+                        Configure portal interface designs, cursor trails, engine parameters, and sync profiles.
                     </div>
-                </div>
-                
-                <div class="setting-item" style="margin-bottom: 20px;">
-                    <label style="display: block; font-size: 0.72rem; color: var(--accent-cyan); letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">🎨 THEME MODE</label>
-                    <div class="theme-mode-options" id="theme-mode-options">
-                        <button class="theme-mode-opt active" data-mode="manual">MANUAL</button>
-                        <button class="theme-mode-opt" data-mode="auto">AUTO</button>
-                    </div>
-                </div>
-
-                <div class="setting-item" style="margin-bottom: 20px;">
-                    <label style="display: block; font-size: 0.72rem; color: var(--accent-cyan); letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">⚛️ NAZ CORE DESIGN</label>
-                    <div class="core-options" id="core-options">
-                        <button class="core-design-opt active" data-design="quantum">QUANTUM</button>
-                        <button class="core-design-opt" data-design="singularity">SINGULARITY</button>
-                        <button class="core-design-opt" data-design="neural">NEURAL</button>
-                        <button class="core-design-opt" data-design="eclipse">ECLIPSE</button>
-                        <button class="core-design-opt" data-design="vortex">VORTEX</button>
-                    </div>
-                </div>
-
-                <div class="setting-item" style="margin-bottom: 20px;">
-                    <label style="display: block; font-size: 0.72rem; color: var(--accent-cyan); letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">🎯 NAZ VOICE FOCUS</label>
-                    <select id="voice-focus-select" class="hud-select">
-                        <option value="female">FEMALE FOCUS</option>
-                        <option value="english-other">ENGLISH OTHER</option>
-                        <option value="international">INTERNATIONAL</option>
-                    </select>
-                </div>
-
-                <div class="setting-item" style="margin-bottom: 20px;">
-                    <label style="display: block; font-size: 0.72rem; color: var(--accent-cyan); letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">🎙️ NAZ VOICE ENGINE</label>
-                    <select id="voice-select" class="hud-select">
-                        <option value="">Detecting local voice engines...</option>
-                    </select>
-                </div>
-
-                <div class="setting-item" style="margin-bottom: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.08);">
-                    <label style="display: block; font-size: 0.72rem; color: var(--accent-cyan); letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">🎯 FOCUS MODE</label>
-                    <button class="focus-toggle-btn" id="focus-toggle-btn" data-tooltip="Activate deep focus — silence all distractions">
-                        <span class="focus-icon">🔕</span>
-                        <span class="focus-label" id="focus-label">FOCUS: OFF</span>
-                    </button>
-                </div>
-
-                <div class="setting-item" style="margin-bottom: 20px;">
-                    <label style="display: block; font-size: 0.72rem; color: var(--accent-cyan); letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">🔋 NAZ ENGINE</label>
-                    <div class="engine-options" id="engine-options">
-                        <button class="engine-opt active" data-engine="naz-core">NAZ-CORE v1</button>
-                        <button class="engine-opt" data-engine="quantum-x">QUANTUM-X</button>
-                        <button class="engine-opt" data-engine="phantom">PHANTOM</button>
-                        <button class="engine-opt" data-engine="nebula">NEBULA</button>
-                    </div>
-                </div>
-
-                <div class="setting-item settings-sync-section" style="margin-top: 18px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.08);">
-                    <label style="display: block; font-size: 0.72rem; color: var(--accent-cyan); letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">🔗 SETTINGS SYNC</label>
-                    <div class="sync-buttons">
-                        <button class="sync-btn" id="export-settings-btn" data-tooltip="Copy settings link to clipboard">📤 SHARE LINK</button>
-                        <button class="sync-btn" id="import-settings-btn" data-tooltip="Import settings from clipboard">📥 IMPORT</button>
-                    </div>
-                    <div class="sync-status" id="sync-status"></div>
-                </div>
-            </div>
-            
-            <!-- Tab 2: Combat Arms Preview -->
-            <div class="fun-tab-content" id="arms-tab-content">
-                <div class="fun-description">
-                    Deploy cybernetic weaponry and verify mechanical joints with hyper-active core calibration.
-                </div>
-                
-                <div class="setting-item" style="margin-bottom: 20px;">
-                    <label style="display: block; font-size: 0.72rem; color: var(--accent-cyan); letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">🤖 SELECT ROBOTIC ARM STYLE</label>
-                    <div class="arm-options" id="fun-arm-options">
-                        <button class="arm-opt active" data-style="cyber-link">CYBER-LINK</button>
-                        <button class="arm-opt" data-style="nano-swarm">NANO-SWARM</button>
-                        <button class="arm-opt" data-style="mecha-arm">MECHA-ARM</button>
-                        <button class="arm-opt" data-style="plasma-whip">PLASMA-WHIP</button>
-                        <button class="arm-opt" data-style="matrix-sentinel">MATRIX-SPINE</button>
-                        <button class="arm-opt" data-style="chrono-gear">CHRONO-GEAR</button>
-                    </div>
-                </div>
-
-                <div class="core-fun-container">
-                    <div class="core-fun-preview" id="core-fun-preview">
-                        <!-- Glitch core clone inside fun zone modal -->
-                        <div class="fun-core-element" id="fun-core-element">
-                            <div class="fun-core-inner"></div>
-                            <div class="fun-core-ring ring-1"></div>
-                            <div class="fun-core-ring ring-2"></div>
-                            <div class="fun-core-ring ring-3"></div>
+                    
+                    <div class="setting-item" style="margin-bottom: 20px;">
+                        <label style="display: block; font-size: 0.72rem; color: var(--accent-cyan); letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">🔮 CURSOR EFFECT</label>
+                        <div class="cursor-options" id="cursor-options">
+                            <button class="cursor-opt active" data-style="quantum">QUANTUM</button>
+                            <button class="cursor-opt" data-style="matrix">MATRIX</button>
+                            <button class="cursor-opt" data-style="stardust">STARDUST</button>
+                            <button class="cursor-opt" data-style="plasma">PLASMA</button>
+                            <button class="cursor-opt" data-style="nova">NOVA</button>
+                            <button class="cursor-opt" data-style="cybergrid">CYBER-GRID</button>
                         </div>
                     </div>
-                    <div class="core-fun-hud">
-                        <div class="hud-line">SYSTEM STATUS: <span id="fun-core-status">STANDBY</span></div>
-                        <div class="hud-line">CALIBRATION: <span id="fun-core-calib">100.0%</span></div>
-                        <div class="hud-line">CORE SHUNT: <span id="fun-core-shunt">STABLE</span></div>
-                    </div>
-                </div>
-                
-                <button class="fun-action-btn" id="fun-arms-preview-trigger" data-tooltip="Guidance: Shows the preview for the selected arm style. You can only see the preview of the currently active arm.">⚡ INITIALIZE PREVIEW</button>
-            </div>
-            
-            <!-- Tab 2: Sheesh Snap Game -->
-            <div class="fun-tab-content" id="sheesh-tab-content">
-                <div class="fun-description">
-                    Naz will take your photo and split its encryption. Catch the floating card within 60 seconds to verify identity, or your system goes into lockdown.
-                </div>
-                
-                <div class="webcam-box">
-                    <div class="webcam-viewport">
-                        <video id="webcam-feed" autoplay playsinline muted class="hidden"></video>
-                        <div class="webcam-overlay-grid"></div>
-                        <div class="webcam-placeholder-avatar" id="webcam-placeholder">
-                            <span class="webcam-placeholder-icon">📸</span>
-                            <span class="webcam-placeholder-text">CAMERA DISENGAGED (STANDBY)</span>
+                    
+                    <div class="setting-item" style="margin-bottom: 20px;">
+                        <label style="display: block; font-size: 0.72rem; color: var(--accent-cyan); letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">🎨 THEME MODE</label>
+                        <div class="theme-mode-options" id="theme-mode-options">
+                            <button class="theme-mode-opt active" data-mode="manual">MANUAL</button>
+                            <button class="theme-mode-opt" data-mode="auto">AUTO</button>
                         </div>
                     </div>
+
+                    <div class="setting-item" style="margin-bottom: 20px;">
+                        <label style="display: block; font-size: 0.72rem; color: var(--accent-cyan); letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">⚛️ NAZ CORE DESIGN</label>
+                        <div class="core-options" id="core-options">
+                            <button class="core-design-opt active" data-design="quantum">QUANTUM</button>
+                            <button class="core-design-opt" data-design="singularity">SINGULARITY</button>
+                            <button class="core-design-opt" data-design="neural">NEURAL</button>
+                            <button class="core-design-opt" data-design="eclipse">ECLIPSE</button>
+                            <button class="core-design-opt" data-design="vortex">VORTEX</button>
+                        </div>
+                    </div>
+
+                    <div class="setting-item" style="margin-bottom: 20px;">
+                        <label style="display: block; font-size: 0.72rem; color: var(--accent-cyan); letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">🎯 NAZ VOICE FOCUS</label>
+                        <select id="voice-focus-select" class="hud-select">
+                            <option value="female">FEMALE FOCUS</option>
+                            <option value="english-other">ENGLISH OTHER</option>
+                            <option value="international">INTERNATIONAL</option>
+                        </select>
+                    </div>
+
+                    <div class="setting-item" style="margin-bottom: 20px;">
+                        <label style="display: block; font-size: 0.72rem; color: var(--accent-cyan); letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">🎙️ NAZ VOICE ENGINE</label>
+                        <select id="voice-select" class="hud-select">
+                            <option value="">Detecting local voice engines...</option>
+                        </select>
+                    </div>
+
+                    <div class="setting-item" style="margin-bottom: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.08);">
+                        <label style="display: block; font-size: 0.72rem; color: var(--accent-cyan); letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">🎯 FOCUS MODE</label>
+                        <button class="focus-toggle-btn" id="focus-toggle-btn" data-tooltip="Activate deep focus — silence all distractions">
+                            <span class="focus-icon">🔕</span>
+                            <span class="focus-label" id="focus-label">FOCUS: OFF</span>
+                        </button>
+                    </div>
+
+                    <div class="setting-item" style="margin-bottom: 20px;">
+                        <label style="display: block; font-size: 0.72rem; color: var(--accent-cyan); letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">🔋 NAZ ENGINE</label>
+                        <div class="engine-options" id="engine-options">
+                            <button class="engine-opt active" data-engine="naz-core">NAZ-CORE v1</button>
+                            <button class="engine-opt" data-engine="quantum-x">QUANTUM-X</button>
+                            <button class="engine-opt" data-engine="phantom">PHANTOM</button>
+                            <button class="engine-opt" data-engine="nebula">NEBULA</button>
+                        </div>
+                    </div>
+
+                    <div class="setting-item settings-sync-section" style="margin-top: 18px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.08);">
+                        <label style="display: block; font-size: 0.72rem; color: var(--accent-cyan); letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">🔗 SETTINGS SYNC</label>
+                        <div class="sync-buttons">
+                            <button class="sync-btn" id="export-settings-btn" data-tooltip="Copy settings link to clipboard">📤 SHARE LINK</button>
+                            <button class="sync-btn" id="import-settings-btn" data-tooltip="Import settings from clipboard">📥 IMPORT</button>
+                        </div>
+                        <div class="sync-status" id="sync-status"></div>
+                    </div>
                 </div>
+
+                <div class="hub-section-divider"></div>
                 
-                <div class="sheesh-controls">
-                    <button class="fun-action-btn sheesh-btn-color" id="fun-sheesh-trigger">📸 TAKE SNAP & ENGAGE</button>
+                <!-- Section 2: Combat Arms Preview -->
+                <div class="hub-section" id="arms-section">
+                    <h3 class="hub-section-title">🦾 COMBAT ARMS CALIBRATION</h3>
+                    <div class="fun-description">
+                        Deploy cybernetic weaponry and verify mechanical joints with hyper-active core calibration.
+                    </div>
+                    
+                    <div class="setting-item" style="margin-bottom: 20px;">
+                        <label style="display: block; font-size: 0.72rem; color: var(--accent-cyan); letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">🤖 SELECT ROBOTIC ARM STYLE</label>
+                        <div class="arm-options" id="fun-arm-options">
+                            <button class="arm-opt active" data-style="cyber-link">CYBER-LINK</button>
+                            <button class="arm-opt" data-style="nano-swarm">NANO-SWARM</button>
+                            <button class="arm-opt" data-style="mecha-arm">MECHA-ARM</button>
+                            <button class="arm-opt" data-style="plasma-whip">PLASMA-WHIP</button>
+                            <button class="arm-opt" data-style="matrix-sentinel">MATRIX-SPINE</button>
+                            <button class="arm-opt" data-style="chrono-gear">CHRONO-GEAR</button>
+                        </div>
+                    </div>
+
+                    <div class="core-fun-container">
+                        <div class="core-fun-preview" id="core-fun-preview">
+                            <!-- Glitch core clone inside fun zone modal -->
+                            <div class="fun-core-element" id="fun-core-element">
+                                <div class="fun-core-inner"></div>
+                                <div class="fun-core-ring ring-1"></div>
+                                <div class="fun-core-ring ring-2"></div>
+                                <div class="fun-core-ring ring-3"></div>
+                            </div>
+                        </div>
+                        <div class="core-fun-hud">
+                            <div class="hud-line">SYSTEM STATUS: <span id="fun-core-status">STANDBY</span></div>
+                            <div class="hud-line">CALIBRATION: <span id="fun-core-calib">100.0%</span></div>
+                            <div class="hud-line">CORE SHUNT: <span id="fun-core-shunt">STABLE</span></div>
+                        </div>
+                    </div>
+                    
+                    <button class="fun-action-btn" id="fun-arms-preview-trigger" data-tooltip="Guidance: Shows the preview for the selected arm style. You can only see the preview of the currently active arm.">⚡ INITIALIZE PREVIEW</button>
                 </div>
+
+                <div class="hub-section-divider"></div>
+                
+                <!-- Section 3: Sheesh Snap Game -->
+                <div class="hub-section" id="sheesh-section">
+                    <h3 class="hub-section-title">📸 SHEESH SNAP DECRYPTION</h3>
+                    <div class="fun-description">
+                        Naz will take your photo and split its encryption. Avoid the bouncing holographic card for 60 seconds to verify identity. If the card touches your cursor, your system goes into lockdown immediately.
+                    </div>
+                    
+                    <div class="webcam-box">
+                        <div class="webcam-viewport">
+                            <video id="webcam-feed" autoplay playsinline muted class="hidden"></video>
+                            <div class="webcam-overlay-grid"></div>
+                            <div class="webcam-placeholder-avatar" id="webcam-placeholder">
+                                <span class="webcam-placeholder-icon">📸</span>
+                                <span class="webcam-placeholder-text">CAMERA DISENGAGED (STANDBY)</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="sheesh-controls">
+                        <button class="fun-action-btn sheesh-btn-color" id="fun-sheesh-trigger">📸 TAKE SNAP & ENGAGE</button>
+                    </div>
+                </div>
+
             </div>
         </div>
 
