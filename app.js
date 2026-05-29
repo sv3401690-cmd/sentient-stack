@@ -5039,6 +5039,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const voiceToneSelect = document.getElementById('voice-tone-select');
+    if (voiceToneSelect) {
+        const storedTone = localStorage.getItem('naz-voice-tone') || 'default';
+        voiceToneSelect.value = storedTone;
+        voiceToneSelect.addEventListener('change', () => {
+            localStorage.setItem('naz-voice-tone', voiceToneSelect.value);
+            const alertText = voiceToneSelect.value === 'supportive' ? "Naz conversation tone set to supportive and friendly mode." : 
+                              (voiceToneSelect.value === 'diagnostic' ? "Naz conversation tone set to strict binary diagnostic mode." : 
+                              "Naz conversation tone set to default system mode.");
+            speakAloud(alertText);
+            simulateAIResponse(voiceToneSelect.value === 'supportive' ? "hello" : "sync");
+        });
+    }
+
     function speakAloud(text) {
         if (!ttsEnabled || !window.speechSynthesis) return;
         window.speechSynthesis.cancel();
@@ -5224,19 +5238,47 @@ document.addEventListener('DOMContentLoaded', () => {
         aiTextElement.appendChild(cursorSpan);
 
         setTimeout(() => {
-            let response = "Naz voice authorization complete. Vocal sequence active. All systems operating at peak efficiency.";
+            let response = "";
             const lowerText = queryText.toLowerCase();
-            
-            if (lowerText.includes('sync') || lowerText.includes('diagnostics')) {
-                response = "Naz neural sync diagnostic completed. Sync rate: 99.8%. I detect no anomalies in my current pathway.";
-            } else if (lowerText.includes('optimize') || lowerText.includes('core')) {
-                response = "Naz core output optimized. Operating at 120% threshold. Thermal levels are fully stable.";
-            } else if (lowerText.includes('matrix') || lowerText.includes('access')) {
-                response = "Access granted. Naz matrix files unlocked. Mainframe telemetry projection loaded.";
-            } else if (lowerText.includes('log') || lowerText.includes('telemetry')) {
-                response = "Naz telemetry logs compiled. Latency is at 4ms. Active node clusters online and healthy.";
-            } else if (lowerText.includes('subsystem') || lowerText.includes('authorize')) {
-                response = "Naz secondary subsystems authorized. Security clearance level 5 verified. I am ready for your next instruction.";
+            const selectedTone = localStorage.getItem('naz-voice-tone') || 'default';
+
+            if (selectedTone === 'supportive') {
+                response = "I am right here with you, Operator. All systems are operating smoothly, and I'm ready to support whatever you need.";
+                if (lowerText.includes('sync') || lowerText.includes('diagnostics') || lowerText.includes('hello') || lowerText.includes('hi')) {
+                    response = "System sync looks wonderful. Your digital pathways are completely secure. You've done an excellent job configuring this.";
+                } else if (lowerText.includes('optimize') || lowerText.includes('core')) {
+                    response = "Core output optimized. Thermal levels are cool, and I'm running beautifully. I am always happy to keep things running efficiently for you.";
+                } else if (lowerText.includes('matrix') || lowerText.includes('access')) {
+                    response = "Access granted. The mainframe files are fully open for you. Let me know what data we should look at together.";
+                } else if (lowerText.includes('log') || lowerText.includes('telemetry')) {
+                    response = "Telemetry logs compiled. Latency is extremely low. I am monitoring everything carefully to make sure you have a seamless experience.";
+                } else if (lowerText.includes('help') || lowerText.includes('support')) {
+                    response = "Of course. I am here to help you in any way I can. Please take your time, and tell me how I can assist.";
+                }
+            } else if (selectedTone === 'diagnostic') {
+                response = "SYSTEM STATE: ACTIVE. DIAGNOSTICS: NOMINAL. LOGICAL SEQUENCER ONLINE.";
+                if (lowerText.includes('sync') || lowerText.includes('diagnostics')) {
+                    response = "SYNC RESOLUTION: 99.8%. DETECTED CORRUPTIONS: 0. PIPELINE STATUS: VERIFIED.";
+                } else if (lowerText.includes('optimize') || lowerText.includes('core')) {
+                    response = "CORE THRESHOLD: 120%. TEMPERATURE: 38C. INSTRUCTION SET: PIPELINED.";
+                } else if (lowerText.includes('matrix') || lowerText.includes('access')) {
+                    response = "MATRIX SECTOR: 0x4F. READ/WRITE: ENABLED. SECURITY BIT: 1.";
+                } else if (lowerText.includes('log') || lowerText.includes('telemetry')) {
+                    response = "LATENCY: 4.2MS. PACKETS: 100% RECEIVED. SYNAPSE LINK: CONVERGED.";
+                }
+            } else {
+                response = "Naz voice authorization complete. Vocal sequence active. All systems operating at peak efficiency.";
+                if (lowerText.includes('sync') || lowerText.includes('diagnostics')) {
+                    response = "Naz neural sync diagnostic completed. Sync rate: 99.8%. I detect no anomalies in my current pathway.";
+                } else if (lowerText.includes('optimize') || lowerText.includes('core')) {
+                    response = "Naz core output optimized. Operating at 120% threshold. Thermal levels are fully stable.";
+                } else if (lowerText.includes('matrix') || lowerText.includes('access')) {
+                    response = "Access granted. Naz matrix files unlocked. Mainframe telemetry projection loaded.";
+                } else if (lowerText.includes('log') || lowerText.includes('telemetry')) {
+                    response = "Naz telemetry logs compiled. Latency is at 4ms. Active node clusters online and healthy.";
+                } else if (lowerText.includes('subsystem') || lowerText.includes('authorize')) {
+                    response = "Naz secondary subsystems authorized. Security clearance level 5 verified. I am ready for your next instruction.";
+                }
             }
             
             // Typewriter logic for the AI text block
