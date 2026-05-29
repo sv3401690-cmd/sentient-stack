@@ -124,92 +124,209 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function playDeploymentSound() {
+    function playWeaponReloadSound() {
         try {
             const audioCtx = getSharedAudioCtx();
             if (!audioCtx) return;
             const now = audioCtx.currentTime;
-            const duration = 2.0;
 
             // Master compressor
             const compressor = audioCtx.createDynamicsCompressor();
-            compressor.threshold.setValueAtTime(-20, now);
-            compressor.ratio.setValueAtTime(6, now);
+            compressor.threshold.setValueAtTime(-15, now);
+            compressor.knee.setValueAtTime(8, now);
+            compressor.ratio.setValueAtTime(12, now);
             compressor.connect(audioCtx.destination);
 
-            // --- 1. Hydraulic Release Swoosh (filtered noise envelope) ---
-            const bufferSize = audioCtx.sampleRate * duration;
-            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) {
-                data[i] = Math.random() * 2 - 1;
+            // --- 1. Hydraulic Slide (Pneumatic friction: 0.0s to 0.3s) ---
+            const slideBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.4, audioCtx.sampleRate);
+            const slideData = slideBuffer.getChannelData(0);
+            for (let i = 0; i < slideData.length; i++) {
+                slideData[i] = Math.random() * 2 - 1;
             }
-            const noise = audioCtx.createBufferSource();
-            noise.buffer = buffer;
+            const slideNoise = audioCtx.createBufferSource();
+            slideNoise.buffer = slideBuffer;
 
-            const noiseFilter = audioCtx.createBiquadFilter();
-            noiseFilter.type = 'lowpass';
-            noiseFilter.frequency.setValueAtTime(1000, now);
-            noiseFilter.frequency.exponentialRampToValueAtTime(120, now + 1.2);
-            noiseFilter.Q.setValueAtTime(4, now);
+            const slideFilter = audioCtx.createBiquadFilter();
+            slideFilter.type = 'bandpass';
+            slideFilter.frequency.setValueAtTime(800, now);
+            slideFilter.frequency.exponentialRampToValueAtTime(350, now + 0.3);
+            slideFilter.Q.setValueAtTime(3.0, now);
 
-            const noiseGain = audioCtx.createGain();
-            noiseGain.gain.setValueAtTime(0, now);
-            noiseGain.gain.linearRampToValueAtTime(0.08, now + 0.05);
-            noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+            const slideGain = audioCtx.createGain();
+            slideGain.gain.setValueAtTime(0, now);
+            slideGain.gain.linearRampToValueAtTime(0.08, now + 0.05);
+            slideGain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
 
-            noise.connect(noiseFilter);
-            noiseFilter.connect(noiseGain);
-            noiseGain.connect(compressor);
-            noise.start(now);
-            noise.stop(now + 1.5);
+            slideNoise.connect(slideFilter);
+            slideFilter.connect(slideGain);
+            slideGain.connect(compressor);
+            slideNoise.start(now);
+            slideNoise.stop(now + 0.32);
 
-            // --- 2. Sub-bass heavy thump ---
+            // Metallic slide sound (triangle sweep)
+            const slideOsc = audioCtx.createOscillator();
+            const slideOscGain = audioCtx.createGain();
+            slideOsc.type = 'triangle';
+            slideOsc.frequency.setValueAtTime(250, now);
+            slideOsc.frequency.linearRampToValueAtTime(140, now + 0.3);
+            slideOscGain.gain.setValueAtTime(0.04, now);
+            slideOscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+            slideOsc.connect(slideOscGain);
+            slideOscGain.connect(compressor);
+            slideOsc.start(now);
+            slideOsc.stop(now + 0.3);
+
+            // --- 2. First Bolt Click / Slide Catch (at 0.28s) ---
+            const t1 = now + 0.28;
+            const clickOsc1 = audioCtx.createOscillator();
+            const clickGain1 = audioCtx.createGain();
+            clickOsc1.type = 'triangle';
+            clickOsc1.frequency.setValueAtTime(1500, t1);
+            clickOsc1.frequency.exponentialRampToValueAtTime(800, t1 + 0.04);
+            clickGain1.gain.setValueAtTime(0.12, t1);
+            clickGain1.gain.exponentialRampToValueAtTime(0.001, t1 + 0.045);
+            clickOsc1.connect(clickGain1);
+            clickGain1.connect(compressor);
+            clickOsc1.start(t1);
+            clickOsc1.stop(t1 + 0.05);
+
+            // --- 3. Heavy Bolt Release & Chamber Lock (at 0.42s) ---
+            const t2 = now + 0.42;
+            
+            // Chamber click (crisp clank)
+            const lockOsc = audioCtx.createOscillator();
+            const lockGain = audioCtx.createGain();
+            lockOsc.type = 'sawtooth';
+            lockOsc.frequency.setValueAtTime(600, t2);
+            lockOsc.frequency.exponentialRampToValueAtTime(80, t2 + 0.08);
+
+            const lockFilter = audioCtx.createBiquadFilter();
+            lockFilter.type = 'lowpass';
+            lockFilter.frequency.setValueAtTime(900, t2);
+            lockFilter.frequency.setValueAtTime(200, t2 + 0.08);
+
+            lockGain.gain.setValueAtTime(0.18, t2);
+            lockGain.gain.exponentialRampToValueAtTime(0.001, t2 + 0.09);
+
+            lockOsc.connect(lockFilter);
+            lockFilter.connect(lockGain);
+            lockGain.connect(compressor);
+            lockOsc.start(t2);
+            lockOsc.stop(t2 + 0.1);
+
+            // Solid mechanical thud
+            const thudOsc = audioCtx.createOscillator();
+            const thudGain = audioCtx.createGain();
+            thudOsc.type = 'sine';
+            thudOsc.frequency.setValueAtTime(150, t2);
+            thudOsc.frequency.exponentialRampToValueAtTime(50, t2 + 0.12);
+            thudGain.gain.setValueAtTime(0.35, t2);
+            thudGain.gain.exponentialRampToValueAtTime(0.001, t2 + 0.12);
+            thudOsc.connect(thudGain);
+            thudGain.connect(compressor);
+            thudOsc.start(t2);
+            thudOsc.stop(t2 + 0.15);
+
+        } catch (e) {
+            console.warn("Failed to play weapon reload sound: ", e);
+        }
+    }
+
+    function playDestructionSound() {
+        try {
+            const audioCtx = getSharedAudioCtx();
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+
+            // Master compressor to glue and maximize impact
+            const comp = audioCtx.createDynamicsCompressor();
+            comp.threshold.setValueAtTime(-12, now);
+            comp.knee.setValueAtTime(8, now);
+            comp.ratio.setValueAtTime(16, now);
+            comp.attack.setValueAtTime(0.001, now);
+            comp.release.setValueAtTime(0.25, now);
+            comp.connect(audioCtx.destination);
+
+            // --- 1. Concussive Sub-Bass Drop (Sub weight) ---
             const subOsc = audioCtx.createOscillator();
             const subGain = audioCtx.createGain();
             subOsc.type = 'sine';
-            subOsc.frequency.setValueAtTime(90, now);
-            subOsc.frequency.exponentialRampToValueAtTime(40, now + 0.6);
-
-            subGain.gain.setValueAtTime(0, now);
-            subGain.gain.linearRampToValueAtTime(0.35, now + 0.05);
-            subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
-
+            subOsc.frequency.setValueAtTime(75, now);
+            subOsc.frequency.exponentialRampToValueAtTime(20, now + 1.5);
+            subGain.gain.setValueAtTime(0.85, now);
+            subGain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
             subOsc.connect(subGain);
-            subGain.connect(compressor);
+            subGain.connect(comp);
             subOsc.start(now);
-            subOsc.stop(now + 0.8);
+            subOsc.stop(now + 1.5);
 
-            // --- 3. Digital Power-up Shimmer Chime ---
-            const frequencies = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6 (major chord sweep)
-            frequencies.forEach((freq, index) => {
+            // --- 2. Distorted Metallic Crash (Tearing Noise) ---
+            const crashBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 1.2, audioCtx.sampleRate);
+            const crashData = crashBuffer.getChannelData(0);
+            for (let i = 0; i < crashData.length; i++) {
+                crashData[i] = Math.random() * 2 - 1;
+            }
+            const crashNoise = audioCtx.createBufferSource();
+            crashNoise.buffer = crashBuffer;
+
+            // Resonant lowpass/bandpass sweeps
+            const bpFilter = audioCtx.createBiquadFilter();
+            bpFilter.type = 'bandpass';
+            bpFilter.frequency.setValueAtTime(600, now);
+            bpFilter.frequency.exponentialRampToValueAtTime(90, now + 0.8);
+            bpFilter.Q.setValueAtTime(4.0, now);
+
+            // Waveshaper for tearing distortion
+            const shaper = audioCtx.createWaveShaper();
+            const sCurve = new Float32Array(44100);
+            for (let i = 0; i < 44100; i++) {
+                const x = (i * 2) / 44100 - 1;
+                sCurve[i] = Math.tanh(x * 5.0) / Math.tanh(5.0);
+            }
+            shaper.curve = sCurve;
+
+            const crashGain = audioCtx.createGain();
+            crashGain.gain.setValueAtTime(0.35, now);
+            crashGain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+
+            crashNoise.connect(bpFilter);
+            bpFilter.connect(shaper);
+            shaper.connect(crashGain);
+            crashGain.connect(comp);
+
+            crashNoise.start(now);
+            crashNoise.stop(now + 0.85);
+
+            // --- 3. Ringing Steel Resonance (Metallic vibration decay) ---
+            const metalFreqs = [180.0, 310.0, 520.0, 840.0];
+            const metalDecays = [1.2, 0.9, 0.6, 0.4];
+            const metalGains = [0.15, 0.10, 0.08, 0.05];
+
+            metalFreqs.forEach((freq, idx) => {
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
+                
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(freq, now);
+                osc.frequency.linearRampToValueAtTime(freq * 0.95, now + metalDecays[idx]);
+
                 const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(freq * 1.5, now);
 
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(freq * 0.9, now + index * 0.08);
-                osc.frequency.exponentialRampToValueAtTime(freq, now + index * 0.08 + 0.2);
-
-                filter.type = 'bandpass';
-                filter.frequency.setValueAtTime(freq, now);
-                filter.Q.setValueAtTime(2.0, now);
-
-                gain.gain.setValueAtTime(0, now);
-                gain.gain.setValueAtTime(0, now + index * 0.08);
-                gain.gain.linearRampToValueAtTime(0.05, now + index * 0.08 + 0.05);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + index * 0.08 + 1.2);
+                gain.gain.setValueAtTime(metalGains[idx], now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + metalDecays[idx]);
 
                 osc.connect(filter);
                 filter.connect(gain);
-                gain.connect(compressor);
+                gain.connect(comp);
 
-                osc.start(now + index * 0.08);
-                osc.stop(now + index * 0.08 + 1.2);
+                osc.start(now);
+                osc.stop(now + metalDecays[idx]);
             });
 
         } catch (e) {
-            console.warn("Failed to play deployment sound:", e);
+            console.warn("Failed to play destruction sound: ", e);
         }
     }
 
@@ -1241,8 +1358,8 @@ document.addEventListener('DOMContentLoaded', () => {
             hand1Target = { x: currentLayout.h1Start.x, y: currentLayout.h1Start.y };
             hand2Target = { x: currentLayout.h2Start.x, y: currentLayout.h2Start.y };
 
-            // Trigger deployment sound
-            playDeploymentSound();
+            // Trigger weapon reload sound
+            playWeaponReloadSound();
         });
     }
 
@@ -2908,8 +3025,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 coreCenterY = rect.top + rect.height / 2;
             }
 
-            if (previewFrame < 90) {
-                // Phase 1: Erupt arms
+            if (previewFrame < 40) {
+                // Phase 1: Snappy Tactical Deploy
                 hand1Target.x = coreCenterX - 180;
                 hand1Target.y = coreCenterY + 40;
                 hand2Target.x = coreCenterX + 180;
@@ -2918,12 +3035,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 hand1FingerAngle = 0.55;
                 hand2FingerAngle = 0.55;
 
-                hand1Pos.x += (hand1Target.x - hand1Pos.x) * 0.08;
-                hand1Pos.y += (hand1Target.y - hand1Pos.y) * 0.08;
-                hand2Pos.x += (hand2Target.x - hand2Pos.x) * 0.08;
-                hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.08;
-            } else if (previewFrame < 270) {
-                // Phase 2: Action sequence depending on styling
+                hand1Pos.x += (hand1Target.x - hand1Pos.x) * 0.20;
+                hand1Pos.y += (hand1Target.y - hand1Pos.y) * 0.20;
+                hand2Pos.x += (hand2Target.x - hand2Pos.x) * 0.20;
+                hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.20;
+            } else if (previewFrame < 130) {
+                // Phase 2: Action sequence depending on styling (Tactical Speed)
                 if (selectedArmStyle === 'nano-swarm') {
                     // --- NANO-SWARM DISINTEGRATION ---
                     hand1Target.x = coreCenterX - 140;
@@ -2934,13 +3051,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     hand1FingerAngle = 0.5;
                     hand2FingerAngle = 0.5;
 
-                    hand1Pos.x += (hand1Target.x - hand1Pos.x) * 0.08;
-                    hand1Pos.y += (hand1Target.y - hand1Pos.y) * 0.08;
-                    hand2Pos.x += (hand2Target.x - hand2Pos.x) * 0.08;
-                    hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.08;
+                    hand1Pos.x += (hand1Target.x - hand1Pos.x) * 0.12;
+                    hand1Pos.y += (hand1Target.y - hand1Pos.y) * 0.12;
+                    hand2Pos.x += (hand2Target.x - hand2Pos.x) * 0.12;
+                    hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.12;
 
-                    if (previewFrame === 90) {
-                        playLaserSound(3.0); // digital hum
+                    if (previewFrame === 40) {
+                        playLaserSound(2.0); // digital hum
                     }
 
                     // Swirling particle lines going to core
@@ -2968,14 +3085,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                 } else if (selectedArmStyle === 'mecha-arm') {
-                    // --- MECHA INDUSTRIAL PUNCHING ---
-                    const cycle = (previewFrame - 90) % 40;
-                    if (cycle < 15) {
+                    // --- MECHA INDUSTRIAL PUNCHING (Rapid Jackhammer) ---
+                    const cycle = (previewFrame - 40) % 20;
+                    if (cycle < 7) {
                         hand1Target.x = coreCenterX - 60;
                         hand1Target.y = coreCenterY;
                         hand2Target.x = coreCenterX + 170;
                         hand2Target.y = coreCenterY + 50;
-                    } else if (cycle < 30) {
+                    } else if (cycle < 14) {
                         hand1Target.x = coreCenterX - 170;
                         hand1Target.y = coreCenterY + 50;
                         hand2Target.x = coreCenterX + 60;
@@ -2990,12 +3107,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     hand1FingerAngle = 0.1;
                     hand2FingerAngle = 0.1;
 
-                    hand1Pos.x += (hand1Target.x - hand1Pos.x) * 0.22;
-                    hand1Pos.y += (hand1Target.y - hand1Pos.y) * 0.22;
-                    hand2Pos.x += (hand2Target.x - hand2Pos.x) * 0.22;
-                    hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.22;
+                    hand1Pos.x += (hand1Target.x - hand1Pos.x) * 0.35;
+                    hand1Pos.y += (hand1Target.y - hand1Pos.y) * 0.35;
+                    hand2Pos.x += (hand2Target.x - hand2Pos.x) * 0.35;
+                    hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.35;
 
-                    if (cycle === 0 || cycle === 15) {
+                    if (cycle === 0 || cycle === 10) {
                         playMechaPunchSound();
                         createExplosion(coreCenterX + (cycle === 0 ? -60 : 60), coreCenterY, '255, 255, 255');
                     }
@@ -3010,13 +3127,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     hand1FingerAngle = 0.5;
                     hand2FingerAngle = 0.5;
 
-                    hand1Pos.x += (hand1Target.x - hand1Pos.x) * 0.08;
-                    hand1Pos.y += (hand1Target.y - hand1Pos.y) * 0.08;
-                    hand2Pos.x += (hand2Target.x - hand2Pos.x) * 0.08;
-                    hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.08;
+                    hand1Pos.x += (hand1Target.x - hand1Pos.x) * 0.12;
+                    hand1Pos.y += (hand1Target.y - hand1Pos.y) * 0.12;
+                    hand2Pos.x += (hand2Target.x - hand2Pos.x) * 0.12;
+                    hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.12;
 
-                    if (previewFrame === 90) {
-                        playLaserSound(3.0);
+                    if (previewFrame === 40) {
+                        playLaserSound(2.0);
                     }
 
                     // Draw 3-4 crackling lightning paths
@@ -3067,13 +3184,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     hand1FingerAngle = 0.2;
                     hand2FingerAngle = 0.2;
 
-                    hand1Pos.x += (hand1Target.x - hand1Pos.x) * 0.08;
-                    hand1Pos.y += (hand1Target.y - hand1Pos.y) * 0.08;
-                    hand2Pos.x += (hand2Target.x - hand2Pos.x) * 0.08;
-                    hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.08;
+                    hand1Pos.x += (hand1Target.x - hand1Pos.x) * 0.12;
+                    hand1Pos.y += (hand1Target.y - hand1Pos.y) * 0.12;
+                    hand2Pos.x += (hand2Target.x - hand2Pos.x) * 0.12;
+                    hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.12;
 
-                    if (previewFrame === 90) {
-                        playLaserSound(3.0);
+                    if (previewFrame === 40) {
+                        playLaserSound(2.0);
                     }
 
                     // Feed binary text particles
@@ -3102,7 +3219,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 } else if (selectedArmStyle === 'chrono-gear') {
                     // --- CHRONO GEAR STEAM RELEASE ---
-                    const torque = Math.sin(previewFrame * 0.4) * 20;
+                    const torque = Math.sin(previewFrame * 0.8) * 20;
                     hand1Target.x = coreCenterX - 140 + torque;
                     hand1Target.y = coreCenterY - torque;
                     hand2Target.x = coreCenterX + 140 - torque;
@@ -3111,12 +3228,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     hand1FingerAngle = 0.5;
                     hand2FingerAngle = 0.5;
 
-                    hand1Pos.x += (hand1Target.x - hand1Pos.x) * 0.08;
-                    hand1Pos.y += (hand1Target.y - hand1Pos.y) * 0.08;
-                    hand2Pos.x += (hand2Target.x - hand2Pos.x) * 0.08;
-                    hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.08;
+                    hand1Pos.x += (hand1Target.x - hand1Pos.x) * 0.12;
+                    hand1Pos.y += (hand1Target.y - hand1Pos.y) * 0.12;
+                    hand2Pos.x += (hand2Target.x - hand2Pos.x) * 0.12;
+                    hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.12;
 
-                    if (previewFrame % 10 === 0) {
+                    if (previewFrame % 5 === 0) {
                         playGearTickSound(); // mechanical tick
                     }
 
@@ -3125,7 +3242,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         for (let i = 0; i < 4; i++) {
                             sparks.push({
                                 x: hand1Pos.x + (Math.random() - 0.5) * 15,
-                                y: hand1Pos.y + (Math.random() - 0.5) * 15,
+                                  y: hand1Pos.y + (Math.random() - 0.5) * 15,
                                 vx: (Math.random() - 0.5) * 2.5,
                                 vy: -Math.random() * 2.5 - 1.5, // float up
                                 color: '220, 220, 225',
@@ -3158,13 +3275,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     hand1FingerAngle = 0.15;
                     hand2FingerAngle = 0.15;
 
-                    hand1Pos.x += (hand1Target.x - hand1Pos.x) * 0.08;
-                    hand1Pos.y += (hand1Target.y - hand1Pos.y) * 0.08;
-                    hand2Pos.x += (hand2Target.x - hand2Pos.x) * 0.08;
-                    hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.08;
+                    hand1Pos.x += (hand1Target.x - hand1Pos.x) * 0.12;
+                    hand1Pos.y += (hand1Target.y - hand1Pos.y) * 0.12;
+                    hand2Pos.x += (hand2Target.x - hand2Pos.x) * 0.12;
+                    hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.12;
 
-                    if (previewFrame === 90) {
-                        playLaserSound(3.0);
+                    if (previewFrame === 40) {
+                        playLaserSound(2.0);
                     }
 
                     // Draw neon lasers
@@ -3194,10 +3311,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         createExplosion(coreCenterX + (Math.random() - 0.5) * 16, coreCenterY + (Math.random() - 0.5) * 16, Math.random() > 0.5 ? themeCyan : themePurple);
                     }
                 }
-            } else if (previewFrame < 390) {
-                // Phase 3: Energy Orbit
+            } else if (previewFrame < 190) {
+                // Phase 3: Energy Orbit (High-speed charging)
                 const radius = 135;
-                const angle = (previewFrame - 270) * 0.06;
+                const angle = (previewFrame - 130) * 0.12;
                 const orbX = coreCenterX + Math.cos(angle) * radius;
                 const orbY = coreCenterY + Math.sin(angle) * radius;
 
@@ -3228,12 +3345,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 hand1FingerAngle = 0.5;
                 hand2FingerAngle = 0.5;
 
-                hand1Pos.x += (hand1Target.x - hand1Pos.x) * 0.12;
-                hand1Pos.y += (hand1Target.y - hand1Pos.y) * 0.12;
-                hand2Pos.x += (hand2Target.x - hand2Pos.x) * 0.12;
-                hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.12;
-            } else if (previewFrame < 440) {
-                // Phase 4: High-speed cross-intercept
+                hand1Pos.x += (hand1Target.x - hand1Pos.x) * 0.22;
+                hand1Pos.y += (hand1Target.y - hand1Pos.y) * 0.22;
+                hand2Pos.x += (hand2Target.x - hand2Pos.x) * 0.22;
+                hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.22;
+            } else if (previewFrame < 220) {
+                // Phase 4: High-speed cross-intercept clash
                 hand1Target.x = coreCenterX + 90;
                 hand1Target.y = coreCenterY;
                 hand2Target.x = coreCenterX - 90;
@@ -3242,25 +3359,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 hand1FingerAngle = 0.15;
                 hand2FingerAngle = 0.15;
 
-                hand1Pos.x += (hand1Target.x - hand1Pos.x) * 0.22;
-                hand1Pos.y += (hand1Target.y - hand1Pos.y) * 0.22;
-                hand2Pos.x += (hand2Target.x - hand2Pos.x) * 0.22;
-                hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.22;
+                hand1Pos.x += (hand1Target.x - hand1Pos.x) * 0.35;
+                hand1Pos.y += (hand1Target.y - hand1Pos.y) * 0.35;
+                hand2Pos.x += (hand2Target.x - hand2Pos.x) * 0.35;
+                hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.35;
 
-                if (previewFrame === 390) {
-                    playExplosionSound();
+                if (previewFrame === 190) {
+                    playDestructionSound();
                     createExplosion(coreCenterX, coreCenterY, themeCyan);
                     createExplosion(coreCenterX, coreCenterY, themePurple);
                     createExplosion(coreCenterX, coreCenterY, '255, 255, 255');
-                }
-                if (previewFrame === 410) {
-                    playExplosionSound();
-                    createExplosion(coreCenterX, coreCenterY, themeCyan);
-                    createExplosion(coreCenterX, coreCenterY, themePurple);
-                    createExplosion(coreCenterX, coreCenterY, '255, 255, 255');
+                    createExplosion(coreCenterX - 50, coreCenterY, themeCyan);
+                    createExplosion(coreCenterX + 50, coreCenterY, themePurple);
                 }
             } else {
-                // Phase 5: Retract
+                // Phase 5: Fast Retract
                 hand1Target.x = currentLayout.h1Start.x;
                 hand1Target.y = currentLayout.h1Start.y;
                 hand2Target.x = currentLayout.h2Start.x;
@@ -3269,12 +3382,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 hand1FingerAngle = 0.6;
                 hand2FingerAngle = 0.6;
 
-                hand1Pos.x += (hand1Target.x - hand1Pos.x) * 0.08;
-                hand1Pos.y += (hand1Target.y - hand1Pos.y) * 0.08;
-                hand2Pos.x += (hand2Target.x - hand2Pos.x) * 0.08;
-                hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.08;
+                hand1Pos.x += (hand1Target.x - hand1Pos.x) * 0.25;
+                hand1Pos.y += (hand1Target.y - hand1Pos.y) * 0.25;
+                hand2Pos.x += (hand2Target.x - hand2Pos.x) * 0.25;
+                hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.25;
 
-                if (previewFrame >= 480) {
+                if (previewFrame >= 240) {
                     isPreviewActive = false;
                     const panel = document.getElementById('cursor-settings-panel');
                     if (panel) {
