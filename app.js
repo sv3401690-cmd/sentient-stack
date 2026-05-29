@@ -1313,37 +1313,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const cursorSettingsToggle = document.getElementById('cursor-settings-toggle');
-    const cursorSettingsPanel = document.getElementById('cursor-settings-panel');
-    
-    if (cursorSettingsToggle && cursorSettingsPanel) {
-        cursorSettingsToggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            cursorSettingsPanel.classList.toggle('hidden');
-        });
-        
-        // Close when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!cursorSettingsPanel.classList.contains('hidden') && 
-                !cursorSettingsPanel.contains(e.target) && 
-                e.target !== cursorSettingsToggle) {
-                cursorSettingsPanel.classList.add('hidden');
-            }
-        });
-        
-        // Prevent clicks inside panel from bubbling up
-        cursorSettingsPanel.addEventListener('click', (e) => {
-            e.stopPropagation();
-        });
-    }
-
-    // Arms Preview Trigger -> opens Fun Zone instead
-    const armsPreviewBtn = document.getElementById('arms-preview-btn');
-    if (armsPreviewBtn) {
-        armsPreviewBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            showFunZone();
-        });
-    }
 
     // =================================================================
     // FUN ZONE & macOS LOCK SCREEN SYSTEM
@@ -1382,7 +1351,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const chaseTimeVal = document.getElementById('chase-time-value');
     const chaseProgressBar = document.getElementById('chase-progress-bar');
 
-    let activeTab = 'arms-tab-content';
+    let activeTab = 'custom-tab-content';
 
     function showFunZone() {
         if (isSystemLocked) return;
@@ -1390,9 +1359,6 @@ document.addEventListener('DOMContentLoaded', () => {
             funZoneModal.classList.remove('hidden');
             funZoneModal.offsetHeight; // force reflow
             funZoneModal.classList.add('visible');
-        }
-        if (cursorSettingsPanel) {
-            cursorSettingsPanel.classList.add('hidden');
         }
         if (activeTab === 'sheesh-tab-content') {
             startWebcam();
@@ -1409,7 +1375,54 @@ document.addEventListener('DOMContentLoaded', () => {
         stopWebcam();
     }
 
-    if (funZoneToggle) funZoneToggle.addEventListener('click', showFunZone);
+    function activateTab(tabId) {
+        const funTabs = document.querySelectorAll('.fun-tab');
+        funTabs.forEach(tab => {
+            const targetTab = tab.getAttribute('data-tab');
+            if (targetTab === tabId) {
+                tab.classList.add('active');
+            } else {
+                tab.classList.remove('active');
+            }
+        });
+
+        activeTab = tabId;
+
+        document.querySelectorAll('.fun-tab-content').forEach(content => {
+            if (content.id === tabId) {
+                content.classList.add('active-content');
+            } else {
+                content.classList.remove('active-content');
+            }
+        });
+
+        if (tabId === 'sheesh-tab-content') {
+            startWebcam();
+        } else {
+            stopWebcam();
+        }
+    }
+
+    if (cursorSettingsToggle) {
+        cursorSettingsToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            showFunZone();
+            activateTab('custom-tab-content');
+        });
+    }
+
+    if (funZoneToggle) {
+        funZoneToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            showFunZone();
+            if (activeTab === 'custom-tab-content') {
+                activateTab('arms-tab-content');
+            } else {
+                activateTab(activeTab);
+            }
+        });
+    }
+
     if (funZoneClose) funZoneClose.addEventListener('click', hideFunZone);
 
     // Wire up tabs selection
@@ -1417,23 +1430,8 @@ document.addEventListener('DOMContentLoaded', () => {
     funTabs.forEach(tab => {
         tab.addEventListener('click', (e) => {
             e.stopPropagation();
-            funTabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-
             const targetTab = tab.getAttribute('data-tab');
-            activeTab = targetTab;
-
-            document.querySelectorAll('.fun-tab-content').forEach(content => {
-                content.classList.remove('active-content');
-            });
-            const activeEl = document.getElementById(targetTab);
-            if (activeEl) activeEl.classList.add('active-content');
-
-            if (targetTab === 'sheesh-tab-content') {
-                startWebcam();
-            } else {
-                stopWebcam();
-            }
+            activateTab(targetTab);
         });
     });
 

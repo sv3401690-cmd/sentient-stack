@@ -81,89 +81,7 @@
             <div class="header-divider"></div>
         </header>
 
-        <!-- Floating Settings Panel -->
-        <div class="floating-panel hidden" id="cursor-settings-panel">
-            <div class="setting-item" style="margin-bottom: 15px;">
-                <label>🔮 CURSOR EFFECT</label>
-                <div class="cursor-options" id="cursor-options">
-                    <button class="cursor-opt active" data-style="quantum">QUANTUM</button>
-                    <button class="cursor-opt" data-style="matrix">MATRIX</button>
-                    <button class="cursor-opt" data-style="stardust">STARDUST</button>
-                    <button class="cursor-opt" data-style="plasma">PLASMA</button>
-                    <button class="cursor-opt" data-style="nova">NOVA</button>
-                    <button class="cursor-opt" data-style="cybergrid">CYBER-GRID</button>
-                </div>
-            </div>
-            <div class="setting-item" style="margin-bottom: 15px;">
-                <label>🎨 THEME MODE</label>
-                <div class="theme-mode-options" id="theme-mode-options">
-                    <button class="theme-mode-opt active" data-mode="manual">MANUAL</button>
-                    <button class="theme-mode-opt" data-mode="auto">AUTO</button>
-                </div>
-            </div>
-            <div class="setting-item" style="margin-bottom: 15px;">
-                <label>⚛️ NAZ CORE DESIGN</label>
-                <div class="core-options" id="core-options">
-                    <button class="core-design-opt active" data-design="quantum">QUANTUM</button>
-                    <button class="core-design-opt" data-design="singularity">SINGULARITY</button>
-                    <button class="core-design-opt" data-design="neural">NEURAL</button>
-                    <button class="core-design-opt" data-design="eclipse">ECLIPSE</button>
-                    <button class="core-design-opt" data-design="vortex">VORTEX</button>
-                </div>
-            </div>
-            <div class="setting-item" style="margin-bottom: 15px;">
-                <label>🤖 ROBOTIC ARM STYLE</label>
-                <div class="arm-options" id="arm-options">
-                    <button class="arm-opt active" data-style="cyber-link">CYBER-LINK</button>
-                    <button class="arm-opt" data-style="nano-swarm">NANO-SWARM</button>
-                    <button class="arm-opt" data-style="mecha-arm">MECHA-ARM</button>
-                    <button class="arm-opt" data-style="plasma-whip">PLASMA-WHIP</button>
-                    <button class="arm-opt" data-style="matrix-sentinel">MATRIX-SPINE</button>
-                    <button class="arm-opt" data-style="chrono-gear">CHRONO-GEAR</button>
-                </div>
-            </div>
-            <div class="setting-item" style="margin-bottom: 15px;">
-                <button class="preview-btn" id="arms-preview-btn" data-tooltip="Open the Naz Fun Zone containing system previews and snaps">🎮 FUN ZONE</button>
-            </div>
-            <div class="setting-item" style="margin-bottom: 15px;">
-                <label>🎯 NAZ VOICE FOCUS</label>
-                <select id="voice-focus-select" class="hud-select">
-                    <option value="female">FEMALE FOCUS</option>
-                    <option value="english-other">ENGLISH OTHER</option>
-                    <option value="international">INTERNATIONAL</option>
-                </select>
-            </div>
-            <div class="setting-item">
-                <label>🎙️ NAZ VOICE ENGINE</label>
-                <select id="voice-select" class="hud-select">
-                    <option value="">Detecting local voice engines...</option>
-                </select>
-            </div>
-            <div class="setting-item" style="margin-bottom: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.08);">
-                <label>🎯 FOCUS MODE</label>
-                <button class="focus-toggle-btn" id="focus-toggle-btn" data-tooltip="Activate deep focus — silence all distractions">
-                    <span class="focus-icon">🔕</span>
-                    <span class="focus-label" id="focus-label">FOCUS: OFF</span>
-                </button>
-            </div>
-            <div class="setting-item" style="margin-bottom: 15px;">
-                <label>🔋 NAZ ENGINE</label>
-                <div class="engine-options" id="engine-options">
-                    <button class="engine-opt active" data-engine="naz-core">NAZ-CORE v1</button>
-                    <button class="engine-opt" data-engine="quantum-x">QUANTUM-X</button>
-                    <button class="engine-opt" data-engine="phantom">PHANTOM</button>
-                    <button class="engine-opt" data-engine="nebula">NEBULA</button>
-                </div>
-            </div>
-            <div class="setting-item settings-sync-section" style="margin-top: 18px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.08);">
-                <label>🔗 SETTINGS SYNC</label>
-                <div class="sync-buttons">
-                    <button class="sync-btn" id="export-settings-btn" data-tooltip="Copy settings link to clipboard">📤 SHARE LINK</button>
-                    <button class="sync-btn" id="import-settings-btn" data-tooltip="Import settings from clipboard">📥 IMPORT</button>
-                </div>
-                <div class="sync-status" id="sync-status"></div>
-            </div>
-        </div>
+
 
         <!-- Main Body: Voice Visualizer Portal -->
         <main class="portal-body">
@@ -274,20 +192,102 @@
             <div class="chase-instruction">INTERCEPT THE FLOATING ENCRYPTED CARD IN THE VIEWPORT</div>
         </div>
 
-        <!-- Fun Zone Modal -->
+        <!-- Unified Settings & Fun Zone Modal -->
         <div class="fun-zone-modal hidden" id="fun-zone-modal">
             <div class="fun-zone-header">
-                <span class="fun-zone-title">👾 NAZ FUN ZONE 👾</span>
+                <span class="fun-zone-title">👾 NAZ CONTROL HUB 👾</span>
                 <button class="fun-zone-close" id="fun-zone-close">&times;</button>
             </div>
             
             <div class="fun-tabs">
-                <button class="fun-tab active" data-tab="arms-tab-content">🦾 COMBAT ARMS</button>
+                <button class="fun-tab active" data-tab="custom-tab-content">🎨 CUSTOMIZATION</button>
+                <button class="fun-tab" data-tab="arms-tab-content">🦾 COMBAT ARMS</button>
                 <button class="fun-tab" data-tab="sheesh-tab-content">📸 SHEESH SNAP</button>
             </div>
+
+            <!-- Tab 1: Customization Settings -->
+            <div class="fun-tab-content active-content" id="custom-tab-content">
+                <div class="fun-description">
+                    Configure portal interface designs, cursor trails, engine parameters, and sync profiles.
+                </div>
+                
+                <div class="setting-item" style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 0.72rem; color: var(--accent-cyan); letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">🔮 CURSOR EFFECT</label>
+                    <div class="cursor-options" id="cursor-options">
+                        <button class="cursor-opt active" data-style="quantum">QUANTUM</button>
+                        <button class="cursor-opt" data-style="matrix">MATRIX</button>
+                        <button class="cursor-opt" data-style="stardust">STARDUST</button>
+                        <button class="cursor-opt" data-style="plasma">PLASMA</button>
+                        <button class="cursor-opt" data-style="nova">NOVA</button>
+                        <button class="cursor-opt" data-style="cybergrid">CYBER-GRID</button>
+                    </div>
+                </div>
+                
+                <div class="setting-item" style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 0.72rem; color: var(--accent-cyan); letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">🎨 THEME MODE</label>
+                    <div class="theme-mode-options" id="theme-mode-options">
+                        <button class="theme-mode-opt active" data-mode="manual">MANUAL</button>
+                        <button class="theme-mode-opt" data-mode="auto">AUTO</button>
+                    </div>
+                </div>
+
+                <div class="setting-item" style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 0.72rem; color: var(--accent-cyan); letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">⚛️ NAZ CORE DESIGN</label>
+                    <div class="core-options" id="core-options">
+                        <button class="core-design-opt active" data-design="quantum">QUANTUM</button>
+                        <button class="core-design-opt" data-design="singularity">SINGULARITY</button>
+                        <button class="core-design-opt" data-design="neural">NEURAL</button>
+                        <button class="core-design-opt" data-design="eclipse">ECLIPSE</button>
+                        <button class="core-design-opt" data-design="vortex">VORTEX</button>
+                    </div>
+                </div>
+
+                <div class="setting-item" style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 0.72rem; color: var(--accent-cyan); letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">🎯 NAZ VOICE FOCUS</label>
+                    <select id="voice-focus-select" class="hud-select">
+                        <option value="female">FEMALE FOCUS</option>
+                        <option value="english-other">ENGLISH OTHER</option>
+                        <option value="international">INTERNATIONAL</option>
+                    </select>
+                </div>
+
+                <div class="setting-item" style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 0.72rem; color: var(--accent-cyan); letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">🎙️ NAZ VOICE ENGINE</label>
+                    <select id="voice-select" class="hud-select">
+                        <option value="">Detecting local voice engines...</option>
+                    </select>
+                </div>
+
+                <div class="setting-item" style="margin-bottom: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.08);">
+                    <label style="display: block; font-size: 0.72rem; color: var(--accent-cyan); letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">🎯 FOCUS MODE</label>
+                    <button class="focus-toggle-btn" id="focus-toggle-btn" data-tooltip="Activate deep focus — silence all distractions">
+                        <span class="focus-icon">🔕</span>
+                        <span class="focus-label" id="focus-label">FOCUS: OFF</span>
+                    </button>
+                </div>
+
+                <div class="setting-item" style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 0.72rem; color: var(--accent-cyan); letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">🔋 NAZ ENGINE</label>
+                    <div class="engine-options" id="engine-options">
+                        <button class="engine-opt active" data-engine="naz-core">NAZ-CORE v1</button>
+                        <button class="engine-opt" data-engine="quantum-x">QUANTUM-X</button>
+                        <button class="engine-opt" data-engine="phantom">PHANTOM</button>
+                        <button class="engine-opt" data-engine="nebula">NEBULA</button>
+                    </div>
+                </div>
+
+                <div class="setting-item settings-sync-section" style="margin-top: 18px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.08);">
+                    <label style="display: block; font-size: 0.72rem; color: var(--accent-cyan); letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">🔗 SETTINGS SYNC</label>
+                    <div class="sync-buttons">
+                        <button class="sync-btn" id="export-settings-btn" data-tooltip="Copy settings link to clipboard">📤 SHARE LINK</button>
+                        <button class="sync-btn" id="import-settings-btn" data-tooltip="Import settings from clipboard">📥 IMPORT</button>
+                    </div>
+                    <div class="sync-status" id="sync-status"></div>
+                </div>
+            </div>
             
-            <!-- Tab 1: Combat Arms Preview -->
-            <div class="fun-tab-content active-content" id="arms-tab-content">
+            <!-- Tab 2: Combat Arms Preview -->
+            <div class="fun-tab-content" id="arms-tab-content">
                 <div class="fun-description">
                     Deploy cybernetic weaponry and verify mechanical joints with hyper-active core calibration.
                 </div>
