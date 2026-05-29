@@ -3008,3 +3008,16 @@ body.boot-complete .glow-orb {
     15%, 45%, 75% { transform: translateX(-12px); }
     30%, 60%, 90% { transform: translateX(12px); }
 }
+
+/* Global utility classes */
+.hidden {
+    display: none !important;
+}
+
+/* Card teleport glitch visual transition */
+.floating-photo-card.teleport-glitch {
+    transform: perspective(800px) scale(0.2) rotate(45deg) !important;
+    opacity: 0.3 !important;
+    filter: hue-rotate(180deg) invert(1) !important;
+    box-shadow: 0 0 50px rgba(0, 255, 255, 1) !important;
+}

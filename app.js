@@ -1678,6 +1678,8 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.shadowBlur = 0;
     }
 
+    let lastTeleportTime = 0;
+
     // 3D Photo Card Bouncer Physics Loop
     function updateCardPhysics() {
         if (!isChasing) return;
@@ -1717,10 +1719,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (bounced) {
             const speed = Math.sqrt(cardVx * cardVx + cardVy * cardVy);
-            if (speed < 18) {
-                cardVx *= 1.04;
-                cardVy *= 1.04;
+            if (speed < 30) {
+                cardVx *= 1.08;
+                cardVy *= 1.08;
             }
+        }
+
+        // Teleportation mechanic: Teleport to random location every 1.2s to 2s
+        const now = Date.now();
+        if (now - lastTeleportTime > Math.random() * 800 + 1200) {
+            lastTeleportTime = now;
+
+            card.classList.add('teleport-glitch');
+            setTimeout(() => {
+                card.classList.remove('teleport-glitch');
+            }, 200);
+
+            cardX = Math.random() * (screenWidth - cardWidth - 100) + 50;
+            cardY = Math.random() * (screenHeight - cardHeight - 100) + 50;
+
+            const angle = Math.random() * Math.PI * 2;
+            const currentSpeed = Math.sqrt(cardVx * cardVx + cardVy * cardVy);
+            const speed = Math.min(Math.max(currentSpeed * 1.08, 12), 32);
+            cardVx = Math.cos(angle) * speed;
+            cardVy = Math.sin(angle) * speed;
+
+            try {
+                const audioCtx = getSharedAudioCtx();
+                if (audioCtx) {
+                    const nowAudio = audioCtx.currentTime;
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, nowAudio);
+                    osc.frequency.exponentialRampToValueAtTime(1800, nowAudio + 0.15);
+                    gain.gain.setValueAtTime(0.08, nowAudio);
+                    gain.gain.exponentialRampToValueAtTime(0.001, nowAudio + 0.15);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(nowAudio);
+                    osc.stop(nowAudio + 0.15);
+                }
+            } catch(err) {}
         }
 
         const targetAngleX = (cardVy / 15) * 22;
@@ -1810,10 +1850,11 @@ document.addEventListener('DOMContentLoaded', () => {
         cardY = screenHeight / 2 - 100;
 
         const angle = Math.random() * Math.PI * 2;
-        const speed = 4;
+        const speed = 10;
         cardVx = Math.cos(angle) * speed;
         cardVy = Math.sin(angle) * speed;
 
+        lastTeleportTime = Date.now();
         updateCardPhysics();
 
         chaseTimer = setInterval(() => {
