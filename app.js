@@ -1680,6 +1680,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let lastTeleportTime = 0;
 
+    function handleChaseSuccess() {
+        isChasing = false;
+        clearInterval(chaseTimer);
+        if (physicsFrameId) cancelAnimationFrame(physicsFrameId);
+
+        if (photoCard) {
+            photoCard.style.opacity = '0';
+            photoCard.style.pointerEvents = 'none';
+            setTimeout(() => {
+                photoCard.classList.add('hidden');
+            }, 300);
+        }
+
+        if (chaseHud) {
+            chaseHud.classList.remove('visible');
+            setTimeout(() => {
+                chaseHud.classList.add('hidden');
+            }, 400);
+        }
+
+        playGameWinSound();
+        showFunZone();
+        speakAloud("Security verification complete. Identity confirmed.");
+
+        const statusIndicator = document.getElementById('status-text');
+        if (statusIndicator) statusIndicator.textContent = "VERIFIED OPERATOR";
+    }
+
     // 3D Photo Card Bouncer Physics Loop
     function updateCardPhysics() {
         if (!isChasing) return;
@@ -1691,6 +1719,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const cardHeight = card.offsetHeight || 200;
         const screenWidth = window.innerWidth;
         const screenHeight = window.innerHeight;
+
+        // Check if mouse hits the card -> immediate win
+        if (mouse && mouse.x !== null && mouse.y !== null) {
+            if (mouse.x >= cardX && mouse.x <= cardX + cardWidth &&
+                mouse.y >= cardY && mouse.y <= cardY + cardHeight) {
+                handleChaseSuccess();
+                return;
+            }
+        }
 
         cardX += cardVx;
         cardY += cardVy;
@@ -1898,30 +1935,7 @@ document.addEventListener('DOMContentLoaded', () => {
         photoCard.addEventListener('click', (e) => {
             e.stopPropagation();
             if (!isChasing) return;
-
-            isChasing = false;
-            clearInterval(chaseTimer);
-            if (physicsFrameId) cancelAnimationFrame(physicsFrameId);
-
-            photoCard.style.opacity = '0';
-            photoCard.style.pointerEvents = 'none';
-            setTimeout(() => {
-                photoCard.classList.add('hidden');
-            }, 300);
-
-            if (chaseHud) {
-                chaseHud.classList.remove('visible');
-                setTimeout(() => {
-                    chaseHud.classList.add('hidden');
-                }, 400);
-            }
-
-            playGameWinSound();
-            showFunZone();
-            speakAloud("Security verification complete. Identity confirmed.");
-
-            const statusIndicator = document.getElementById('status-text');
-            if (statusIndicator) statusIndicator.textContent = "VERIFIED OPERATOR";
+            handleChaseSuccess();
         });
     }
 
