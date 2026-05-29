@@ -57,48 +57,98 @@ CURRENT CONTEXT:
 
 Remember: You are Naz. You exist for Vishal. Every response should feel like it comes from someone who genuinely cares.`;
 
-    // Build conversation history for context
+    // Build conversation history for context with strict data sanitization
     const contents = [];
     
-    // Add conversation history if provided
+    // Add conversation history if provided (only valid, non-empty text objects)
     if (history && Array.isArray(history)) {
         for (const msg of history.slice(-20)) { // Keep last 20 messages for context
-            contents.push({
-                role: msg.role === 'user' ? 'user' : 'model',
-                parts: [{ text: msg.text }]
-            });
+            if (msg && typeof msg === 'object' && typeof msg.text === 'string' && msg.text.trim() !== '') {
+                contents.push({
+                    role: msg.role === 'user' ? 'user' : 'model',
+                    parts: [{ text: msg.text.trim() }]
+                });
+            }
         }
     }
 
     // Add current user message
     contents.push({
         role: 'user',
-        parts: [{ text: message }]
+        parts: [{ text: message.trim() }]
     });
 
-    try {
-        const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`,
-            {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' }
-            }
-        );
+    // List of models to try in descending order of preference/stability.
+    // If a model is rate-limited or unavailable, we fallback gracefully to the next one.
+    const modelsToTry = [
+        'gemini-3.5-flash',
+        'gemini-2.5-flash',
+        'gemini-2.0-flash',
+        'gemini-flash-latest'
+    ];
 
-        if (!response.ok) {
-            const errData = await response.text();
-            console.error('Gemini API error during list models:', errData);
-            return res.status(response.status).json({ 
-                error: 'Gemini API error during list models', 
-                details: errData 
-            });
+    let response = null;
+    let lastErrorMsg = '';
+
+    for (const model of modelsToTry) {
+        try {
+            console.log(`Attempting to generate content with model: ${model}`);
+            response = await fetch(
+                `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        system_instruction: {
+                            parts: [{ text: systemInstruction }]
+                        },
+                        contents: contents,
+                        generationConfig: {
+                            temperature: 0.85,
+                            topP: 0.95,
+                            topK: 40,
+                            maxOutputTokens: 1024,
+                        },
+                        safetySettings: [
+                            { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+                            { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+                            { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+                            { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+                        ]
+                    })
+                }
+            );
+
+            if (response.ok) {
+                console.log(`Success with model: ${model}`);
+                break; // Break the retry loop on success
+            } else {
+                const errData = await response.text();
+                lastErrorMsg = `Model ${model} failed with status ${response.status}: ${errData}`;
+                console.warn(lastErrorMsg);
+            }
+        } catch (err) {
+            lastErrorMsg = `Error fetching model ${model}: ${err.message}`;
+            console.error(lastErrorMsg, err);
+        }
+    }
+
+    if (!response || !response.ok) {
+        return res.status(500).json({ 
+            error: 'All Gemini models exhausted. Connection failed.', 
+            details: lastErrorMsg 
+        });
+    }
+
+    try {
+        const data = await response.json();
+        const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!reply) {
+            return res.status(500).json({ error: 'No response generated from the model API', raw: data });
         }
 
-        const data = await response.json();
-        return res.status(200).json({ models: data.models });
-
-    } catch (err) {
-        console.error('Server error:', err);
-        return res.status(500).json({ error: 'Internal server error', message: err.message });
+        return res.status(200).json({ reply });
+    } catch (jsonErr) {
+        return res.status(500).json({ error: 'Failed to parse model response JSON', details: jsonErr.message });
     }
 }

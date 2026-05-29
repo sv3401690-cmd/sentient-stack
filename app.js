@@ -4344,7 +4344,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function getChatHistory(sessionId = getActiveSessionId()) {
         const sessions = getSessions();
         const s = sessions.find(item => item.id === sessionId);
-        return s ? s.history : [];
+        return s && Array.isArray(s.history) ? s.history : [];
     }
 
     function saveChatHistory(history, sessionId = getActiveSessionId()) {
@@ -5534,9 +5534,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let response = '';
 
-        // Use production API URL if testing locally (file:// or localhost) to bypass local environment gaps
+        // Use production API URL if testing locally (file://, localhost, or local IP) to bypass local environment gaps
         const isLocal = window.location.hostname === 'localhost' || 
                         window.location.hostname === '127.0.0.1' || 
+                        window.location.hostname === '0.0.0.0' || 
+                        window.location.hostname.startsWith('192.168.') || 
+                        window.location.hostname.startsWith('10.') || 
+                        window.location.hostname.startsWith('172.') || 
+                        !window.location.hostname.includes('.') || 
                         window.location.protocol === 'file:';
         const apiEndpoint = isLocal ? 'https://sentient-stack.vercel.app/api/chat' : '/api/chat';
 
