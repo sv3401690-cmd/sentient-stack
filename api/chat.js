@@ -1,7 +1,7 @@
 // /api/chat.js — Vercel Serverless Function
 // Proxies chat messages to Google Gemini API securely
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
     // CORS headers for same-origin requests
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
