@@ -25,11 +25,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 850);
     }
     
+    let sharedAudioCtx = null;
+    function getSharedAudioCtx() {
+        if (!sharedAudioCtx) {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (AudioContext) {
+                sharedAudioCtx = new AudioContext();
+            }
+        }
+        if (sharedAudioCtx && sharedAudioCtx.state === 'suspended') {
+            sharedAudioCtx.resume().catch(e => console.warn("Failed to resume audio context: ", e));
+        }
+        return sharedAudioCtx;
+    }
+
     function playStartupSound() {
         try {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            if (!AudioContext) return;
-            const audioCtx = new AudioContext();
+            const audioCtx = getSharedAudioCtx();
+            if (!audioCtx) return;
             const now = audioCtx.currentTime;
             
             // --- 1. DEEP CINEMATIC WHOOSH (Sub-Bass) ---
@@ -111,128 +124,228 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function playKlaxonAlarm() {
+    function playDeploymentSound() {
         try {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            if (!AudioContext) return;
-            const audioCtx = new AudioContext();
+            const audioCtx = getSharedAudioCtx();
+            if (!audioCtx) return;
             const now = audioCtx.currentTime;
-            const duration = 5.5;
+            const duration = 2.0;
 
-            // Master compressor to glue all layers
+            // Master compressor
             const compressor = audioCtx.createDynamicsCompressor();
-            compressor.threshold.setValueAtTime(-24, now);
-            compressor.knee.setValueAtTime(12, now);
-            compressor.ratio.setValueAtTime(8, now);
-            compressor.attack.setValueAtTime(0.003, now);
-            compressor.release.setValueAtTime(0.15, now);
+            compressor.threshold.setValueAtTime(-20, now);
+            compressor.ratio.setValueAtTime(6, now);
             compressor.connect(audioCtx.destination);
 
-            // Waveshaper distortion for grit
-            const distortion = audioCtx.createWaveShaper();
-            const curveLen = 44100;
-            const curve = new Float32Array(curveLen);
-            for (let i = 0; i < curveLen; i++) {
-                const x = (i * 2) / curveLen - 1;
-                curve[i] = (Math.PI + 200) * x / (Math.PI + 200 * Math.abs(x));
+            // --- 1. Hydraulic Release Swoosh (filtered noise envelope) ---
+            const bufferSize = audioCtx.sampleRate * duration;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
             }
-            distortion.curve = curve;
-            distortion.oversample = '4x';
-            distortion.connect(compressor);
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
 
-            // --- Layer 1: Deep detuned dual-sawtooth alarm (slow menacing pulsation) ---
-            const osc1 = audioCtx.createOscillator();
-            const osc2 = audioCtx.createOscillator();
-            const alarmGain = audioCtx.createGain();
-            const alarmFilter = audioCtx.createBiquadFilter();
-
-            osc1.type = 'sawtooth';
-            osc2.type = 'sawtooth';
-            osc1.detune.setValueAtTime(-25, now);
-            osc2.detune.setValueAtTime(25, now);
-
-            alarmFilter.type = 'lowpass';
-            alarmFilter.frequency.setValueAtTime(150, now);
-            alarmFilter.Q.setValueAtTime(6, now);
-
-            // Slow, heavy pulsation (0.7s per cycle instead of 0.35)
-            for (let i = 0; i < 8; i++) {
-                const t = now + i * 0.7;
-                osc1.frequency.setValueAtTime(140, t);
-                osc1.frequency.exponentialRampToValueAtTime(220, t + 0.3);
-                osc1.frequency.exponentialRampToValueAtTime(140, t + 0.7);
-                osc2.frequency.setValueAtTime(143, t);
-                osc2.frequency.exponentialRampToValueAtTime(224, t + 0.3);
-                osc2.frequency.exponentialRampToValueAtTime(143, t + 0.7);
-
-                alarmFilter.frequency.exponentialRampToValueAtTime(900, t + 0.3);
-                alarmFilter.frequency.exponentialRampToValueAtTime(180, t + 0.7);
-            }
-
-            alarmGain.gain.setValueAtTime(0, now);
-            alarmGain.gain.linearRampToValueAtTime(0.12, now + 0.08);
-            alarmGain.gain.setValueAtTime(0.12, now + duration - 1.2);
-            alarmGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
-
-            osc1.connect(alarmFilter);
-            osc2.connect(alarmFilter);
-            alarmFilter.connect(alarmGain);
-            alarmGain.connect(distortion);
-
-            osc1.start(now); osc2.start(now);
-            osc1.stop(now + duration); osc2.stop(now + duration);
-
-            // --- Layer 2: Abyssal sub-bass drone (45Hz) ---
-            const subOsc = audioCtx.createOscillator();
-            const subGain = audioCtx.createGain();
-            subOsc.type = 'sine';
-            subOsc.frequency.setValueAtTime(45, now);
-            subOsc.frequency.linearRampToValueAtTime(38, now + duration);
-
-            subGain.gain.setValueAtTime(0, now);
-            subGain.gain.linearRampToValueAtTime(0.45, now + 0.3);
-            subGain.gain.setValueAtTime(0.45, now + duration - 1.5);
-            subGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
-
-            subOsc.connect(subGain);
-            subGain.connect(compressor);
-            subOsc.start(now); subOsc.stop(now + duration);
-
-            // --- Layer 3: Low rumble noise bed ---
-            const noiseLen = audioCtx.sampleRate * duration;
-            const noiseBuf = audioCtx.createBuffer(1, noiseLen, audioCtx.sampleRate);
-            const noiseData = noiseBuf.getChannelData(0);
-            for (let i = 0; i < noiseLen; i++) {
-                noiseData[i] = Math.random() * 2 - 1;
-            }
-            const noiseSrc = audioCtx.createBufferSource();
-            noiseSrc.buffer = noiseBuf;
-
-            const noiseLp = audioCtx.createBiquadFilter();
-            noiseLp.type = 'lowpass';
-            noiseLp.frequency.setValueAtTime(120, now);
-            noiseLp.Q.setValueAtTime(1, now);
+            const noiseFilter = audioCtx.createBiquadFilter();
+            noiseFilter.type = 'lowpass';
+            noiseFilter.frequency.setValueAtTime(1000, now);
+            noiseFilter.frequency.exponentialRampToValueAtTime(120, now + 1.2);
+            noiseFilter.Q.setValueAtTime(4, now);
 
             const noiseGain = audioCtx.createGain();
             noiseGain.gain.setValueAtTime(0, now);
-            noiseGain.gain.linearRampToValueAtTime(0.18, now + 0.5);
-            noiseGain.gain.setValueAtTime(0.18, now + duration - 1.5);
-            noiseGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+            noiseGain.gain.linearRampToValueAtTime(0.08, now + 0.05);
+            noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
 
-            noiseSrc.connect(noiseLp);
-            noiseLp.connect(noiseGain);
+            noise.connect(noiseFilter);
+            noiseFilter.connect(noiseGain);
             noiseGain.connect(compressor);
-            noiseSrc.start(now); noiseSrc.stop(now + duration);
-        } catch(e) {
-            console.warn("Failed to play alarm: ", e);
+            noise.start(now);
+            noise.stop(now + 1.5);
+
+            // --- 2. Sub-bass heavy thump ---
+            const subOsc = audioCtx.createOscillator();
+            const subGain = audioCtx.createGain();
+            subOsc.type = 'sine';
+            subOsc.frequency.setValueAtTime(90, now);
+            subOsc.frequency.exponentialRampToValueAtTime(40, now + 0.6);
+
+            subGain.gain.setValueAtTime(0, now);
+            subGain.gain.linearRampToValueAtTime(0.35, now + 0.05);
+            subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+
+            subOsc.connect(subGain);
+            subGain.connect(compressor);
+            subOsc.start(now);
+            subOsc.stop(now + 0.8);
+
+            // --- 3. Digital Power-up Shimmer Chime ---
+            const frequencies = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6 (major chord sweep)
+            frequencies.forEach((freq, index) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                const filter = audioCtx.createBiquadFilter();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq * 0.9, now + index * 0.08);
+                osc.frequency.exponentialRampToValueAtTime(freq, now + index * 0.08 + 0.2);
+
+                filter.type = 'bandpass';
+                filter.frequency.setValueAtTime(freq, now);
+                filter.Q.setValueAtTime(2.0, now);
+
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.setValueAtTime(0, now + index * 0.08);
+                gain.gain.linearRampToValueAtTime(0.05, now + index * 0.08 + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + index * 0.08 + 1.2);
+
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(compressor);
+
+                osc.start(now + index * 0.08);
+                osc.stop(now + index * 0.08 + 1.2);
+            });
+
+        } catch (e) {
+            console.warn("Failed to play deployment sound:", e);
+        }
+    }
+
+    function playMechaPunchSound() {
+        try {
+            const audioCtx = getSharedAudioCtx();
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+
+            // Master compressor
+            const compressor = audioCtx.createDynamicsCompressor();
+            compressor.threshold.setValueAtTime(-15, now);
+            compressor.ratio.setValueAtTime(8, now);
+            compressor.connect(audioCtx.destination);
+
+            // 1. Crisp metallic click/clank (short transient)
+            const clickOsc = audioCtx.createOscillator();
+            const clickGain = audioCtx.createGain();
+            clickOsc.type = 'triangle';
+            clickOsc.frequency.setValueAtTime(900, now);
+            clickOsc.frequency.exponentialRampToValueAtTime(300, now + 0.05);
+
+            clickGain.gain.setValueAtTime(0.2, now);
+            clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+
+            clickOsc.connect(clickGain);
+            clickGain.connect(compressor);
+            clickOsc.start(now);
+            clickOsc.stop(now + 0.05);
+
+            // 2. Heavy hydraulic sub thump
+            const thumpOsc = audioCtx.createOscillator();
+            const thumpGain = audioCtx.createGain();
+            thumpOsc.type = 'sine';
+            thumpOsc.frequency.setValueAtTime(140, now);
+            thumpOsc.frequency.exponentialRampToValueAtTime(45, now + 0.18);
+
+            thumpGain.gain.setValueAtTime(0.65, now);
+            thumpGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+
+            thumpOsc.connect(thumpGain);
+            thumpGain.connect(compressor);
+            thumpOsc.start(now);
+            thumpOsc.stop(now + 0.2);
+
+            // 3. Short pneumatic air hiss (white noise bandpass)
+            const bufferSize = audioCtx.sampleRate * 0.3;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.setValueAtTime(400, now);
+            filter.frequency.exponentialRampToValueAtTime(80, now + 0.25);
+            filter.Q.setValueAtTime(3.0, now);
+
+            const noiseGain = audioCtx.createGain();
+            noiseGain.gain.setValueAtTime(0.12, now);
+            noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+            noise.connect(filter);
+            filter.connect(noiseGain);
+            noiseGain.connect(compressor);
+            noise.start(now);
+            noise.stop(now + 0.25);
+
+        } catch (e) {
+            console.warn("Failed to play mecha punch sound:", e);
+        }
+    }
+
+    function playGearTickSound() {
+        try {
+            const audioCtx = getSharedAudioCtx();
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+
+            // Master compressor
+            const compressor = audioCtx.createDynamicsCompressor();
+            compressor.threshold.setValueAtTime(-10, now);
+            compressor.ratio.setValueAtTime(4, now);
+            compressor.connect(audioCtx.destination);
+
+            // 1. High metallic click (precise triangle sweep)
+            const clickOsc = audioCtx.createOscillator();
+            const clickGain = audioCtx.createGain();
+            clickOsc.type = 'triangle';
+            clickOsc.frequency.setValueAtTime(1800, now);
+            clickOsc.frequency.exponentialRampToValueAtTime(1000, now + 0.02);
+
+            clickGain.gain.setValueAtTime(0.06, now);
+            clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.02);
+
+            clickOsc.connect(clickGain);
+            clickGain.connect(compressor);
+            clickOsc.start(now);
+            clickOsc.stop(now + 0.02);
+
+            // 2. High-pass filtered noise pop (wooden gear block tap)
+            const bufferSize = audioCtx.sampleRate * 0.04;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'highpass';
+            filter.frequency.setValueAtTime(3000, now);
+
+            const noiseGain = audioCtx.createGain();
+            noiseGain.gain.setValueAtTime(0.04, now);
+            noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+
+            noise.connect(filter);
+            filter.connect(noiseGain);
+            noiseGain.connect(compressor);
+            noise.start(now);
+            noise.stop(now + 0.03);
+
+        } catch (e) {
+            console.warn("Failed to play gear tick sound:", e);
         }
     }
 
     function playLaserSound(duration = 2.0) {
         try {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            if (!AudioContext) return;
-            const audioCtx = new AudioContext();
+            const audioCtx = getSharedAudioCtx();
+            if (!audioCtx) return;
             const now = audioCtx.currentTime;
 
             // Master compressor
@@ -320,9 +433,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function playExplosionSound() {
         try {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            if (!AudioContext) return;
-            const audioCtx = new AudioContext();
+            const audioCtx = getSharedAudioCtx();
+            if (!audioCtx) return;
             const now = audioCtx.currentTime;
 
             // Master compressor
@@ -747,9 +859,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function playFocusChime(activating) {
         try {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            if (!AudioContext) return;
-            const audioCtx = new AudioContext();
+            const audioCtx = getSharedAudioCtx();
+            if (!audioCtx) return;
             const now = audioCtx.currentTime;
 
             if (activating) {
@@ -882,9 +993,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function playEngineSwitchSound() {
         try {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            if (!AudioContext) return;
-            const audioCtx = new AudioContext();
+            const audioCtx = getSharedAudioCtx();
+            if (!audioCtx) return;
             const now = audioCtx.currentTime;
 
             // Compressor
@@ -1131,8 +1241,8 @@ document.addEventListener('DOMContentLoaded', () => {
             hand1Target = { x: currentLayout.h1Start.x, y: currentLayout.h1Start.y };
             hand2Target = { x: currentLayout.h2Start.x, y: currentLayout.h2Start.y };
 
-            // Trigger alarm sound
-            playKlaxonAlarm();
+            // Trigger deployment sound
+            playDeploymentSound();
         });
     }
 
@@ -1486,10 +1596,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function playChargingSound() {
         try {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            if (!AudioContext) return;
-            const audioCtx = new AudioContext();
-            
+            const audioCtx = getSharedAudioCtx();
+            if (!audioCtx) return;
             const now = audioCtx.currentTime;
             
             // 1. Capacitor charging sound (exponential frequency sweep up)
@@ -2888,9 +2996,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.22;
 
                     if (cycle === 0 || cycle === 15) {
-                        playExplosionSound();
+                        playMechaPunchSound();
                         createExplosion(coreCenterX + (cycle === 0 ? -60 : 60), coreCenterY, '255, 255, 255');
-                        spawnEmotionParticles(['💥', '⚙️', '🛠️']);
                     }
 
                 } else if (selectedArmStyle === 'plasma-whip') {
@@ -3010,7 +3117,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     hand2Pos.y += (hand2Target.y - hand2Pos.y) * 0.08;
 
                     if (previewFrame % 10 === 0) {
-                        playExplosionSound(); // mechanical tick
+                        playGearTickSound(); // mechanical tick
                     }
 
                     // Steam puff particles
@@ -3145,14 +3252,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     createExplosion(coreCenterX, coreCenterY, themeCyan);
                     createExplosion(coreCenterX, coreCenterY, themePurple);
                     createExplosion(coreCenterX, coreCenterY, '255, 255, 255');
-                    spawnEmotionParticles(['🔥', '⚡️', '🚨', '🦾', '💥', '⚙️', '🛠️']);
                 }
                 if (previewFrame === 410) {
                     playExplosionSound();
                     createExplosion(coreCenterX, coreCenterY, themeCyan);
                     createExplosion(coreCenterX, coreCenterY, themePurple);
                     createExplosion(coreCenterX, coreCenterY, '255, 255, 255');
-                    spawnEmotionParticles(['🔥', '⚡️', '🚨', '🦾', '💥', '⚙️', '🛠️']);
                 }
             } else {
                 // Phase 5: Retract
