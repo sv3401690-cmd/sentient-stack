@@ -4317,6 +4317,94 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeDrawerBtn = document.getElementById('close-drawer-btn');
     const userCard = document.querySelector('.user-card');
     const aiCard = document.querySelector('.ai-card');
+
+    // ── Conversation memory (kept in sessionStorage so it survives page navigations)
+    const HISTORY_KEY = 'naz-chat-history';
+    function getChatHistory() {
+        try {
+            return JSON.parse(sessionStorage.getItem(HISTORY_KEY) || '[]');
+        } catch { return []; }
+    }
+    function saveChatHistory(history) {
+        // Keep last 40 messages to avoid bloat
+        const trimmed = history.slice(-40);
+        sessionStorage.setItem(HISTORY_KEY, JSON.stringify(trimmed));
+    }
+
+    // Side Chat UI Selectors
+    const appContainer = document.querySelector('.app-container');
+    const sideChatPanel = document.getElementById('side-chat-panel');
+    const chatMessagesContainer = document.getElementById('chat-messages-container');
+    const chatInputField = document.getElementById('chat-input-field');
+    const chatSendBtn = document.getElementById('chat-send-btn');
+    const closeChatBtn = document.getElementById('close-chat-btn');
+    const newChatBtn = document.getElementById('new-chat-btn');
+
+    function openChatPanel() {
+        if (!appContainer) return;
+        appContainer.classList.add('chat-active');
+        // Unregister PWA keyboard override drawer since we have a dedicated side panel
+        if (inputContainer) inputContainer.classList.add('collapsed');
+        renderChatHistory();
+        setTimeout(() => {
+            if (chatInputField) chatInputField.focus();
+        }, 100);
+    }
+
+    function closeChatPanel() {
+        if (!appContainer) return;
+        appContainer.classList.remove('chat-active');
+    }
+
+    function renderChatHistory() {
+        if (!chatMessagesContainer) return;
+        chatMessagesContainer.innerHTML = '';
+        const history = getChatHistory();
+        
+        if (history.length === 0) {
+            // Default system greeting bubble
+            const greetMsg = document.createElement('div');
+            greetMsg.className = 'chat-message system';
+            greetMsg.innerHTML = '<div class="bubble">⚡ Synapse link established. Say something to start your session.</div>';
+            chatMessagesContainer.appendChild(greetMsg);
+        } else {
+            history.forEach(msg => {
+                const bubbleWrapper = document.createElement('div');
+                bubbleWrapper.className = `chat-message ${msg.role === 'user' ? 'user' : 'model'}`;
+                
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                bubble.textContent = msg.text;
+                bubbleWrapper.appendChild(bubble);
+                
+                chatMessagesContainer.appendChild(bubbleWrapper);
+            });
+        }
+        
+        // Auto scroll to bottom
+        chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+    }
+
+    function appendMessageBubble(role, text) {
+        if (!chatMessagesContainer) return;
+        
+        // Remove default welcome bubble if it is the first real message
+        const systemMsg = chatMessagesContainer.querySelector('.chat-message.system');
+        if (systemMsg) {
+            systemMsg.remove();
+        }
+
+        const bubbleWrapper = document.createElement('div');
+        bubbleWrapper.className = `chat-message ${role === 'user' ? 'user' : 'model'}`;
+        
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        bubble.textContent = text;
+        bubbleWrapper.appendChild(bubble);
+        
+        chatMessagesContainer.appendChild(bubbleWrapper);
+        chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+    }
     
     function toggleKeyboardDrawer(forceCollapse) {
         if (!inputContainer) return;
@@ -4388,12 +4476,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Close on Escape key press, or open and focus input when typing printable characters
-    document.addEventListener('keydown', (e) => {
-        if (isSystemLocked) return;
-        if (e.key === 'Escape' && inputContainer && !inputContainer.classList.contains('collapsed')) {
-            toggleKeyboardDrawer(true);
-            userInput.blur();
+        // Escape key closes the side chat panel
+        if (e.key === 'Escape') {
+            closeChatPanel();
+            if (chatInputField) chatInputField.blur();
             return;
         }
 
@@ -4402,23 +4488,64 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Detect printable character keypresses (e.key length is 1) to open drawer dynamically
+        // Detect printable character keypresses (e.key length is 1) to open side chat panel dynamically
         if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
-            if (inputContainer && inputContainer.classList.contains('collapsed')) {
-                // Cancel active voice speech or synthesis to prioritize manual typing
-                if (window.speechSynthesis) window.speechSynthesis.cancel();
-                stopMicrophone();
-                voiceState = 'idle';
-                aiCore.classList.remove('listening', 'thinking');
-                voiceInstruction.textContent = 'MANUAL OVERRIDE SEQUENCE ACTIVE';
+            // Cancel active voice speech or synthesis to prioritize manual typing
+            if (window.speechSynthesis) window.speechSynthesis.cancel();
+            stopMicrophone();
+            voiceState = 'idle';
+            aiCore.classList.remove('listening', 'thinking');
+            voiceInstruction.textContent = 'MANUAL OVERRIDE SEQUENCE ACTIVE';
 
-                toggleKeyboardDrawer(false);
-                userInput.value = e.key;
-                userInput.focus();
-                e.preventDefault();
+            openChatPanel();
+            if (chatInputField) {
+                chatInputField.value = e.key;
+                chatInputField.focus();
             }
+            e.preventDefault();
         }
     });
+
+    // Bind event listeners for the side chat panel
+    if (closeChatBtn) {
+        closeChatBtn.addEventListener('click', closeChatPanel);
+    }
+
+    if (newChatBtn) {
+        newChatBtn.addEventListener('click', () => {
+            saveChatHistory([]);
+            renderChatHistory();
+            if (window.speechSynthesis) window.speechSynthesis.cancel();
+            stopMicrophone();
+            voiceState = 'idle';
+            aiCore.classList.remove('listening', 'thinking');
+            voiceInstruction.textContent = 'SYNAPSE RESET COMPLETED';
+            speakAloud('Synapse reset. Starting a new conversation.');
+        });
+    }
+
+    function submitChatMessage() {
+        if (!chatInputField) return;
+        const text = chatInputField.value.trim();
+        if (!text) return;
+        
+        appendMessageBubble('user', text);
+        chatInputField.value = '';
+        
+        simulateAIResponse(text);
+    }
+
+    if (chatSendBtn) {
+        chatSendBtn.addEventListener('click', submitChatMessage);
+    }
+
+    if (chatInputField) {
+        chatInputField.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                submitChatMessage();
+            }
+        });
+    }
 
     let voiceState = 'idle'; // 'idle', 'listening', 'processing'
     let ttsEnabled = true;
@@ -5262,32 +5389,26 @@ document.addEventListener('DOMContentLoaded', () => {
         voiceTrigger.addEventListener('click', triggerVoiceActive);
     }
 
-    // ── Conversation memory (kept in sessionStorage so it survives page navigations)
-    const HISTORY_KEY = 'naz-chat-history';
-    function getChatHistory() {
-        try {
-            return JSON.parse(sessionStorage.getItem(HISTORY_KEY) || '[]');
-        } catch { return []; }
-    }
-    function saveChatHistory(history) {
-        // Keep last 40 messages to avoid bloat
-        const trimmed = history.slice(-40);
-        sessionStorage.setItem(HISTORY_KEY, JSON.stringify(trimmed));
-    }
-
     async function simulateAIResponse(queryText) {
         voiceState = 'processing';
         aiCore.classList.add('thinking');
         aiTextElement.innerHTML = '';
         voiceInstruction.textContent = 'NAZ IS THINKING...';
         
+        // Dynamic slide: Ensure the side chat panel is visible when AI starts responding
+        openChatPanel();
+
+        // Update active message list to show user message if it is not already there
+        const history = getChatHistory();
+        const userExists = history.length > 0 && history[history.length - 1].role === 'user' && history[history.length - 1].text === queryText;
+        if (!userExists) {
+            history.push({ role: 'user', text: queryText });
+            appendMessageBubble('user', queryText);
+        }
+
         const cursorSpan = document.createElement('span');
         cursorSpan.className = 'typing-cursor';
         aiTextElement.appendChild(cursorSpan);
-
-        // Add user message to history
-        const history = getChatHistory();
-        history.push({ role: 'user', text: queryText });
 
         let response = '';
 
@@ -5331,7 +5452,15 @@ document.addEventListener('DOMContentLoaded', () => {
         history.push({ role: 'model', text: response });
         saveChatHistory(history);
 
-        // Typewriter logic for the AI text block
+        // Render Naz's message bubble as empty first, then fill it using typewriter
+        appendMessageBubble('model', '');
+        const allBubbles = chatMessagesContainer.querySelectorAll('.chat-message.model .bubble');
+        const activeBubble = allBubbles[allBubbles.length - 1];
+
+        // 🌟 SPEAK IMMEDIATELY FOR NATURAL EXPRESSION AND NO LAG
+        speakAloud(response);
+
+        // Typewriter logic for the AI text blocks (runs in parallel)
         let i = 0;
         aiTextElement.innerHTML = '';
         aiTextElement.appendChild(cursorSpan);
@@ -5339,15 +5468,31 @@ document.addEventListener('DOMContentLoaded', () => {
         function typeWriter() {
             if (i < response.length) {
                 const char = response.charAt(i);
+                
+                // Update old HUD text
                 aiTextElement.insertBefore(document.createTextNode(char), cursorSpan);
+                // Update active chat bubble text
+                if (activeBubble) {
+                    activeBubble.textContent = response.substring(0, i + 1);
+                }
+                
+                // Auto scroll to make sure typewriter text is in view
+                if (chatMessagesContainer) {
+                    chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+                }
+                
                 i++;
-                const speed = Math.random() * 20 + 8;
+                const speed = Math.random() * 12 + 4;
                 setTimeout(typeWriter, speed);
             } else {
                 cursorSpan.remove();
                 aiCore.classList.remove('thinking');
-                voiceInstruction.textContent = 'TRANSMITTING VOCAL RESPONSE...';
-                speakAloud(response);
+                if (activeBubble) {
+                    activeBubble.textContent = response; // finalize
+                }
+                if (chatMessagesContainer) {
+                    chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+                }
             }
         }
         typeWriter();
