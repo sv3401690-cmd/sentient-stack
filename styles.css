@@ -2966,41 +2966,38 @@ body.beast-mode-active .core-aura {
    ================================================================= */
 .side-chat-panel {
     display: none; /* Hidden by default */
-    width: 55%;
+    width: 100%;
     height: 100%;
     background: rgba(8, 8, 12, 0.72);
     backdrop-filter: blur(40px);
     -webkit-backdrop-filter: blur(40px);
-    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    border-left: none;
     flex-direction: column;
     z-index: 100;
     padding: 20px 24px;
-    box-shadow: -20px 0 50px rgba(0, 0, 0, 0.6);
+    border-radius: 0 0 28px 28px;
 }
 
 .app-container.chat-active .side-chat-panel {
     display: flex; /* Instant open, no slide animations */
 }
 
-/* Side-by-side layout when chat is active */
+/* Full-width layout when chat is active */
 .app-container.chat-active .portal-body {
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
+    padding: 0 !important;
 }
 
-/* Slide core panel to the left side and size to 45% width */
+/* Hide core panel on desktop when chat is active to allow full-width pane */
 .app-container.chat-active .voice-core-panel {
-    width: 45%;
-    transform: none; /* No artificial translation offset needed */
-    opacity: 1;
+    display: none !important;
 }
 
 .app-container.chat-active .transcript-hud {
-    opacity: 0;
-    pointer-events: none;
-    transform: translateY(20px);
+    display: none !important;
 }
 
 .transcript-hud {
