@@ -1554,6 +1554,56 @@ document.addEventListener('DOMContentLoaded', () => {
     if (settingsClose) settingsClose.addEventListener('click', hideSettings);
     if (funZoneClose) funZoneClose.addEventListener('click', hideFunZone);
 
+    // Custom API Key Settings handlers
+    const apiKeyInput = document.getElementById('custom-api-key-input');
+    const saveApiKeyBtn = document.getElementById('save-api-key-btn');
+    const apiKeyStatus = document.getElementById('api-key-status');
+
+    if (apiKeyInput && saveApiKeyBtn && apiKeyStatus) {
+        // Restore saved key
+        const savedKey = localStorage.getItem('naz-custom-api-key') || '';
+        if (savedKey) {
+            apiKeyInput.value = savedKey;
+            apiKeyStatus.textContent = 'Status: Custom key active (locally saved)';
+            apiKeyStatus.style.color = 'var(--accent-cyan)';
+            apiKeyStatus.style.display = 'block';
+        }
+
+        saveApiKeyBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const val = apiKeyInput.value.trim();
+            if (val) {
+                localStorage.setItem('naz-custom-api-key', val);
+                apiKeyStatus.textContent = 'Status: Custom key updated and active!';
+                apiKeyStatus.style.color = 'var(--accent-cyan)';
+                apiKeyStatus.style.display = 'block';
+                // Show floating text notification
+                const displayMsg = 'System: Custom API key linked.';
+                const aiTextEl = document.getElementById('ai-text');
+                if (aiTextEl) aiTextEl.textContent = displayMsg;
+                if (typeof speakAloud === 'function') speakAloud('Custom API key linked.');
+            } else {
+                localStorage.removeItem('naz-custom-api-key');
+                apiKeyStatus.textContent = 'Status: Cleared. Using server default key.';
+                apiKeyStatus.style.color = 'rgba(255,255,255,0.4)';
+                apiKeyStatus.style.display = 'block';
+                // Show floating text notification
+                const displayMsg = 'System: API key reset to default.';
+                const aiTextEl = document.getElementById('ai-text');
+                if (aiTextEl) aiTextEl.textContent = displayMsg;
+                if (typeof speakAloud === 'function') speakAloud('API key reset to default.');
+            }
+        });
+
+        // Highlight input field focus outline
+        apiKeyInput.addEventListener('focus', () => {
+            apiKeyInput.style.borderColor = 'var(--accent-cyan)';
+        });
+        apiKeyInput.addEventListener('blur', () => {
+            apiKeyInput.style.borderColor = 'rgba(255,255,255,0.08)';
+        });
+    }
+
     // Manual Lockdown Button inside Settings
     if (manualLockBtn) {
         manualLockBtn.addEventListener('click', (e) => {
@@ -5617,9 +5667,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const apiEndpoint = isLocal ? 'https://sentient-stack.vercel.app/api/chat' : '/api/chat';
 
         try {
+            const customApiKey = localStorage.getItem('naz-custom-api-key') || '';
+            const headers = { 'Content-Type': 'application/json' };
+            if (customApiKey) {
+                headers['x-gemini-api-key'] = customApiKey;
+            }
+
             const res = await fetch(apiEndpoint, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: headers,
                 body: JSON.stringify({
                     message: queryText,
                     history: history

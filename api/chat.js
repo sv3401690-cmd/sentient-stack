@@ -5,7 +5,7 @@ module.exports = async function handler(req, res) {
     // CORS headers for same-origin requests
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-gemini-api-key');
 
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
@@ -15,9 +15,11 @@ module.exports = async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    // Support custom user API key passed in headers, falling back to Vercel environment variable
+    const customKey = req.headers['x-gemini-api-key'];
+    const apiKey = customKey || process.env.GEMINI_API_KEY;
     if (!apiKey) {
-        return res.status(500).json({ error: 'API key not configured. Add GEMINI_API_KEY to Vercel environment variables.' });
+        return res.status(500).json({ error: 'API key not configured. Add GEMINI_API_KEY to Vercel environment variables or enter a custom key in System Settings.' });
     }
 
     const { message, history } = req.body;
