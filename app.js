@@ -5645,7 +5645,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const history = getChatHistory();
         const userExists = history.length > 0 && history[history.length - 1].role === 'user' && history[history.length - 1].text === queryText;
         if (!userExists) {
-            history.push({ role: 'user', text: queryText });
+            history.push({ role: 'user', text: queryText, timestamp: new Date().toISOString() });
             appendMessageBubble('user', queryText);
         }
 
@@ -5703,7 +5703,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Save Naz's response to history
-        history.push({ role: 'model', text: response });
+        history.push({ role: 'model', text: response, timestamp: new Date().toISOString() });
         saveChatHistory(history);
 
         // Render Naz's message bubble as empty first, then fill it using typewriter

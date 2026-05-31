@@ -66,18 +66,51 @@ Remember: You are Naz. You exist for Vishal. Every response should feel like it 
     if (history && Array.isArray(history)) {
         for (const msg of history.slice(-20)) { // Keep last 20 messages for context
             if (msg && typeof msg === 'object' && typeof msg.text === 'string' && msg.text.trim() !== '') {
+                let textContent = msg.text.trim();
+                if (msg.timestamp) {
+                    try {
+                        const dateObj = new Date(msg.timestamp);
+                        if (!isNaN(dateObj.getTime())) {
+                            const formattedTime = dateObj.toLocaleString('en-US', {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: true
+                            });
+                            textContent = `[Sent: ${formattedTime}]\n${textContent}`;
+                        }
+                    } catch (e) {
+                        // ignore and use plain text
+                    }
+                }
+                
                 contents.push({
                     role: msg.role === 'user' ? 'user' : 'model',
-                    parts: [{ text: msg.text.trim() }]
+                    parts: [{ text: textContent }]
                 });
             }
         }
     }
 
     // Add current user message
+    let currentMsgText = message.trim();
+    const currentFormattedTime = new Date().toLocaleString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+    });
+    currentMsgText = `[Sent: ${currentFormattedTime}]\n${currentMsgText}`;
+
     contents.push({
         role: 'user',
-        parts: [{ text: message.trim() }]
+        parts: [{ text: currentMsgText }]
     });
 
     // List of models to try in descending order of preference/stability.
