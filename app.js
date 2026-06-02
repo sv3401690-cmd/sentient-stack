@@ -4529,10 +4529,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function getActiveSessionId() {
-        let id = sessionStorage.getItem(ACTIVE_SESSION_ID_KEY);
+        let id = localStorage.getItem(ACTIVE_SESSION_ID_KEY);
         if (!id) {
             id = 'session-' + Date.now();
-            sessionStorage.setItem(ACTIVE_SESSION_ID_KEY, id);
+            localStorage.setItem(ACTIVE_SESSION_ID_KEY, id);
         }
         return id;
     }
@@ -4649,7 +4649,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function selectSession(sessionId) {
-        sessionStorage.setItem(ACTIVE_SESSION_ID_KEY, sessionId);
+        localStorage.setItem(ACTIVE_SESSION_ID_KEY, sessionId);
         renderSessionsList();
         renderChatHistory();
     }
@@ -4661,7 +4661,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // If we deleted the current active session, reset active session ID
         if (getActiveSessionId() === sessionId) {
-            sessionStorage.removeItem(ACTIVE_SESSION_ID_KEY);
+            localStorage.removeItem(ACTIVE_SESSION_ID_KEY);
         }
         
         renderSessionsList();
@@ -4848,7 +4848,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (newChatBtn) {
         newChatBtn.addEventListener('click', () => {
-            sessionStorage.removeItem(ACTIVE_SESSION_ID_KEY); // Force create new session ID
+            localStorage.removeItem(ACTIVE_SESSION_ID_KEY); // Force create new session ID
             isContinuousVoiceActive = false; // Turn off voice loop
             renderSessionsList();
             renderChatHistory();
