@@ -1554,6 +1554,106 @@ document.addEventListener('DOMContentLoaded', () => {
     if (settingsClose) settingsClose.addEventListener('click', hideSettings);
     if (funZoneClose) funZoneClose.addEventListener('click', hideFunZone);
 
+    // Custom Assistant Name handlers
+    const assistantNameInput = document.getElementById('assistant-name-input');
+    const saveAssistantNameBtn = document.getElementById('save-assistant-name-btn');
+    const assistantNameStatus = document.getElementById('assistant-name-status');
+
+    let assistantName = localStorage.getItem('naz-assistant-name') || 'NAZ';
+
+    function updateAssistantNameUI(name) {
+        // Update tab title
+        document.title = `${name} Voice Portal`;
+
+        const nameUpper = name.toUpperCase();
+
+        // Update top-left status title if it's the core engine
+        const statusTextEl = document.getElementById('status-text');
+        const selectedEngine = localStorage.getItem('naz-engine') || 'naz-core';
+        const engineNames = {
+            'naz-core': `${nameUpper}-CORE v1.0`,
+            'quantum-x': 'QUANTUM-X v2.4',
+            'phantom': 'PHANTOM v0.9',
+            'nebula': 'NEBULA v3.1'
+        };
+
+        // Mutate global statuses array so top ticker uses the custom name
+        if (typeof statuses !== 'undefined' && Array.isArray(statuses)) {
+            statuses[0] = engineNames[selectedEngine] || `${nameUpper}-CORE v1.0`;
+        }
+
+        if (statusTextEl && selectedEngine === 'naz-core' && !isBeastMode) {
+            statusTextEl.textContent = `${nameUpper}-CORE v1.0`;
+        }
+
+        // Update settings engine name
+        const settingsEngineName = document.getElementById('settings-engine-name');
+        if (settingsEngineName && selectedEngine === 'naz-core') {
+            settingsEngineName.textContent = `${nameUpper}-CORE v1.0`;
+        }
+
+        // Update chat window title
+        const chatTitleEl = document.querySelector('.chat-panel-title span:last-child');
+        if (chatTitleEl) {
+            chatTitleEl.textContent = `${nameUpper} SYNAPSE INTERFACE`;
+        }
+
+        // Update chat input placeholder
+        const chatInputEl = document.getElementById('chat-input-field');
+        if (chatInputEl) {
+            chatInputEl.placeholder = `Type a message to ${name}...`;
+        }
+
+        // Update AI Output Header Card
+        const aiCardHeader = document.querySelector('.ai-card .card-header');
+        if (aiCardHeader) {
+            aiCardHeader.textContent = `${nameUpper}_CORE_OUTPUT`;
+        }
+        
+        // Update document metadata title if iOS
+        const appleTitleMeta = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+        if (appleTitleMeta) {
+            appleTitleMeta.setAttribute('content', `${name} Core`);
+        }
+    }
+
+    // Apply the assistant name UI updates on load
+    if (assistantNameInput && saveAssistantNameBtn && assistantNameStatus) {
+        assistantNameInput.value = assistantName;
+        updateAssistantNameUI(assistantName);
+
+        saveAssistantNameBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const val = assistantNameInput.value.trim();
+            if (val) {
+                assistantName = val;
+                localStorage.setItem('naz-assistant-name', val);
+                updateAssistantNameUI(val);
+
+                assistantNameStatus.textContent = `Status: Core renamed to ${val}!`;
+                assistantNameStatus.style.color = 'var(--accent-cyan)';
+                assistantNameStatus.style.display = 'block';
+
+                const displayMsg = `System: Core renamed to ${val}.`;
+                const aiTextEl = document.getElementById('ai-text');
+                if (aiTextEl) aiTextEl.textContent = displayMsg;
+                if (typeof speakAloud === 'function') speakAloud(`Core renamed to ${val}.`);
+            } else {
+                assistantNameStatus.textContent = 'Status: Name cannot be empty.';
+                assistantNameStatus.style.color = '#ff4a5a';
+                assistantNameStatus.style.display = 'block';
+            }
+        });
+
+        // Highlight input field focus outline
+        assistantNameInput.addEventListener('focus', () => {
+            assistantNameInput.style.borderColor = 'var(--accent-cyan)';
+        });
+        assistantNameInput.addEventListener('blur', () => {
+            assistantNameInput.style.borderColor = 'rgba(255,255,255,0.08)';
+        });
+    }
+
     // Custom API Key Settings handlers
     const apiKeyInput = document.getElementById('custom-api-key-input');
     const saveApiKeyBtn = document.getElementById('save-api-key-btn');
@@ -4609,11 +4709,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const bubbleWrapper = document.createElement('div');
         bubbleWrapper.className = `chat-message ${role === 'user' ? 'user' : (role === 'system' ? 'system' : 'model')}`;
         
-        // Add high-tech metadata label (except for system notification text)
         if (role !== 'system') {
             const meta = document.createElement('div');
             meta.className = 'chat-message-meta';
-            meta.textContent = role === 'user' ? '👤 VISHAL' : '🤖 NAZ';
+            const currentName = (localStorage.getItem('naz-assistant-name') || 'NAZ').toUpperCase();
+            meta.textContent = role === 'user' ? '👤 VISHAL' : `🤖 ${currentName}`;
             bubbleWrapper.appendChild(meta);
         }
 
@@ -5673,12 +5773,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers['x-gemini-api-key'] = customApiKey;
             }
 
+            const currentName = localStorage.getItem('naz-assistant-name') || 'NAZ';
             const res = await fetch(apiEndpoint, {
                 method: 'POST',
                 headers: headers,
                 body: JSON.stringify({
                     message: queryText,
-                    history: history
+                    history: history,
+                    assistantName: currentName
                 })
             });
 

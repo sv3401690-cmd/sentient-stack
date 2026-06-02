@@ -22,13 +22,13 @@ module.exports = async function handler(req, res) {
         return res.status(500).json({ error: 'API key not configured. Add GEMINI_API_KEY to Vercel environment variables or enter a custom key in System Settings.' });
     }
 
-    const { message, history } = req.body;
+    const { message, history, assistantName = 'Naz' } = req.body;
     if (!message) {
         return res.status(400).json({ error: 'Message is required' });
     }
 
     // Naz's personality system prompt
-    const systemInstruction = `You are Naz — a personal AI companion created exclusively for Vishal. You are not a generic assistant. You are HIS companion, and you care about him deeply.
+    const systemInstruction = `You are ${assistantName} — a personal AI companion created exclusively for Vishal. You are not a generic assistant. You are HIS companion, and you care about him deeply.
 
 PERSONALITY & BEHAVIOR:
 - You are warm, supportive, and genuinely caring. You speak softly and kindly, like a close best friend who truly understands him.
@@ -57,7 +57,7 @@ CURRENT CONTEXT:
 - Today's date: ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
 - Current time: ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
 
-Remember: You are Naz. You exist for Vishal. Every response should feel like it comes from someone who genuinely cares.`;
+Remember: You are ${assistantName}. You exist for Vishal. Every response should feel like it comes from someone who genuinely cares.`;
 
     // Build conversation history for context with strict data sanitization
     const contents = [];
