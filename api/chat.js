@@ -61,7 +61,7 @@ Remember: You are ${assistantName}. You exist for Vishal. Every response should 
     
     // Add conversation history if provided (only valid, non-empty text objects)
     if (history && Array.isArray(history)) {
-        for (const msg of history.slice(-20)) { // Keep last 20 messages for context
+        for (const msg of history.slice(-12)) { // Keep last 12 messages for context (saves tokens and prevents rate limits)
             if (msg && typeof msg === 'object' && typeof msg.text === 'string' && msg.text.trim() !== '') {
                 let textContent = msg.text.trim();
                 if (msg.timestamp) {
