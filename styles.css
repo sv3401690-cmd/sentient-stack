@@ -467,7 +467,7 @@ body.cursor-active #cursor-trail-canvas {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    font-family: monospace;
+    font-family: 'Outfit', sans-serif;
     letter-spacing: 1px;
     pointer-events: none;
 }
@@ -914,7 +914,7 @@ body.cursor-active #cursor-trail-canvas {
 }
 
 .card-header {
-    font-family: monospace;
+    font-family: 'Outfit', sans-serif;
     font-size: 0.65rem;
     color: var(--accent-purple);
     letter-spacing: 2px;
@@ -996,11 +996,11 @@ body.cursor-active #cursor-trail-canvas {
 }
 
 .setting-item label {
-    font-family: monospace;
+    font-family: 'Outfit', sans-serif;
     font-size: 0.68rem;
-    letter-spacing: 2px;
+    letter-spacing: 1px;
     color: var(--accent-purple);
-    font-weight: 800;
+    font-weight: 700;
 }
 
 .hud-select {
@@ -1010,7 +1010,7 @@ body.cursor-active #cursor-trail-canvas {
     border-radius: 12px;
     padding: 8px 12px;
     color: var(--text-main);
-    font-family: monospace;
+    font-family: 'Outfit', sans-serif;
     font-size: 0.75rem;
     outline: none;
     cursor: pointer;
@@ -1104,7 +1104,7 @@ body.cursor-active #cursor-trail-canvas {
 }
 
 .sync-status {
-    font-family: monospace;
+    font-family: 'Outfit', sans-serif;
     font-size: 0.65rem;
     letter-spacing: 1px;
     color: var(--accent-cyan);
@@ -1384,7 +1384,7 @@ button svg { width: 22px; height: 22px; }
     font-size: 0.8rem;
     letter-spacing: 3px;
     color: var(--text-main);
-    font-family: monospace;
+    font-family: 'Outfit', sans-serif;
 }
 
 @keyframes themePulse {
@@ -1811,7 +1811,7 @@ button svg { width: 22px; height: 22px; }
 }
 
 .boot-text {
-    font-family: monospace;
+    font-family: 'Outfit', sans-serif;
     font-size: 0.65rem;
     letter-spacing: 4px;
     color: var(--accent-cyan);
@@ -2412,7 +2412,7 @@ body.boot-complete .glow-orb {
     line-height: 1.6;
     color: var(--text-dim);
     margin-bottom: 20px;
-    font-family: monospace;
+    font-family: 'Outfit', sans-serif;
 }
 
 /* Action button inside Fun Zone */
@@ -2482,7 +2482,7 @@ body.boot-complete .glow-orb {
 }
 
 .core-fun-hud {
-    font-family: monospace;
+    font-family: 'Outfit', sans-serif;
     font-size: 0.68rem;
     color: var(--text-dim);
     display: flex;
@@ -2728,7 +2728,7 @@ body.boot-complete .glow-orb {
 .lock-hint {
     font-size: 0.68rem;
     color: rgba(255, 255, 255, 0.5);
-    font-family: monospace;
+    font-family: 'Outfit', sans-serif;
 }
 
 .lock-error-msg {
@@ -2893,13 +2893,13 @@ body.beast-mode-active .core-aura {
 .settings-sub {
     font-size: 0.62rem;
     color: var(--text-dim);
-    font-family: monospace;
+    font-family: 'Outfit', sans-serif;
 }
 
 .settings-value {
     font-size: 0.74rem;
     color: #ffffff;
-    font-family: monospace;
+    font-family: 'Outfit', sans-serif;
     text-align: right;
     white-space: nowrap;
     flex-shrink: 0;
@@ -3191,7 +3191,7 @@ body.beast-mode-active .core-aura {
     color: rgba(255, 255, 255, 0.4);
     padding: 5px 12px;
     border-radius: 8px;
-    font-family: monospace;
+    font-family: 'Outfit', sans-serif;
     font-size: 0.62rem;
     letter-spacing: 0.5px;
     text-transform: uppercase;
