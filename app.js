@@ -1083,9 +1083,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (focusToggleBtn) {
+        if (focusToggleBtn.type === 'checkbox') {
+            focusToggleBtn.checked = isFocusMode;
+        }
+
         focusToggleBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            isFocusMode = !isFocusMode;
+            if (focusToggleBtn.type === 'checkbox') {
+                isFocusMode = focusToggleBtn.checked;
+            } else {
+                isFocusMode = !isFocusMode;
+            }
 
             const coreEl = document.getElementById('ai-core');
             const aiTextEl = document.getElementById('ai-text');

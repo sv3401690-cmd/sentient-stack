@@ -301,12 +301,17 @@
                         </select>
                     </div>
 
-                    <div class="setting-item" style="margin-bottom: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.08);">
-                        <label style="display: block; font-size: 0.72rem; color: var(--accent-cyan); letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">• FOCUS MODE</label>
-                        <button class="focus-toggle-btn" id="focus-toggle-btn" data-tooltip="Activate deep focus — silence all distractions">
-                            <span class="focus-icon">🔕</span>
-                            <span class="focus-label" id="focus-label">FOCUS: OFF</span>
-                        </button>
+                    <div class="setting-item" style="margin-bottom: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                        <div style="flex: 1;">
+                            <label style="display: block; font-size: 0.72rem; color: var(--accent-cyan); letter-spacing: 1px; margin-bottom: 4px; font-weight: 600; text-transform: uppercase;">• FOCUS MODE</label>
+                            <span id="focus-label" style="font-size: 0.65rem; color: var(--text-dim); display: block; line-height: 1.2;">FOCUS: OFF</span>
+                        </div>
+                        <div class="settings-action">
+                            <label class="switch-container" data-tooltip="Activate deep focus — silence all distractions">
+                                <input type="checkbox" id="focus-toggle-btn">
+                                <span class="switch-slider"></span>
+                            </label>
+                        </div>
                     </div>
 
                     <div class="setting-item" style="margin-bottom: 20px;">
