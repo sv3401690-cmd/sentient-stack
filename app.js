@@ -5740,6 +5740,156 @@ document.addEventListener('DOMContentLoaded', () => {
         voiceTrigger.addEventListener('click', triggerVoiceActive);
     }
 
+    // Helper to extract and strip command tags from AI response
+    function extractCommands(text) {
+        const commands = [];
+        const pattern = /\[CMD:\s*([A-Z_]+)(?::\s*([^\]]+))?\]/gi;
+        let match;
+        // Search all command occurrences
+        while ((match = pattern.exec(text)) !== null) {
+            commands.push({
+                action: match[1].toUpperCase().trim(),
+                value: match[2] ? match[2].trim() : null
+            });
+        }
+        // Clean text by stripping command tags
+        const cleanedText = text.replace(pattern, '').trim();
+        return { cleanedText, commands };
+    }
+
+    // Helper to execute autonomous actions programmatically on the UI
+    function executeAutonomousCommand(action, value) {
+        console.log(`[Naz Autonomy] Executing command: [${action}] with value: [${value}]`);
+        try {
+            switch (action.toUpperCase()) {
+                case 'SET_CURSOR':
+                    if (value) {
+                        const target = value.toLowerCase().trim();
+                        const cursorOpts = document.querySelectorAll('.cursor-opt');
+                        let matched = false;
+                        cursorOpts.forEach(btn => {
+                            if (btn.getAttribute('data-style') === target) {
+                                btn.click();
+                                matched = true;
+                            }
+                        });
+                        if (!matched) {
+                            cursorOpts.forEach(btn => {
+                                if (btn.textContent.toLowerCase().trim() === target) {
+                                    btn.click();
+                                    matched = true;
+                                }
+                            });
+                        }
+                    }
+                    break;
+                case 'SET_CORE':
+                    if (value) {
+                        const target = value.toLowerCase().trim();
+                        const coreDesignOpts = document.querySelectorAll('.core-design-opt');
+                        let matched = false;
+                        coreDesignOpts.forEach(btn => {
+                            if (btn.getAttribute('data-design') === target) {
+                                btn.click();
+                                matched = true;
+                            }
+                        });
+                        if (!matched) {
+                            coreDesignOpts.forEach(btn => {
+                                if (btn.textContent.toLowerCase().trim() === target) {
+                                    btn.click();
+                                    matched = true;
+                                }
+                            });
+                        }
+                    }
+                    break;
+                case 'SET_ARM':
+                    if (value) {
+                        const target = value.toLowerCase().trim();
+                        const armStyleOpts = document.querySelectorAll('.arm-opt');
+                        let matched = false;
+                        armStyleOpts.forEach(btn => {
+                            if (btn.getAttribute('data-style') === target) {
+                                btn.click();
+                                matched = true;
+                            }
+                        });
+                        if (!matched) {
+                            armStyleOpts.forEach(btn => {
+                                if (btn.textContent.toLowerCase().trim() === target) {
+                                    btn.click();
+                                    matched = true;
+                                }
+                            });
+                        }
+                        if (matched) {
+                            const previewTrigger = document.getElementById('fun-arms-preview-trigger');
+                            if (previewTrigger) previewTrigger.click();
+                        }
+                    }
+                    break;
+                case 'SET_ENGINE':
+                    if (value) {
+                        const target = value.toLowerCase().trim();
+                        let engineKey = target;
+                        if (target.includes('naz')) engineKey = 'naz-core';
+                        else if (target.includes('quantum')) engineKey = 'quantum-x';
+                        else if (target.includes('phantom')) engineKey = 'phantom';
+                        else if (target.includes('nebula')) engineKey = 'nebula';
+
+                        if (typeof switchEngine === 'function') {
+                            switchEngine(engineKey);
+                            const engineContainer = document.getElementById('engine-options');
+                            if (engineContainer) {
+                                const engineBtns = engineContainer.querySelectorAll('.engine-opt');
+                                engineBtns.forEach(b => {
+                                    b.classList.remove('active');
+                                    if (b.dataset.engine === engineKey) b.classList.add('active');
+                                });
+                            }
+                            const chatEngineContainer = document.getElementById('chat-engine-options');
+                            if (chatEngineContainer) {
+                                const chatEngineBtns = chatEngineContainer.querySelectorAll('.chat-engine-opt');
+                                chatEngineBtns.forEach(b => {
+                                    b.classList.remove('active');
+                                    if (b.dataset.engine === engineKey) b.classList.add('active');
+                                });
+                            }
+                        }
+                    }
+                    break;
+                case 'FOCUS':
+                    if (value) {
+                        const shouldBeOn = (value.toUpperCase() === 'ON');
+                        const focusToggleBtn = document.getElementById('focus-toggle-btn');
+                        if (focusToggleBtn && isFocusMode !== shouldBeOn) {
+                            if (focusToggleBtn.type === 'checkbox') {
+                                focusToggleBtn.checked = shouldBeOn;
+                            }
+                            focusToggleBtn.click();
+                        }
+                    }
+                    break;
+                case 'LOCK_SCREEN':
+                    if (typeof triggerLockdown === 'function') {
+                        triggerLockdown();
+                    }
+                    break;
+                case 'NEW_CHAT':
+                    const newChatBtn = document.getElementById('new-chat-btn');
+                    if (newChatBtn) {
+                        newChatBtn.click();
+                    }
+                    break;
+                default:
+                    console.warn(`[Naz Autonomy] Unknown action command: ${action}`);
+            }
+        } catch (err) {
+            console.error('[Naz Autonomy] Error executing command:', err);
+        }
+    }
+
     async function simulateAIResponse(queryText, isVoiceMode = false) {
         voiceState = 'processing';
         aiCore.classList.add('thinking');
@@ -5748,7 +5898,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Dynamic slide: Ensure the side chat panel is visible when AI starts responding
         openChatPanel();
-
+ 
         // Update active message list to show user message if it is not already there
         const history = getChatHistory();
         const userExists = history.length > 0 && history[history.length - 1].role === 'user' && history[history.length - 1].text === queryText;
@@ -5756,13 +5906,14 @@ document.addEventListener('DOMContentLoaded', () => {
             history.push({ role: 'user', text: queryText, timestamp: new Date().toISOString() });
             appendMessageBubble('user', queryText);
         }
-
+ 
         const cursorSpan = document.createElement('span');
         cursorSpan.className = 'typing-cursor';
         aiTextElement.appendChild(cursorSpan);
-
+ 
         let response = '';
-
+        let parsedCommands = [];
+ 
         // Use production API URL if testing locally (file://, localhost, or local IP) to bypass local environment gaps
         const isLocal = window.location.hostname === 'localhost' || 
                         window.location.hostname === '127.0.0.1' || 
@@ -5773,14 +5924,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         !window.location.hostname.includes('.') || 
                         window.location.protocol === 'file:';
         const apiEndpoint = isLocal ? 'https://sentient-stack.vercel.app/api/chat' : '/api/chat';
-
+ 
         try {
             const customApiKey = localStorage.getItem('naz-custom-api-key') || '';
             const headers = { 'Content-Type': 'application/json' };
             if (customApiKey) {
                 headers['x-gemini-api-key'] = customApiKey;
             }
-
+ 
             const currentName = localStorage.getItem('naz-assistant-name') || 'NAZ';
             const res = await fetch(apiEndpoint, {
                 method: 'POST',
@@ -5788,18 +5939,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({
                     message: queryText,
                     history: history,
-                    assistantName: currentName
+                    assistantName: currentName,
+                    isBeastMode: isBeastMode
                 })
             });
-
+ 
             if (!res.ok) {
                 const errData = await res.json().catch(() => ({}));
                 throw new Error(errData.error || `Server responded with ${res.status}`);
             }
-
+ 
             const data = await res.json();
-            response = data.reply || "Hmm, I couldn't form a thought there. Try asking me again?";
-
+            const rawReply = data.reply || "Hmm, I couldn't form a thought there. Try asking me again?";
+            
+            // Extract command tags and clean response text
+            const extraction = extractCommands(rawReply);
+            response = extraction.cleanedText;
+            parsedCommands = extraction.commands;
+ 
         } catch (err) {
             console.error('Naz API error:', err);
             // Graceful fallback — Naz still responds with personality
@@ -5811,10 +5968,17 @@ document.addEventListener('DOMContentLoaded', () => {
             ];
             response = fallbacks[Math.floor(Math.random() * fallbacks.length)];
         }
-
+ 
         // Save Naz's response to history
         history.push({ role: 'model', text: response, timestamp: new Date().toISOString() });
         saveChatHistory(history);
+ 
+        // Execute the parsed commands immediately
+        if (parsedCommands && parsedCommands.length > 0) {
+            parsedCommands.forEach(cmd => {
+                executeAutonomousCommand(cmd.action, cmd.value);
+            });
+        }
 
         // Render Naz's message bubble as empty first, then fill it using typewriter
         appendMessageBubble('model', '');
