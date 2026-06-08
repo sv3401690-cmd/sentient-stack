@@ -316,19 +316,20 @@ body.cursor-active #cursor-trail-canvas {
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(8px);
 }
 
 .theme-toggle:hover, .cursor-settings-toggle:hover, .chat-toggle:hover {
-    transform: rotate(15deg) scale(1.1);
+    transform: translateY(-2px);
     background: rgba(255, 255, 255, 0.08);
-    border-color: var(--accent-cyan);
-    box-shadow: 0 0 15px rgba(var(--accent-cyan-rgb), 0.4);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35);
 }
 
 .theme-toggle:active, .cursor-settings-toggle:active, .chat-toggle:active {
-    transform: scale(0.95);
+    transform: translateY(0);
 }
 
 .theme-icon, .settings-icon, .chat-icon {
@@ -1037,33 +1038,34 @@ body.cursor-active #cursor-trail-canvas {
 .cursor-opt, .charge-opt, .core-design-opt, .arm-opt {
     flex: 1 1 calc(50% - 4px);
     min-width: 80px;
-    background: rgba(10, 10, 15, 0.6);
+    background: rgba(255, 255, 255, 0.02);
     border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 10px;
-    padding: 8px 10px;
-    color: rgba(255, 255, 255, 0.6);
-    font-family: monospace;
-    font-size: 0.68rem;
+    border-radius: 20px;
+    padding: 8px 16px;
+    color: rgba(255, 255, 255, 0.55);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.72rem;
     font-weight: 600;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     outline: none;
     text-align: center;
 }
 
 .cursor-opt:hover, .charge-opt:hover, .core-design-opt:hover, .arm-opt:hover {
-    background: rgba(255, 255, 255, 0.04);
-    border-color: rgba(var(--accent-cyan-rgb), 0.3);
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(var(--accent-cyan-rgb), 0.25);
     color: var(--text-main);
+    transform: translateY(-1px);
 }
 
 .cursor-opt.active, .charge-opt.active, .core-design-opt.active, .arm-opt.active {
-    background: rgba(var(--accent-cyan-rgb), 0.1);
+    background: rgba(var(--accent-cyan-rgb), 0.08);
     border-color: var(--accent-cyan);
     color: var(--accent-cyan);
-    font-weight: 800;
-    box-shadow: 0 0 12px rgba(var(--accent-cyan-rgb), 0.25), inset 0 0 4px rgba(var(--accent-cyan-rgb), 0.15);
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(var(--accent-cyan-rgb), 0.12);
 }
 
 /* Settings Sync Buttons */
@@ -1075,26 +1077,26 @@ body.cursor-active #cursor-trail-canvas {
 
 .sync-btn {
     flex: 1;
-    background: rgba(10, 10, 15, 0.6);
+    background: rgba(255, 255, 255, 0.02);
     border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 10px;
-    padding: 10px 10px;
+    border-radius: 20px;
+    padding: 10px 16px;
     color: rgba(255, 255, 255, 0.7);
-    font-family: monospace;
-    font-size: 0.68rem;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.72rem;
     font-weight: 600;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     outline: none;
     text-align: center;
 }
 
 .sync-btn:hover {
-    background: rgba(var(--accent-cyan-rgb), 0.08);
-    border-color: rgba(var(--accent-cyan-rgb), 0.4);
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(var(--accent-cyan-rgb), 0.25);
     color: var(--accent-cyan);
-    box-shadow: 0 0 15px rgba(var(--accent-cyan-rgb), 0.15);
+    transform: translateY(-1px);
 }
 
 .sync-btn:active {
@@ -1264,8 +1266,8 @@ button {
 }
 
 button:hover {
-    transform: scale(1.15);
-    box-shadow: 0 0 25px var(--accent-cyan);
+    transform: scale(1.08);
+    box-shadow: 0 8px 20px rgba(var(--accent-cyan-rgb), 0.3);
 }
 
 button svg { width: 22px; height: 22px; }
@@ -2108,38 +2110,33 @@ body.boot-complete .glow-orb {
     justify-content: center;
     gap: 10px;
     padding: 11px 20px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1.5px solid rgba(255, 255, 255, 0.12);
-    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
     color: var(--text-dim);
     font-family: 'Outfit', sans-serif;
     font-size: 0.72rem;
     font-weight: 600;
-    letter-spacing: 2px;
+    letter-spacing: 0.5px;
     cursor: pointer;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     text-transform: uppercase;
     outline: none;
     margin-top: 5px;
 }
 
 .focus-toggle-btn:hover {
-    background: rgba(var(--accent-purple-rgb), 0.1);
-    border-color: rgba(var(--accent-purple-rgb), 0.4);
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(var(--accent-purple-rgb), 0.25);
     color: var(--text-main);
+    transform: translateY(-1px);
 }
 
 .focus-toggle-btn.focus-active {
-    background: linear-gradient(135deg, rgba(var(--accent-purple-rgb), 0.25), rgba(120, 80, 255, 0.2));
+    background: rgba(var(--accent-purple-rgb), 0.08);
     border-color: var(--accent-purple);
     color: #ffffff;
-    box-shadow: 0 0 20px rgba(var(--accent-purple-rgb), 0.3), inset 0 0 15px rgba(var(--accent-purple-rgb), 0.08);
-    animation: focusBtnPulse 3s ease-in-out infinite;
-}
-
-@keyframes focusBtnPulse {
-    0%, 100% { box-shadow: 0 0 20px rgba(var(--accent-purple-rgb), 0.3), inset 0 0 15px rgba(var(--accent-purple-rgb), 0.08); }
-    50% { box-shadow: 0 0 30px rgba(var(--accent-purple-rgb), 0.45), inset 0 0 20px rgba(var(--accent-purple-rgb), 0.12); }
+    box-shadow: 0 4px 12px rgba(var(--accent-purple-rgb), 0.12);
 }
 
 .focus-icon {
@@ -2187,17 +2184,17 @@ body.boot-complete .glow-orb {
 .engine-opt {
     flex: 1;
     min-width: 90px;
-    padding: 8px 10px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
+    padding: 8px 14px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 20px;
     color: var(--text-dim);
     font-family: 'Outfit', sans-serif;
-    font-size: 0.62rem;
+    font-size: 0.68rem;
     font-weight: 600;
-    letter-spacing: 1.2px;
+    letter-spacing: 0.5px;
     cursor: pointer;
-    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     text-transform: uppercase;
     outline: none;
     position: relative;
@@ -2220,18 +2217,17 @@ body.boot-complete .glow-orb {
 }
 
 .engine-opt:hover {
-    background: rgba(var(--accent-cyan-rgb), 0.1);
-    border-color: rgba(var(--accent-cyan-rgb), 0.3);
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(var(--accent-cyan-rgb), 0.25);
     color: var(--text-main);
     transform: translateY(-1px);
 }
 
 .engine-opt.active {
-    background: linear-gradient(135deg, rgba(var(--accent-cyan-rgb), 0.18), rgba(var(--accent-purple-rgb), 0.12));
+    background: rgba(var(--accent-cyan-rgb), 0.08);
     border-color: var(--accent-cyan);
-    color: #ffffff;
-    box-shadow: 0 0 14px rgba(var(--accent-cyan-rgb), 0.2);
-    text-shadow: 0 0 6px rgba(var(--accent-cyan-rgb), 0.5);
+    color: var(--accent-cyan);
+    box-shadow: 0 4px 12px rgba(var(--accent-cyan-rgb), 0.12);
 }
 
 /* Engine reboot flash on core */
@@ -2279,14 +2275,14 @@ body.boot-complete .glow-orb {
 }
 
 .fun-zone-toggle:hover {
-    transform: scale(1.1);
+    transform: translateY(-2px);
     background: rgba(255, 255, 255, 0.08);
-    border-color: var(--accent-purple);
-    box-shadow: 0 0 15px rgba(var(--accent-purple-rgb), 0.4);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35);
 }
 
 .fun-zone-toggle:active {
-    transform: scale(0.95);
+    transform: translateY(0);
 }
 
 .fun-icon {
@@ -2423,28 +2419,28 @@ body.boot-complete .glow-orb {
 .fun-action-btn {
     width: 100%;
     padding: 12px 20px;
-    background: linear-gradient(135deg, rgba(var(--accent-cyan-rgb), 0.25), rgba(var(--accent-purple-rgb), 0.2));
+    background: rgba(255, 255, 255, 0.02);
     border: 1.5px solid var(--accent-cyan);
-    border-radius: 12px;
+    border-radius: 30px;
     color: #ffffff;
     font-family: 'Outfit', sans-serif;
     font-size: 0.75rem;
     font-weight: 700;
-    letter-spacing: 2px;
+    letter-spacing: 1.5px;
     cursor: pointer;
-    transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    box-shadow: 0 0 15px rgba(var(--accent-cyan-rgb), 0.25);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     outline: none;
 }
 
 .fun-action-btn:hover {
-    background: linear-gradient(135deg, rgba(var(--accent-cyan-rgb), 0.4), rgba(var(--accent-purple-rgb), 0.35));
-    box-shadow: 0 0 25px rgba(var(--accent-cyan-rgb), 0.5), 0 0 10px rgba(var(--accent-purple-rgb), 0.3);
+    background: rgba(var(--accent-cyan-rgb), 0.08);
+    border-color: var(--accent-cyan);
+    box-shadow: 0 4px 15px rgba(var(--accent-cyan-rgb), 0.2);
     transform: translateY(-1.5px);
 }
 
 .fun-action-btn:active {
-    transform: translateY(0.5px);
+    transform: translateY(0);
 }
 
 .sheesh-btn-color {
@@ -2918,40 +2914,40 @@ body.beast-mode-active .core-aura {
 /* Simple Action Buttons */
 .settings-btn {
     background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
     color: #ffffff;
-    padding: 6px 14px;
+    padding: 6px 16px;
     font-family: 'Outfit', sans-serif;
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 1px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
     cursor: pointer;
-    transition: all 0.25s ease;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     outline: none;
     white-space: nowrap;
     flex-shrink: 0;
 }
 
 .settings-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.25);
-    transform: translateY(-0.5px);
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
 }
 
 .settings-btn:active {
-    transform: translateY(0.5px);
+    transform: translateY(0);
 }
 
 .settings-btn.beast-action-btn {
     background: rgba(255, 74, 90, 0.08);
-    border-color: rgba(255, 74, 90, 0.35);
+    border-color: rgba(255, 74, 90, 0.3);
     color: #ff4a5a;
 }
 
 .settings-btn.beast-action-btn:hover {
-    background: rgba(255, 74, 90, 0.18);
-    border-color: rgba(255, 74, 90, 0.6);
+    background: rgba(255, 74, 90, 0.15);
+    border-color: rgba(255, 74, 90, 0.5);
     color: #ffffff;
 }
 
@@ -2959,6 +2955,7 @@ body.beast-mode-active .core-aura {
     background: #ff4a5a;
     border-color: #ff4a5a;
     color: #ffffff;
+    box-shadow: 0 4px 12px rgba(255, 74, 90, 0.2);
 }
 
 /* =================================================================
@@ -3359,31 +3356,32 @@ body.beast-mode-active .core-aura {
 .chat-engine-opt {
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 8px;
+    border-radius: 20px;
     color: rgba(255, 255, 255, 0.55);
     font-family: 'Outfit', sans-serif;
-    font-size: 0.64rem;
-    font-weight: 700;
-    padding: 8px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 8px 14px;
     cursor: pointer;
     text-align: center;
-    transition: all 0.25s ease;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
 }
 
 .chat-engine-opt:hover {
-    background: rgba(var(--accent-cyan-rgb), 0.05);
+    background: rgba(255, 255, 255, 0.06);
     border-color: rgba(var(--accent-cyan-rgb), 0.25);
     color: #ffffff;
+    transform: translateY(-1px);
 }
 
 .chat-engine-opt.active {
-    background: rgba(var(--accent-cyan-rgb), 0.1);
+    background: rgba(var(--accent-cyan-rgb), 0.08);
     border-color: var(--accent-cyan);
     color: var(--accent-cyan);
-    box-shadow: 0 0 12px rgba(var(--accent-cyan-rgb), 0.18);
+    box-shadow: 0 4px 12px rgba(var(--accent-cyan-rgb), 0.12);
 }
 
 .chat-active-board {
@@ -3476,3 +3474,4 @@ body.beast-mode-active .core-aura {
 .session-delete-btn:hover {
     color: #ff4a5a;
 }
+
