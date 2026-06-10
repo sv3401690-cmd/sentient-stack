@@ -5946,7 +5946,9 @@ document.addEventListener('DOMContentLoaded', () => {
  
             if (!res.ok) {
                 const errData = await res.json().catch(() => ({}));
-                throw new Error(errData.error || `Server responded with ${res.status}`);
+                const errMsg = errData.error || `Server responded with ${res.status}`;
+                const errDetails = errData.details || '';
+                throw { message: errMsg, details: errDetails };
             }
  
             const data = await res.json();
@@ -5959,14 +5961,21 @@ document.addEventListener('DOMContentLoaded', () => {
  
         } catch (err) {
             console.error('Naz API error:', err);
-            // Graceful fallback — Naz still responds with personality
-            const fallbacks = [
-                "Hey Vishal, I'm having a little trouble connecting to my brain right now. Give me a moment and try again? 💫",
-                "Oops, my neural link is being a bit shaky right now. Can you try again in a sec? I'm still here for you! 🌟",
-                "Something went wrong on my end, but don't worry — I'm not going anywhere. Try sending that again? 💜",
-                "My connection hiccuped! I really want to help you with that. Mind trying once more? ✨"
-            ];
-            response = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+            const errString = (err.message || '') + ' ' + (err.details || '');
+            if (errString.includes('API key') || errString.includes('key not valid') || errString.includes('400') || errString.includes('403')) {
+                response = "System Alert: The custom API Key saved in your Settings (⚙️) is invalid or expired. Please open Settings, go to API Configuration, completely clear the input field, and click Apply to return to the default server key.";
+            } else if (errString.includes('503') || errString.includes('high demand') || errString.includes('UNAVAILABLE')) {
+                response = "System Alert: Google's free Gemini servers are experiencing extremely high demand right now. Please wait a few seconds and try again, or add your own custom API Key in Settings (⚙️) to bypass the shared limits.";
+            } else {
+                // Graceful fallback — Naz still responds with personality
+                const fallbacks = [
+                    "Hey Vishal, I'm having a little trouble connecting to my brain right now. Give me a moment and try again? 💫",
+                    "Oops, my neural link is being a bit shaky right now. Can you try again in a sec? I'm still here for you! 🌟",
+                    "Something went wrong on my end, but don't worry — I'm not going anywhere. Try sending that again? 💜",
+                    "My connection hiccuped! I really want to help you with that. Mind trying once more? ✨"
+                ];
+                response = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+            }
         }
  
         // Save Naz's response to history
