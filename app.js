@@ -1720,8 +1720,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const localLlmStatus = document.getElementById('local-llm-status');
 
     let useLocalLLM = localStorage.getItem('naz-use-local-llm') === 'true';
-    let localApiUrl = localStorage.getItem('naz-local-api-url') || 'http://localhost:11434';
-    let localModelName = localStorage.getItem('naz-local-model') || 'gemma2';
+    let localApiUrl = localStorage.getItem('naz-local-api-url') || 'http://127.0.0.1:11434';
+    if (localApiUrl === 'http://localhost:11434') {
+        localApiUrl = 'http://127.0.0.1:11434';
+        localStorage.setItem('naz-local-api-url', localApiUrl);
+    }
+    let localModelName = localStorage.getItem('naz-local-model') || 'gemma2:2b';
+    if (localModelName === 'gemma2') {
+        localModelName = 'gemma2:2b';
+        localStorage.setItem('naz-local-model', localModelName);
+    }
 
     // Populate initial values in settings UI
     if (localLlmToggle) {
