@@ -1706,6 +1706,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Highlight input field focus outline
         apiKeyInput.addEventListener('focus', () => {
             apiKeyInput.style.borderColor = 'var(--accent-cyan)';
+        });
         apiKeyInput.addEventListener('blur', () => {
             apiKeyInput.style.borderColor = 'rgba(255,255,255,0.08)';
         });
