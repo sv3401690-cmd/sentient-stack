@@ -165,9 +165,9 @@ Rules:
     // List of models to try in descending order of preference/stability.
     // If a model is rate-limited or unavailable, we fallback gracefully to the next one.
     const modelsToTry = [
-        'gemini-3.5-flash',
-        'gemini-2.5-flash',
         'gemini-2.0-flash',
+        'gemini-1.5-flash',
+        'gemini-1.5-pro',
         'gemini-flash-latest'
     ];
 
