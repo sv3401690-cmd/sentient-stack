@@ -5991,7 +5991,7 @@ document.addEventListener('DOMContentLoaded', () => {
         aiTextElement.appendChild(cursorSpan);
 
         const currentName = localStorage.getItem('naz-assistant-name') || 'NAZ';
-        let response = `Abhi project complete nahi hua hai Vishal, thoda kaam pending hai! (Project isn't completed yet, some work is pending!) ⚙️`;
+        let response = `Project isn't completed yet, some work is pending! ⚙️`;
         let parsedCommands = [];
  
         // Save Naz's response to history

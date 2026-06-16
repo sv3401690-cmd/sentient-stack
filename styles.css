@@ -1048,24 +1048,26 @@ body.cursor-active #cursor-trail-canvas {
     font-weight: 600;
     letter-spacing: 0.5px;
     cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     outline: none;
     text-align: center;
+    backdrop-filter: blur(4px);
 }
 
 .cursor-opt:hover, .charge-opt:hover, .core-design-opt:hover, .arm-opt:hover {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(var(--accent-cyan-rgb), 0.25);
+    background: rgba(var(--accent-cyan-rgb), 0.05);
+    border-color: rgba(var(--accent-cyan-rgb), 0.4);
     color: var(--text-main);
-    transform: translateY(-1px);
+    transform: translateY(-1.5px);
+    box-shadow: 0 0 10px rgba(var(--accent-cyan-rgb), 0.15);
 }
 
 .cursor-opt.active, .charge-opt.active, .core-design-opt.active, .arm-opt.active {
-    background: rgba(var(--accent-cyan-rgb), 0.08);
+    background: linear-gradient(135deg, rgba(var(--accent-cyan-rgb), 0.12), rgba(var(--accent-cyan-rgb), 0.02));
     border-color: var(--accent-cyan);
     color: var(--accent-cyan);
     font-weight: 700;
-    box-shadow: 0 4px 12px rgba(var(--accent-cyan-rgb), 0.12);
+    box-shadow: 0 0 15px rgba(var(--accent-cyan-rgb), 0.25), inset 0 0 8px rgba(var(--accent-cyan-rgb), 0.1);
 }
 
 /* Settings Sync Buttons */
@@ -1077,8 +1079,8 @@ body.cursor-active #cursor-trail-canvas {
 
 .sync-btn {
     flex: 1;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 20px;
     padding: 10px 16px;
     color: rgba(255, 255, 255, 0.7);
@@ -1087,20 +1089,22 @@ body.cursor-active #cursor-trail-canvas {
     font-weight: 600;
     letter-spacing: 0.5px;
     cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     outline: none;
     text-align: center;
+    backdrop-filter: blur(8px);
 }
 
 .sync-btn:hover {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(var(--accent-cyan-rgb), 0.25);
+    background: rgba(var(--accent-cyan-rgb), 0.08);
+    border-color: rgba(var(--accent-cyan-rgb), 0.5);
     color: var(--accent-cyan);
-    transform: translateY(-1px);
+    transform: translateY(-1.5px);
+    box-shadow: 0 0 12px rgba(var(--accent-cyan-rgb), 0.2);
 }
 
 .sync-btn:active {
-    transform: scale(0.96);
+    transform: scale(0.97);
 }
 
 .sync-status {
@@ -2110,7 +2114,7 @@ body.boot-complete .glow-orb {
     justify-content: center;
     gap: 10px;
     padding: 11px 20px;
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 24px;
     color: var(--text-dim);
@@ -2119,24 +2123,26 @@ body.boot-complete .glow-orb {
     font-weight: 600;
     letter-spacing: 0.5px;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     text-transform: uppercase;
     outline: none;
     margin-top: 5px;
+    backdrop-filter: blur(8px);
 }
 
 .focus-toggle-btn:hover {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(var(--accent-purple-rgb), 0.25);
+    background: rgba(var(--accent-purple-rgb), 0.08);
+    border-color: rgba(var(--accent-purple-rgb), 0.5);
     color: var(--text-main);
-    transform: translateY(-1px);
+    box-shadow: 0 0 12px rgba(var(--accent-purple-rgb), 0.25);
+    transform: translateY(-1.5px);
 }
 
 .focus-toggle-btn.focus-active {
-    background: rgba(var(--accent-purple-rgb), 0.08);
+    background: linear-gradient(135deg, rgba(var(--accent-purple-rgb), 0.15), rgba(var(--accent-purple-rgb), 0.03));
     border-color: var(--accent-purple);
     color: #ffffff;
-    box-shadow: 0 4px 12px rgba(var(--accent-purple-rgb), 0.12);
+    box-shadow: 0 0 18px rgba(var(--accent-purple-rgb), 0.35), inset 0 0 8px rgba(var(--accent-purple-rgb), 0.1);
 }
 
 .focus-icon {
@@ -2419,8 +2425,8 @@ body.boot-complete .glow-orb {
 .fun-action-btn {
     width: 100%;
     padding: 12px 20px;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1.5px solid var(--accent-cyan);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(var(--accent-cyan-rgb), 0.4);
     border-radius: 30px;
     color: #ffffff;
     font-family: 'Outfit', sans-serif;
@@ -2428,19 +2434,23 @@ body.boot-complete .glow-orb {
     font-weight: 700;
     letter-spacing: 1.5px;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     outline: none;
+    backdrop-filter: blur(8px);
+    box-shadow: inset 0 0 8px rgba(var(--accent-cyan-rgb), 0.05);
 }
 
 .fun-action-btn:hover {
-    background: rgba(var(--accent-cyan-rgb), 0.08);
+    background: linear-gradient(135deg, rgba(var(--accent-cyan-rgb), 0.15), rgba(var(--accent-cyan-rgb), 0.03));
     border-color: var(--accent-cyan);
-    box-shadow: 0 4px 15px rgba(var(--accent-cyan-rgb), 0.2);
-    transform: translateY(-1.5px);
+    box-shadow: 0 0 20px rgba(var(--accent-cyan-rgb), 0.45), inset 0 0 10px rgba(var(--accent-cyan-rgb), 0.15);
+    transform: translateY(-2px);
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.4);
+    letter-spacing: 2px;
 }
 
 .fun-action-btn:active {
-    transform: translateY(0);
+    transform: translateY(-0.5px) scale(0.98);
 }
 
 .sheesh-btn-color {
@@ -2913,49 +2923,67 @@ body.beast-mode-active .core-aura {
 
 /* Simple Action Buttons */
 .settings-btn {
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 20px;
     color: #ffffff;
-    padding: 6px 16px;
+    padding: 6px 18px;
     font-family: 'Outfit', sans-serif;
     font-size: 0.72rem;
     font-weight: 600;
     letter-spacing: 0.5px;
     cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     outline: none;
     white-space: nowrap;
     flex-shrink: 0;
+    backdrop-filter: blur(8px);
 }
 
 .settings-btn:hover {
-    background: rgba(255, 255, 255, 0.09);
-    border-color: rgba(255, 255, 255, 0.2);
-    transform: translateY(-1px);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-1.5px);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
 }
 
 .settings-btn:active {
-    transform: translateY(0);
+    transform: translateY(-0.5px);
+}
+
+/* Dedicated Apply Button Refinement */
+.settings-btn.apply-btn {
+    background: rgba(var(--accent-cyan-rgb), 0.1);
+    border-color: rgba(var(--accent-cyan-rgb), 0.35);
+    color: var(--accent-cyan);
+}
+
+.settings-btn.apply-btn:hover {
+    background: rgba(var(--accent-cyan-rgb), 0.22);
+    border-color: var(--accent-cyan);
+    color: #ffffff;
+    box-shadow: 0 0 15px rgba(var(--accent-cyan-rgb), 0.35);
 }
 
 .settings-btn.beast-action-btn {
     background: rgba(255, 74, 90, 0.08);
-    border-color: rgba(255, 74, 90, 0.3);
+    border-color: rgba(255, 74, 90, 0.35);
     color: #ff4a5a;
 }
 
 .settings-btn.beast-action-btn:hover {
-    background: rgba(255, 74, 90, 0.15);
-    border-color: rgba(255, 74, 90, 0.5);
+    background: rgba(255, 74, 90, 0.18);
+    border-color: #ff4a5a;
     color: #ffffff;
+    box-shadow: 0 0 15px rgba(255, 74, 90, 0.3);
+    transform: translateY(-1.5px);
 }
 
 .settings-btn.beast-action-btn.active {
     background: #ff4a5a;
     border-color: #ff4a5a;
     color: #ffffff;
-    box-shadow: 0 4px 12px rgba(255, 74, 90, 0.2);
+    box-shadow: 0 0 18px rgba(255, 74, 90, 0.45), inset 0 0 8px rgba(255, 74, 90, 0.2);
 }
 
 /* =================================================================
@@ -3046,27 +3074,28 @@ body.beast-mode-active .core-aura {
     display: flex;
     align-items: center;
     gap: 6px;
-    background: rgba(var(--accent-cyan-rgb), 0.08);
-    border: 1px solid rgba(var(--accent-cyan-rgb), 0.3);
+    background: rgba(var(--accent-cyan-rgb), 0.05);
+    border: 1px solid rgba(var(--accent-cyan-rgb), 0.25);
     color: var(--accent-cyan);
     font-family: 'Outfit', sans-serif;
     font-size: 0.72rem;
     font-weight: 600;
-    padding: 6px 12px;
-    border-radius: 8px;
+    padding: 7px 16px;
+    border-radius: 20px;
     cursor: pointer;
-    transition: all 0.25s ease;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    backdrop-filter: blur(8px);
 }
 
 .new-chat-btn:hover {
-    background: rgba(var(--accent-cyan-rgb), 0.18);
+    background: rgba(var(--accent-cyan-rgb), 0.16);
     border-color: var(--accent-cyan);
-    box-shadow: 0 0 12px rgba(var(--accent-cyan-rgb), 0.35);
-    transform: translateY(-0.5px);
+    box-shadow: 0 0 15px rgba(var(--accent-cyan-rgb), 0.4);
+    transform: translateY(-1.5px);
 }
 
 .new-chat-btn:active {
-    transform: translateY(0.5px);
+    transform: translateY(-0.5px);
 }
 
 .close-chat-btn {
@@ -3232,29 +3261,30 @@ body.beast-mode-active .core-aura {
 }
 
 #chat-send-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.7);
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(var(--accent-cyan-rgb), 0.06);
+    border: 1px solid rgba(var(--accent-cyan-rgb), 0.3);
+    color: var(--accent-cyan);
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 0 4px rgba(var(--accent-cyan-rgb), 0.10);
 }
 
 #chat-send-btn:hover {
     background: var(--accent-cyan);
     border-color: var(--accent-cyan);
     color: #020205;
-    transform: translateY(-1px);
-    box-shadow: 0 0 14px rgba(var(--accent-cyan-rgb), 0.45);
+    transform: scale(1.06) rotate(-15deg);
+    box-shadow: 0 0 15px rgba(var(--accent-cyan-rgb), 0.5);
 }
 
 #chat-send-btn:active {
-    transform: translateY(0.5px);
+    transform: scale(0.96);
 }
 
 @keyframes bubbleFadeIn {
@@ -3496,39 +3526,37 @@ body.beast-mode-active .core-aura {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(180deg, #e2e2e7 0%, #ffffff 100%);
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     border-radius: 24px;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(4px);
 }
 
 .switch-slider:before {
     position: absolute;
     content: "";
-    height: 18px;
-    width: 18px;
-    left: 2px;
-    bottom: 2px;
-    background: #ffffff;
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background: rgba(255, 255, 255, 0.25);
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     border-radius: 50%;
-    /* Realistic drop shadow */
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.1), inset 0 0.5px 0 rgba(255, 255, 255, 0.4);
-    border: 0.5px solid rgba(0, 0, 0, 0.04);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 /* Vibrant professional electric blue when active */
 .switch-container input:checked + .switch-slider {
-    background: linear-gradient(180deg, #007aff 0%, #006ae6 100%);
-    border-color: #006ae6;
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1), 0 0 10px rgba(0, 122, 255, 0.3);
+    background: rgba(var(--accent-cyan-rgb), 0.12);
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 12px rgba(var(--accent-cyan-rgb), 0.3), inset 0 0 4px rgba(var(--accent-cyan-rgb), 0.2);
 }
 
 .switch-container input:checked + .switch-slider:before {
-    transform: translateX(20px);
-    background: #ffffff;
-    box-shadow: 0 3px 8px rgba(0, 122, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.1);
+    transform: translateX(18px);
+    background: var(--accent-cyan);
+    box-shadow: 0 0 8px var(--accent-cyan);
 }
 
 
